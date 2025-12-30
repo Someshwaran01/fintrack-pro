@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { CreditCardBill } from '../types';
+import React, { useState, useEffect } from 'react';
+import { CreditCardBill, Payment } from '../types';
 import { generateMonthOptions, BILL_CATEGORIES } from '../constants';
 
 interface CardTrackerProps {
@@ -10,9 +10,20 @@ interface CardTrackerProps {
   onDelete: (id: string) => void;
 }
 
+// Default bank cards
+const DEFAULT_CARDS = [
+  { cardName: 'HSBC', dueDate: '31' },
+  { cardName: 'RBL', dueDate: '9' },
+  { cardName: 'AXIS', dueDate: '2' },
+  { cardName: 'ICICI', dueDate: '16' },
+  { cardName: 'SBI', dueDate: '21' }
+];
+
 const CardTracker: React.FC<CardTrackerProps> = ({ bills, onAdd, onUpdate, onDelete }) => {
   const [selectedMonth, setSelectedMonth] = useState<string>(generateMonthOptions()[23]); // Defaults roughly to mid-2025
   const [isAdding, setIsAdding] = useState(false);
+  const [addingPaymentFor, setAddingPaymentFor] = useState<string | null>(null);
+  const [newPayment, setNewPayment] = useState({ amount: 0, date: new Date().toISOString().split('T')[0], note: '' });
   const [newBill, setNewBill] = useState<Partial<CreditCardBill>>({
     cardName: '',
     category: BILL_CATEGORIES[0],
@@ -22,14 +33,90 @@ const CardTracker: React.FC<CardTrackerProps> = ({ bills, onAdd, onUpdate, onDel
     totalAmount: 0,
     monthlyAmount: 0,
     paidAmount: 0,
+    payments: [],
     lastPaymentDate: '',
   });
+
+  // Helper function to calculate total paid from payments array
+  const calculateTotalPaid = (bill: CreditCardBill): number => {
+    if (bill.payments && bill.payments.length > 0) {
+      return bill.payments.reduce((sum, p) => sum + p.amount, 0);
+    }
+    return bill.paidAmount || 0; // Fallback to old field for backward compatibility
+  };
+
+  // Initialize default cards for the selected month if they don't exist
+  useEffect(() => {
+    const currentMonthBills = bills.filter(b => b.month === selectedMonth);
+    const existingCardNames = currentMonthBills.map(b => b.cardName);
+
+    DEFAULT_CARDS.forEach(defaultCard => {
+      if (!existingCardNames.includes(defaultCard.cardName)) {
+        const bill: CreditCardBill = {
+          id: `${defaultCard.cardName}-${selectedMonth}`,
+          cardName: defaultCard.cardName,
+          category: 'Banking',
+          dueDate: defaultCard.dueDate,
+          month: selectedMonth,
+          isEmi: false,
+          totalAmount: 0,
+          monthlyAmount: 0,
+          paidAmount: 0,
+          payments: [],
+          lastPaymentDate: ''
+        };
+        onAdd(bill);
+      }
+    });
+  }, [selectedMonth]);
 
   const filteredBills = bills.filter(b => b.month === selectedMonth);
 
   const totalDue = filteredBills.reduce((acc, b) => acc + b.monthlyAmount, 0);
-  const totalPaid = filteredBills.reduce((acc, b) => acc + b.paidAmount, 0);
+  const totalPaid = filteredBills.reduce((acc, b) => acc + calculateTotalPaid(b), 0);
   const status = totalPaid >= totalDue ? 'Success' : 'Check Payment';
+
+  const handleAddPayment = (billId: string) => {
+    if (!newPayment.amount || newPayment.amount <= 0) return;
+
+    const bill = bills.find(b => b.id === billId);
+    if (!bill) return;
+
+    const payment: Payment = {
+      id: Date.now().toString(),
+      amount: Number(newPayment.amount),
+      date: newPayment.date,
+      note: newPayment.note
+    };
+
+    const existingPayments = bill.payments || [];
+    const updatedPayments = [...existingPayments, payment];
+    const totalPaid = updatedPayments.reduce((sum, p) => sum + p.amount, 0);
+
+    onUpdate(billId, {
+      payments: updatedPayments,
+      paidAmount: totalPaid,
+      lastPaymentDate: newPayment.date
+    });
+
+    setAddingPaymentFor(null);
+    setNewPayment({ amount: 0, date: new Date().toISOString().split('T')[0], note: '' });
+  };
+
+  const handleDeletePayment = (billId: string, paymentId: string) => {
+    const bill = bills.find(b => b.id === billId);
+    if (!bill || !bill.payments) return;
+
+    const updatedPayments = bill.payments.filter(p => p.id !== paymentId);
+    const totalPaid = updatedPayments.reduce((sum, p) => sum + p.amount, 0);
+    const lastPayment = updatedPayments.length > 0 ? updatedPayments[updatedPayments.length - 1] : null;
+
+    onUpdate(billId, {
+      payments: updatedPayments,
+      paidAmount: totalPaid,
+      lastPaymentDate: lastPayment?.date || ''
+    });
+  };
 
   const handleSave = () => {
     if (!newBill.cardName || !newBill.monthlyAmount) return;
@@ -44,7 +131,8 @@ const CardTracker: React.FC<CardTrackerProps> = ({ bills, onAdd, onUpdate, onDel
       totalAmount: Number(newBill.totalAmount) || 0,
       tenure: newBill.tenure,
       monthlyAmount: Number(newBill.monthlyAmount) || 0,
-      paidAmount: Number(newBill.paidAmount) || 0,
+      paidAmount: 0,
+      payments: [],
       lastPaymentDate: newBill.lastPaymentDate
     };
     onAdd(bill);
@@ -56,7 +144,7 @@ const CardTracker: React.FC<CardTrackerProps> = ({ bills, onAdd, onUpdate, onDel
     <div className="p-4 space-y-4 pb-24">
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-bold">CC Bills</h2>
-        <select 
+        <select
           className="bg-white border border-gray-200 rounded-lg px-3 py-1 text-sm outline-none"
           value={selectedMonth}
           onChange={(e) => setSelectedMonth(e.target.value)}
@@ -114,29 +202,58 @@ const CardTracker: React.FC<CardTrackerProps> = ({ bills, onAdd, onUpdate, onDel
                     </div>
                   ) : <span className="text-gray-300">-</span>}
                 </td>
-                <td className="px-4 py-4 font-bold text-gray-700">₹{bill.monthlyAmount}</td>
                 <td className="px-4 py-4 space-y-1">
-                  <input 
-                    type="number" 
-                    placeholder="Amt"
-                    className="w-20 bg-gray-50 border rounded p-1 text-center block text-xs"
-                    value={bill.paidAmount}
-                    onChange={(e) => onUpdate(bill.id, { paidAmount: Number(e.target.value) })}
+                  <input
+                    type="number"
+                    placeholder="Due"
+                    className="w-20 bg-gray-50 border rounded p-1 text-center block text-xs font-bold"
+                    value={bill.monthlyAmount || ''}
+                    onChange={(e) => onUpdate(bill.id, { monthlyAmount: Number(e.target.value) })}
                   />
-                  <input 
-                    type="date"
-                    className="w-20 bg-gray-50 border rounded p-1 text-center block text-[9px]"
-                    value={bill.lastPaymentDate || ''}
-                    onChange={(e) => onUpdate(bill.id, { lastPaymentDate: e.target.value })}
-                  />
-                </td>
-                <td className={`px-4 py-4 font-bold ${bill.monthlyAmount - bill.paidAmount > 0 ? 'text-red-500' : 'text-green-500'}`}>
-                  ₹{bill.monthlyAmount - bill.paidAmount}
                 </td>
                 <td className="px-4 py-4">
-                  <button onClick={() => onDelete(bill.id)} className="text-red-400 hover:text-red-600 p-2">
-                    <i className="fa-solid fa-trash"></i>
-                  </button>
+                  <div className="space-y-1">
+                    <div className="flex items-center space-x-1">
+                      <span className="text-xs font-bold text-green-600">₹{calculateTotalPaid(bill)}</span>
+                      <button
+                        onClick={() => setAddingPaymentFor(bill.id)}
+                        className="text-indigo-500 hover:text-indigo-700 text-xs"
+                        title="Add Payment"
+                      >
+                        <i className="fa-solid fa-plus-circle"></i>
+                      </button>
+                    </div>
+                    {bill.payments && bill.payments.length > 0 && (
+                      <div className="text-[9px] text-gray-500 space-y-0.5">
+                        {bill.payments.slice(-2).map(payment => (
+                          <div key={payment.id} className="flex items-center justify-between bg-gray-50 px-1 py-0.5 rounded">
+                            <span>₹{payment.amount} • {payment.date}</span>
+                            <button
+                              onClick={() => handleDeletePayment(bill.id, payment.id)}
+                              className="text-red-400 hover:text-red-600 ml-1"
+                            >
+                              <i className="fa-solid fa-times"></i>
+                            </button>
+                          </div>
+                        ))}
+                        {bill.payments.length > 2 && (
+                          <span className="text-gray-400">+{bill.payments.length - 2} more</span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </td>
+                <td className={`px-4 py-4 font-bold ${bill.monthlyAmount - calculateTotalPaid(bill) > 0 ? 'text-red-500' : 'text-green-500'}`}>
+                  ₹{bill.monthlyAmount - calculateTotalPaid(bill)}
+                </td>
+                <td className="px-4 py-4">
+                  {DEFAULT_CARDS.some(dc => dc.cardName === bill.cardName) ? (
+                    <span className="text-gray-300 text-xs">Default</span>
+                  ) : (
+                    <button onClick={() => onDelete(bill.id)} className="text-red-400 hover:text-red-600 p-2">
+                      <i className="fa-solid fa-trash"></i>
+                    </button>
+                  )}
                 </td>
               </tr>
             ))}
@@ -149,77 +266,137 @@ const CardTracker: React.FC<CardTrackerProps> = ({ bills, onAdd, onUpdate, onDel
         </table>
       </div>
 
+      {/* Add Payment Modal */}
+      {addingPaymentFor && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white p-6 rounded-2xl shadow-xl max-w-md w-full">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="font-bold text-lg">Add Payment</h3>
+              <button onClick={() => setAddingPaymentFor(null)} className="text-gray-400">
+                <i className="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="text-xs font-bold text-gray-400 uppercase mb-1 block">Amount (₹)</label>
+                <input
+                  type="number"
+                  placeholder="Enter amount"
+                  className="w-full border p-3 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500"
+                  value={newPayment.amount || ''}
+                  onChange={e => setNewPayment({ ...newPayment, amount: Number(e.target.value) })}
+                  autoFocus
+                />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-gray-400 uppercase mb-1 block">Payment Date</label>
+                <input
+                  type="date"
+                  className="w-full border p-3 rounded-xl outline-none"
+                  value={newPayment.date}
+                  onChange={e => setNewPayment({ ...newPayment, date: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-gray-400 uppercase mb-1 block">Note (Optional)</label>
+                <input
+                  type="text"
+                  placeholder="e.g., Partial payment"
+                  className="w-full border p-3 rounded-xl outline-none"
+                  value={newPayment.note}
+                  onChange={e => setNewPayment({ ...newPayment, note: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className="flex space-x-3 pt-4">
+              <button
+                onClick={() => handleAddPayment(addingPaymentFor)}
+                className="flex-1 bg-indigo-600 text-white font-bold py-3 rounded-xl shadow-lg"
+              >
+                Add Payment
+              </button>
+              <button
+                onClick={() => setAddingPaymentFor(null)}
+                className="flex-1 bg-gray-100 text-gray-600 font-bold py-3 rounded-xl"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {isAdding ? (
         <div className="bg-white p-6 rounded-2xl shadow-xl border border-indigo-100 space-y-4 fixed inset-x-4 bottom-24 z-50 overflow-y-auto max-h-[75vh]">
           <div className="flex justify-between items-center">
-            <h3 className="font-bold text-lg">Add New Bill</h3>
+            <h3 className="font-bold text-lg">Add Custom Card</h3>
             <button onClick={() => setIsAdding(false)} className="text-gray-400"><i className="fa-solid fa-xmark"></i></button>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2">
               <label className="text-xs font-bold text-gray-400 uppercase mb-1 block">Card Name</label>
-              <input 
-                placeholder="e.g. HDFC Regalia" 
-                className="w-full border p-3 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500" 
-                value={newBill.cardName} 
-                onChange={e => setNewBill({...newBill, cardName: e.target.value})}
+              <input
+                placeholder="e.g. HDFC Regalia"
+                className="w-full border p-3 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500"
+                value={newBill.cardName}
+                onChange={e => setNewBill({ ...newBill, cardName: e.target.value })}
               />
             </div>
             <div className="col-span-2">
               <label className="text-xs font-bold text-gray-400 uppercase mb-1 block">Category</label>
-              <select 
-                className="w-full border p-3 rounded-xl outline-none bg-white" 
+              <select
+                className="w-full border p-3 rounded-xl outline-none bg-white"
                 value={newBill.category}
-                onChange={e => setNewBill({...newBill, category: e.target.value})}
+                onChange={e => setNewBill({ ...newBill, category: e.target.value })}
               >
                 {BILL_CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
               </select>
             </div>
             <div className="col-span-1">
               <label className="text-xs font-bold text-gray-400 uppercase mb-1 block">Due Date</label>
-              <input 
-                type="date" 
-                className="w-full border p-3 rounded-xl outline-none" 
-                value={newBill.dueDate} 
-                onChange={e => setNewBill({...newBill, dueDate: e.target.value})}
+              <input
+                type="date"
+                className="w-full border p-3 rounded-xl outline-none"
+                value={newBill.dueDate}
+                onChange={e => setNewBill({ ...newBill, dueDate: e.target.value })}
               />
             </div>
             <div className="col-span-1">
               <label className="text-xs font-bold text-gray-400 uppercase mb-1 block">Last Payment Date</label>
-              <input 
-                type="date" 
-                className="w-full border p-3 rounded-xl outline-none" 
-                value={newBill.lastPaymentDate} 
-                onChange={e => setNewBill({...newBill, lastPaymentDate: e.target.value})}
+              <input
+                type="date"
+                className="w-full border p-3 rounded-xl outline-none"
+                value={newBill.lastPaymentDate}
+                onChange={e => setNewBill({ ...newBill, lastPaymentDate: e.target.value })}
               />
             </div>
             <div className="col-span-1">
               <label className="text-xs font-bold text-gray-400 uppercase mb-1 block">Monthly Due (₹)</label>
-              <input 
-                type="number" 
-                placeholder="0" 
-                className="w-full border p-3 rounded-xl outline-none" 
-                value={newBill.monthlyAmount} 
-                onChange={e => setNewBill({...newBill, monthlyAmount: Number(e.target.value)})}
+              <input
+                type="number"
+                placeholder="0"
+                className="w-full border p-3 rounded-xl outline-none"
+                value={newBill.monthlyAmount}
+                onChange={e => setNewBill({ ...newBill, monthlyAmount: Number(e.target.value) })}
               />
             </div>
             <div className="col-span-1">
               <label className="text-xs font-bold text-gray-400 uppercase mb-1 block">Paid Amount (₹)</label>
-              <input 
-                type="number" 
-                placeholder="0" 
-                className="w-full border p-3 rounded-xl outline-none" 
-                value={newBill.paidAmount} 
-                onChange={e => setNewBill({...newBill, paidAmount: Number(e.target.value)})}
+              <input
+                type="number"
+                placeholder="0"
+                className="w-full border p-3 rounded-xl outline-none"
+                value={newBill.paidAmount}
+                onChange={e => setNewBill({ ...newBill, paidAmount: Number(e.target.value) })}
               />
             </div>
             <div className="col-span-2 flex items-center space-x-2 bg-indigo-50 p-2 rounded-lg">
-              <input 
-                type="checkbox" 
-                id="isEmi" 
+              <input
+                type="checkbox"
+                id="isEmi"
                 className="w-4 h-4 text-indigo-600 rounded"
-                checked={newBill.isEmi} 
-                onChange={e => setNewBill({...newBill, isEmi: e.target.checked})}
+                checked={newBill.isEmi}
+                onChange={e => setNewBill({ ...newBill, isEmi: e.target.checked })}
               />
               <label htmlFor="isEmi" className="text-sm font-semibold text-indigo-700">This is an EMI / Recurring</label>
             </div>
@@ -227,20 +404,20 @@ const CardTracker: React.FC<CardTrackerProps> = ({ bills, onAdd, onUpdate, onDel
               <>
                 <div className="col-span-1">
                   <label className="text-xs font-bold text-gray-400 uppercase mb-1 block">EMI Item</label>
-                  <input 
-                    placeholder="e.g. iPhone" 
-                    className="w-full border p-3 rounded-xl outline-none" 
-                    value={newBill.emiDetails} 
-                    onChange={e => setNewBill({...newBill, emiDetails: e.target.value})}
+                  <input
+                    placeholder="e.g. iPhone"
+                    className="w-full border p-3 rounded-xl outline-none"
+                    value={newBill.emiDetails}
+                    onChange={e => setNewBill({ ...newBill, emiDetails: e.target.value })}
                   />
                 </div>
                 <div className="col-span-1">
                   <label className="text-xs font-bold text-gray-400 uppercase mb-1 block">Tenure</label>
-                  <input 
-                    placeholder="e.g. 1/12" 
-                    className="w-full border p-3 rounded-xl outline-none" 
-                    value={newBill.tenure} 
-                    onChange={e => setNewBill({...newBill, tenure: e.target.value})}
+                  <input
+                    placeholder="e.g. 1/12"
+                    className="w-full border p-3 rounded-xl outline-none"
+                    value={newBill.tenure}
+                    onChange={e => setNewBill({ ...newBill, tenure: e.target.value })}
                   />
                 </div>
               </>
@@ -252,11 +429,13 @@ const CardTracker: React.FC<CardTrackerProps> = ({ bills, onAdd, onUpdate, onDel
           </div>
         </div>
       ) : (
-        <button 
+        <button
           onClick={() => setIsAdding(true)}
-          className="fixed bottom-28 right-6 w-14 h-14 bg-indigo-600 text-white rounded-full shadow-2xl flex items-center justify-center text-2xl z-40 animate-bounce"
+          className="fixed bottom-28 right-6 px-4 py-3 bg-indigo-600 text-white rounded-full shadow-2xl flex items-center justify-center text-sm font-bold z-40 space-x-2"
+          title="Add Custom Card"
         >
           <i className="fa-solid fa-plus"></i>
+          <span>Add Card</span>
         </button>
       )}
     </div>
