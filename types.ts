@@ -5,6 +5,13 @@ export enum PaymentMethod {
   UPI = 'UPI'
 }
 
+export interface Payment {
+  id: string;
+  amount: number;
+  date: string;
+  note?: string;
+}
+
 export interface CreditCardBill {
   id: string;
   cardName: string;
@@ -16,7 +23,8 @@ export interface CreditCardBill {
   totalAmount: number; // For EMI: Total value of purchase
   tenure?: string; // e.g., "6/12"
   monthlyAmount: number; // Amount due this month
-  paidAmount: number;
+  paidAmount: number; // Deprecated - kept for backward compatibility
+  payments?: Payment[]; // New: multiple payments tracking
   lastPaymentDate?: string;
 }
 
