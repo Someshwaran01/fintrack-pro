@@ -90,7 +90,6 @@ const API_KEY = 'AIzaSyDp8kW-0oOo4UfS8_tCtIjklC7iyn0slXk';
 
 **Limitations:**
 - ⚠️ Not instant (30 second sync delay)
-- ⚠️ Slightly slower than Firebase
 - ⚠️ Sheet is publicly viewable (but data is safe)
 
 ## 🔒 Privacy
@@ -110,14 +109,13 @@ Your financial data is in a Google Sheet that:
 - Make sure Google Sheets API is enabled in Google Cloud Console
 
 ### Data not appearing on other device
-- Wait 30-60 seconds (not instant like Firebase)
+- Wait 30-60 seconds for sync to occur
 - Refresh the page
 - Check internet connection
 - Check browser console for errors
 
 ### Want faster sync?
-- Can reduce polling interval from 30s to 10s (increases API calls)
-- Or use Firebase with secure rules (better option)
+- Can reduce polling interval from 30s to 10s in App.tsx (increases API calls)
 
 ## 💡 Pro Tip
 
