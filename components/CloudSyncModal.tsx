@@ -80,71 +80,62 @@ const CloudSyncModal: React.FC<CloudSyncModalProps> = ({ show, onClose, bills, m
                             All family members use the same Google Sheet to share expenses. No Family ID needed - just enable sync on each device.
                         </p>
                         <a
-                            href="https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms1v6mUZqe1AXW3D5b1PUjWKzdvDkAD45uTEXl5nWnEwrw"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-xs text-blue-600 hover:underline"
-                        >
-                            View Google Sheet →
-                        </a>
-                    </div>
-
-                    {/* Actions */}
+                            href="https://docs.google.com/spreadsheets/d/1v6mUZqe1AXW3D5b1PUjWKzdvDkAD45uTEXl5nWnEwrw"
                     <div className="space-y-2">
-                        {!cloudEnabled ? (
-                            <button
-                                onClick={handleEnableCloud}
-                                disabled={syncing}
-                                className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl transition-colors disabled:bg-gray-400"
-                            >
-                                {syncing ? (
-                                    <>
-                                        <i className="fa-solid fa-spinner fa-spin mr-2"></i>
-                                        Syncing...
-                                    </>
-                                ) : (
-                                    <>
-                                        <i className="fa-solid fa-cloud-arrow-up mr-2"></i>
-                                        Enable Google Sheets Sync
-                                    </>
-                                )}
-                            </button>
-                        ) : (
-                            <button
-                                onClick={handleDisableCloud}
-                                className="w-full bg-red-50 hover:bg-red-100 text-red-600 font-bold py-3 rounded-xl transition-colors"
-                            >
-                                <i className="fa-solid fa-cloud-slash mr-2"></i>
-                                Disable Sync
-                            </button>
-                        )}
-                    </div>
-
-                    {/* Message */}
-                    {message && (
-                        <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl text-sm text-blue-800">
-                            {message}
+                            {!cloudEnabled ? (
+                                <button
+                                    onClick={handleEnableCloud}
+                                    disabled={syncing}
+                                    className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl transition-colors disabled:bg-gray-400"
+                                >
+                                    {syncing ? (
+                                        <>
+                                            <i className="fa-solid fa-spinner fa-spin mr-2"></i>
+                                            Syncing...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <i className="fa-solid fa-cloud-arrow-up mr-2"></i>
+                                            Enable Google Sheets Sync
+                                        </>
+                                    )}
+                                </button>
+                            ) : (
+                                <button
+                                    onClick={handleDisableCloud}
+                                    className="w-full bg-red-50 hover:bg-red-100 text-red-600 font-bold py-3 rounded-xl transition-colors"
+                                >
+                                    <i className="fa-solid fa-cloud-slash mr-2"></i>
+                                    Disable Sync
+                                </button>
+                            )}
                         </div>
-                    )}
 
-                    {/* Setup Instructions */}
-                    <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-xl">
-                        <p className="text-xs font-bold text-yellow-800 mb-2">
-                            <i className="fa-solid fa-circle-info mr-1"></i>
-                            How It Works
-                        </p>
-                        <ul className="text-xs text-yellow-800 space-y-1 list-disc list-inside">
-                            <li>Data syncs automatically every 30 seconds</li>
-                            <li>All family devices share the same Google Sheet</li>
-                            <li>Changes on one device appear on others within 30s</li>
-                            <li>Works for up to 3 devices (as configured)</li>
-                            <li>Check GOOGLE_SHEETS_SETUP.md for configuration</li>
-                        </ul>
+                        {/* Message */}
+                        {message && (
+                            <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl text-sm text-blue-800">
+                                {message}
+                            </div>
+                        )}
+
+                        {/* Setup Instructions */}
+                        <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-xl">
+                            <p className="text-xs font-bold text-yellow-800 mb-2">
+                                <i className="fa-solid fa-circle-info mr-1"></i>
+                                How It Works
+                            </p>
+                            <ul className="text-xs text-yellow-800 space-y-1 list-disc list-inside">
+                                <li>Data syncs automatically every 30 seconds</li>
+                                <li>All family devices share the same Google Sheet</li>
+                                <li>Changes on one device appear on others within 30s</li>
+                                <li>Works for up to 3 devices (as configured)</li>
+                                <li>Check GOOGLE_SHEETS_SETUP.md for configuration</li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    );
+            );
 };
 
-export default CloudSyncModal;
+            export default CloudSyncModal;
