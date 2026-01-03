@@ -69,12 +69,16 @@ const CardTracker: React.FC<CardTrackerProps> = ({ bills, onAdd, onUpdate, onDel
 
   // Initialize default cards for the selected month if they don't exist
   useEffect(() => {
+    console.log('CardTracker useEffect triggered', { selectedMonth, billsLength: bills.length });
+
     // Skip if already initialized for this month
     if (initializedMonths.current.has(selectedMonth)) {
+      console.log('Month already initialized:', selectedMonth);
       return;
     }
 
     const nextMonth = getNextMonth(selectedMonth);
+    console.log('Next month:', nextMonth);
 
     // Check for bills with due dates in current month (created in previous month)
     // or bills created in current month
@@ -86,6 +90,7 @@ const CardTracker: React.FC<CardTrackerProps> = ({ bills, onAdd, onUpdate, onDel
       return false;
     });
     const existingCardNames = existingCards.map(b => b.cardName);
+    console.log('Existing card names:', existingCardNames);
 
     // Only add cards that don't exist
     const cardsToAdd: CreditCardBill[] = [];
@@ -107,27 +112,28 @@ const CardTracker: React.FC<CardTrackerProps> = ({ bills, onAdd, onUpdate, onDel
       }
     });
 
+    console.log('Cards to add:', cardsToAdd.length);
+
     // Add all cards at once
     if (cardsToAdd.length > 0) {
-      cardsToAdd.forEach(bill => onAdd(bill));
+      cardsToAdd.forEach(bill => {
+        console.log('Adding bill:', bill.cardName);
+        onAdd(bill);
+      });
       initializedMonths.current.add(selectedMonth);
     } else if (existingCards.length > 0) {
       // Mark as initialized even if no cards were added (they already exist)
+      console.log('Cards already exist, marking as initialized');
       initializedMonths.current.add(selectedMonth);
     }
-  }, [selectedMonth, bills.length]); // Only depend on selectedMonth and bills.length
+  }, [selectedMonth, bills.length, onAdd]); // Added onAdd to dependencies
 
-  // Filter bills: show bills created in current month OR bills with due dates in current month
-  // This ensures:
-  // 1. Default cards created in Jan with Feb due dates show in Jan
-  // 2. Bills from Dec with Jan due dates also show in Jan
-  const filteredBills = bills.filter(b => {
-    // Show bills created in this month (includes default cards just created)
-    if (b.month === selectedMonth) return true;
-    // Also show bills with due dates in this month (from previous month)
-    if (b.dueDate && b.dueDate.includes(selectedMonth)) return true;
-    return false;
-  });
+  // Filter bills by selected month
+  console.log('CardTracker render - bills:', bills.length, 'selectedMonth:', selectedMonth);
+
+  const filteredBills = bills.filter(b => b.month === selectedMonth);
+
+  console.log('CardTracker render - filteredBills:', filteredBills.length, filteredBills);
 
   const totalDue = filteredBills.reduce((acc, b) => acc + b.monthlyAmount, 0);
   const totalPaid = filteredBills.reduce((acc, b) => acc + calculateTotalPaid(b), 0);
