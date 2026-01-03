@@ -195,9 +195,9 @@ const Dashboard: React.FC<DashboardProps> = ({ bills, medical, selectedMonth }) 
               <div>
                 <p className="text-[10px] text-gray-500 uppercase">Change</p>
                 <p className={`text-sm font-bold ${comparisonData.reduce((sum, item) => sum + item.thisMonth, 0) >
-                    comparisonData.reduce((sum, item) => sum + item.lastMonth, 0)
-                    ? 'text-red-600'
-                    : 'text-green-600'
+                  comparisonData.reduce((sum, item) => sum + item.lastMonth, 0)
+                  ? 'text-red-600'
+                  : 'text-green-600'
                   }`}>
                   {comparisonData.reduce((sum, item) => sum + item.thisMonth, 0) >
                     comparisonData.reduce((sum, item) => sum + item.lastMonth, 0)
@@ -257,7 +257,7 @@ const Dashboard: React.FC<DashboardProps> = ({ bills, medical, selectedMonth }) 
                         <div>
                           <h4 className="font-bold text-gray-800">{bill.cardName}</h4>
                           <p className="text-xs text-gray-500 mt-0.5">
-                            Due: {bill.dueDate || 'N/A'}
+                            Due Date: {bill.dueDate || 'N/A'}
                           </p>
                         </div>
                         <span className="px-2 py-1 bg-red-100 text-red-700 text-[10px] font-bold rounded">
