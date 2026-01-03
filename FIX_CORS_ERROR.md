@@ -126,16 +126,43 @@ function saveData(sheetName, values) {
 
 ### Step 5: Test the Fix
 
-1. **Rebuild your app:** Run `npm run dev` in terminal
-2. Open your app in browser
-3. Open browser console (F12)
-4. Click the **Manual Sync button** (rotate icon)
-5. Check console for logs
+1. **Refresh your browser** (Ctrl+F5 or Cmd+Shift+R)
+2. Open browser console (F12) - **KEEP IT OPEN**
+3. Click the **Manual Sync button** (rotate icon)
+4. Check console for DETAILED logs
 
-**You should now see:**
-- ✅ `Bills saved to Google Sheets`
-- ✅ `Medical expenses saved to Google Sheets`
-- ✅ `Home expenses saved to Google Sheets`
+**Look for these specific messages in console:**
+
+✅ **If working correctly:**
+```
+📤 Saving X home expenses to Google Sheets...
+✅ Home expenses saved to Google Sheets: {success: true}
+```
+
+❌ **If still failing, you'll see:**
+```
+❌ Failed to save home expenses. Status: 403 Forbidden
+Error details: <some error message>
+```
+OR
+```
+❌ Error saving home: TypeError: Failed to fetch
+```
+
+**Common Error Messages:**
+
+1. **"Failed to fetch"** = CORS error still present
+   - Solution: Make sure you updated the SCRIPT_URL in googleSheets.ts
+   - Double-check deployment settings (Step 3)
+
+2. **"Status: 403"** = Permission denied
+   - Solution: Reauthorize the script (delete old deployment, create new one)
+
+3. **"Status: 404"** = Wrong URL
+   - Solution: Copy the full URL including `/exec` at the end
+
+4. **"Script function not found"** = Code not saved in Apps Script
+   - Solution: Copy the code from Step 2 again and save it
 
 **No more CORS errors!**
 
@@ -156,6 +183,53 @@ CORS errors with Google Apps Script occur when:
 5. The new data should appear!
 
 ### Still Getting CORS Error?
+
+**If you see: "⚠️ Failed to save home to Google Sheets (kept local copy)"**
+
+This means the save operation failed. Check the console for MORE DETAILED errors:
+
+**Step-by-step Console Check:**
+1. Open browser console (F12)
+2. Click "Console" tab
+3. Look for lines starting with `❌` or `📤`
+4. Screenshot the FULL error message
+5. The error will tell you exactly what's wrong
+
+**Most Common Issues:**
+
+**1. CORS Error Still There**
+```
+❌ Error saving home: TypeError: Failed to fetch
+```
+**Fix:** 
+- You didn't update the SCRIPT_URL in `services/googleSheets.ts`
+- OR the deployment is still wrong (repeat Step 3)
+
+**2. Wrong Deployment Settings**
+```
+❌ Failed to save home expenses. Status: 403 Forbidden
+```
+**Fix:**
+- Delete ALL old deployments
+- Create completely NEW deployment with "Execute as: Me" and "Anyone"
+
+**3. URL Missing /exec**
+```
+❌ Failed to save home expenses. Status: 404 Not Found
+```
+**Fix:**
+- Make sure your SCRIPT_URL ends with `/exec`
+- Example: `https://script.google.com/macros/s/ABC123/exec` ✅
+- NOT: `https://script.google.com/macros/s/ABC123` ❌
+
+**4. Need to Clear Cache**
+```
+Still seeing old errors after fixing
+```
+**Fix:**
+- Hard refresh: Ctrl+Shift+R (Windows) or Cmd+Shift+R (Mac)
+- OR clear browser cache completely
+- OR open in Incognito/Private window
 
 **Double-check:**
 1. The Apps Script deployment is set to "Execute as: Me"
