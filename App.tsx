@@ -30,6 +30,7 @@ const App: React.FC = () => {
   const [selectedMonth, setSelectedMonth] = useState<string>(getCurrentMonth());
   const [showImportModal, setShowImportModal] = useState(false);
   const [showCloudModal, setShowCloudModal] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
   const billsFileInputRef = React.useRef<HTMLInputElement>(null);
   const medicalFileInputRef = React.useRef<HTMLInputElement>(null);
   const homeFileInputRef = React.useRef<HTMLInputElement>(null);
@@ -171,6 +172,38 @@ const App: React.FC = () => {
 
   const handleAddHome = (expense: HomeExpense) => setHome([...home, expense]);
   const handleDeleteHome = (id: string) => setHome(home.filter(h => h.id !== id));
+
+  const handleManualSync = async () => {
+    const cloudEnabled = localStorage.getItem('cloudSyncEnabled') === 'true';
+    if (!cloudEnabled) {
+      alert('Please enable Cloud Sync first!');
+      return;
+    }
+
+    setIsSyncing(true);
+    console.log('🔄 Manual sync started...');
+
+    try {
+      const results = await Promise.all([
+        GoogleSheetsService.saveBills(bills),
+        GoogleSheetsService.saveMedical(medical),
+        GoogleSheetsService.saveHome(home)
+      ]);
+
+      if (results.every(r => r)) {
+        alert('✅ All data synced successfully!');
+        console.log('✅ Manual sync completed successfully');
+      } else {
+        alert('⚠️ Some data failed to sync. Check console for details.');
+        console.warn('⚠️ Manual sync completed with errors');
+      }
+    } catch (error) {
+      alert('❌ Sync failed. Check console for details.');
+      console.error('❌ Manual sync error:', error);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
 
   const runAIAnalysis = async () => {
     setIsAiLoading(true);
@@ -323,9 +356,17 @@ const App: React.FC = () => {
             <i className="fa-solid fa-wand-magic-sparkles"></i>
           </button>
           <button
+            onClick={handleManualSync}
+            disabled={isSyncing}
+            className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors ${isSyncing ? 'bg-purple-100 text-purple-400 animate-spin' : 'bg-purple-50 text-purple-600 hover:bg-purple-100'}`}
+            title="Manual Sync"
+          >
+            <i className="fa-solid fa-rotate"></i>
+          </button>
+          <button
             onClick={() => setShowCloudModal(true)}
             className="w-9 h-9 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center hover:bg-purple-100"
-            title="Cloud Sync"
+            title="Cloud Sync Settings"
           >
             <i className="fa-solid fa-cloud"></i>
           </button>

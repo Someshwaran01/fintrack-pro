@@ -14,11 +14,13 @@ const CloudSyncModal: React.FC<CloudSyncModalProps> = ({ show, onClose, bills, m
     const [cloudEnabled, setCloudEnabled] = useState(false);
     const [syncing, setSyncing] = useState(false);
     const [message, setMessage] = useState('');
+    const [dataCounts, setDataCounts] = useState({ bills: 0, medical: 0, home: 0 });
 
     useEffect(() => {
         const enabled = localStorage.getItem('cloudSyncEnabled') === 'true';
         setCloudEnabled(enabled);
-    }, [show]);
+        setDataCounts({ bills: bills.length, medical: medical.length, home: home.length });
+    }, [show, bills, medical, home]);
 
     const handleEnableCloud = async () => {
         setSyncing(true);
@@ -64,11 +66,30 @@ const CloudSyncModal: React.FC<CloudSyncModalProps> = ({ show, onClose, bills, m
                         <p className="text-sm font-bold mb-1">
                             {cloudEnabled ? '✅ Google Sheets Sync Enabled' : '⚠️ Google Sheets Sync Disabled'}
                         </p>
-                        <p className="text-xs text-gray-600">
+                        <p className="text-xs text-gray-600 mb-2">
                             {cloudEnabled
                                 ? 'Data syncs automatically every time you add or edit expenses. All family devices share the same sheet.'
                                 : 'Data is stored locally only. Enable sync to share with family across devices.'}
                         </p>
+                        {cloudEnabled && (
+                            <div className="mt-2 pt-2 border-t border-green-200">
+                                <p className="text-xs text-gray-600 font-semibold mb-1">Current Data:</p>
+                                <div className="flex gap-3 text-xs">
+                                    <span className="text-gray-700">
+                                        <i className="fa-solid fa-credit-card mr-1 text-indigo-600"></i>
+                                        Bills: {dataCounts.bills}
+                                    </span>
+                                    <span className="text-gray-700">
+                                        <i className="fa-solid fa-house-medical mr-1 text-blue-600"></i>
+                                        Medical: {dataCounts.medical}
+                                    </span>
+                                    <span className="text-gray-700">
+                                        <i className="fa-solid fa-home mr-1 text-green-600"></i>
+                                        Home: {dataCounts.home}
+                                    </span>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     {/* Setup Info */}
