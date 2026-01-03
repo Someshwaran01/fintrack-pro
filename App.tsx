@@ -444,8 +444,8 @@ const App: React.FC = () => {
       </footer>
 
       {/* Cloud Sync Modal */}
-      <CloudSyncModal 
-        show={showCloudModal} 
+      <CloudSyncModal
+        show={showCloudModal}
         onClose={() => setShowCloudModal(false)}
         bills={bills}
         medical={medical}

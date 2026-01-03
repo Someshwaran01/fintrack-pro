@@ -3,14 +3,13 @@ import { getFirestore } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 
 // Firebase configuration
-// Replace these with your Firebase project credentials from Firebase Console
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
+    apiKey: "AIzaSyDp8kW-0oOo4UfS8_tCtIjklC7iyn0slXk",
+    authDomain: "somu-devi-fin-tracker-dc50f.firebaseapp.com",
+    projectId: "somu-devi-fin-tracker-dc50f",
+    storageBucket: "somu-devi-fin-tracker-dc50f.firebasestorage.app",
+    messagingSenderId: "663994844166",
+    appId: "1:663994844166:web:aa91bc8ac090be7bf16f87"
 };
 
 // Initialize Firebase
