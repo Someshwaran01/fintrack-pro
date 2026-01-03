@@ -5,19 +5,30 @@ Enable family members to share financial data in real-time using Firebase Firest
 
 ## 📋 Step-by-Step Setup
 
-### 1. Create Firebase Project
+### 1. Create Firebase Account & Project
 1. Go to [Firebase Console](https://console.firebase.google.com)
-2. Click "Add project"
-3. Name it "somu-fin-tracker" (or any name)
-4. Disable Google Analytics (optional)
-5. Click "Create Project"
+2. **Sign in** with your Google account (create one if needed)
+3. You'll see a page with existing projects (or empty if first time)
+4. Click the **"Add project"** or **"Create a project"** button (big tile/card)
+5. **Step 1 of 3**: Enter project name "somu-fin-tracker" → Click "Continue"
+6. **Step 2 of 3**: Disable "Enable Google Analytics" (toggle OFF) → Click "Continue"
+7. **Step 3 of 3**: Click "Create project"
+8. Wait 30 seconds for project creation
+9. Click "Continue" when done
+10. You should now see **"Project Overview"** at the top left
 
 ### 2. Enable Firestore Database
-1. In Firebase Console, click "Firestore Database" in the left menu
-2. Click "Create database"
-3. Choose "Start in **test mode**" (for easy setup)
-4. Select your location (e.g., asia-south1 for India)
-5. Click "Enable"
+1. Look at the **left sidebar menu** (if not visible, click hamburger ☰ icon)
+2. Find and click **"Firestore Database"** or **"Cloud Firestore"**
+   - If you see "Build" section, expand it to find Firestore
+3. Click the big **"Create database"** button in the center
+4. **Step 1 of 2**: Choose **"Start in test mode"** (radio button) → Click "Next"
+5. **Step 2 of 2**: Select location:
+   - **For India**: Choose "asia-south1 (Mumbai)"
+   - **For USA**: Choose "us-central1"
+   - Click "Enable"
+6. Wait 1-2 minutes for database creation
+7. You should see an empty database with "Start collection" option
 
 ### 3. Get Firebase Configuration
 1. Click the gear icon (⚙️) next to "Project Overview"
@@ -95,7 +106,40 @@ For better security, you can:
 3. Use Firebase Authentication in the app
 
 ## 🆘 Troubleshooting
-- **"Failed to sync"**: Check if firebase.ts has correct config
-- **"Permission denied"**: Check Firestore security rules
-- **Data not syncing**: Make sure cloud sync is enabled on all devices
-- **Different Family ID**: All family members must use the SAME Family ID
+
+### Can't Find "Create Database" Button?
+- **Make sure you created a project first** (see Step 1)
+- Click "Firestore Database" or "Cloud Firestore" in the left menu
+- If you see "Realtime Database" - that's different! Look for "Firestore" or "Cloud Firestore"
+- Try refreshing the page (Ctrl + F5)
+
+### Can't See "Project Overview"?
+- You might be on the Firebase homepage, not inside a project
+- Make sure you completed project creation (Step 1)
+- Look for your project name at the top of the page
+- If you see a list of projects, click on your project to enter it
+
+### Left Sidebar Not Showing?
+- Click the **hamburger menu** (☰) icon at the top left
+- The sidebar should expand showing all options
+
+### Still Stuck?
+1. **Alternative URL**: After creating project, go directly to:
+   `https://console.firebase.google.com/project/YOUR-PROJECT-ID/firestore`
+   (Replace YOUR-PROJECT-ID with your actual project ID)
+
+2. **Video Tutorial**: Search YouTube for "Firebase Firestore setup 2025"
+
+3. **Use Test Credentials**: You can skip Firebase setup for now and test locally
+   - The app works fine with local storage only
+   - Enable cloud sync later when ready
+
+### "Failed to sync" Error?
+- Check if firebase.ts has correct config
+- Make sure Firestore database is created
+- Check browser console (F12) for error details
+
+### "Permission denied" Error?
+- Go to Firestore → Rules tab
+- Make sure rules allow read/write (see Step 5 in setup)
+- Click "Publish" after updating rules
