@@ -31,6 +31,7 @@ export const GoogleSheetsService = {
     // Save Bills to Sheet
     saveBills: async (bills: CreditCardBill[]) => {
         try {
+            console.log(`📤 Saving ${bills.length} bills to Google Sheets...`);
             const data = [
                 ['ID', 'Card Name', 'Category', 'Due Date', 'Month', 'Is EMI', 'EMI Details', 'Total Amount', 'Tenure', 'Monthly Amount', 'Paid Amount', 'Last Payment Date', 'Payments'],
                 ...bills.map(b => [
@@ -62,10 +63,12 @@ export const GoogleSheetsService = {
 
             if (response.ok) {
                 const result = await response.json();
-                console.log('✅ Bills saved to Google Sheets');
+                console.log('✅ Bills saved to Google Sheets:', result);
                 return result.success;
             }
-            console.error('❌ Failed to save bills');
+            console.error('❌ Failed to save bills. Status:', response.status, response.statusText);
+            const errorText = await response.text();
+            console.error('Error details:', errorText);
             return false;
         } catch (error) {
             console.error('❌ Error saving bills:', error);
@@ -111,6 +114,7 @@ export const GoogleSheetsService = {
     // Save Medical Expenses
     saveMedical: async (medical: MedicalExpense[]) => {
         try {
+            console.log(`📤 Saving ${medical.length} medical expenses to Google Sheets...`);
             const data = [
                 ['ID', 'Date', 'Amount', 'Payment Method', 'Description'],
                 ...medical.map(m => [
@@ -134,8 +138,12 @@ export const GoogleSheetsService = {
 
             if (response.ok) {
                 const result = await response.json();
+                console.log('✅ Medical expenses saved to Google Sheets:', result);
                 return result.success;
             }
+            console.error('❌ Failed to save medical. Status:', response.status, response.statusText);
+            const errorText = await response.text();
+            console.error('Error details:', errorText);
             return false;
         } catch (error) {
             console.error('❌ Error saving medical:', error);
@@ -173,6 +181,7 @@ export const GoogleSheetsService = {
     // Save Home Expenses
     saveHome: async (home: HomeExpense[]) => {
         try {
+            console.log(`📤 Saving ${home.length} home expenses to Google Sheets...`);
             const data = [
                 ['ID', 'Date', 'Amount', 'Payment Method', 'Category', 'Description'],
                 ...home.map(h => [
@@ -197,8 +206,12 @@ export const GoogleSheetsService = {
 
             if (response.ok) {
                 const result = await response.json();
+                console.log('✅ Home expenses saved to Google Sheets:', result);
                 return result.success;
             }
+            console.error('❌ Failed to save home expenses. Status:', response.status, response.statusText);
+            const errorText = await response.text();
+            console.error('Error details:', errorText);
             return false;
         } catch (error) {
             console.error('❌ Error saving home:', error);
