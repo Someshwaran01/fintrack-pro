@@ -19,6 +19,7 @@ const getCurrentMonth = () => {
   return `${month}-${year}`;
 };
 
+// v1.1.0 - Google Sheets sync enabled
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<AppTab>('dashboard');
   const [bills, setBills] = useState<CreditCardBill[]>([]);
