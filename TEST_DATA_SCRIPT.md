@@ -52,8 +52,8 @@ function addTestData() {
     ['1735956000008', '2025-12-31', 800, 'UPI', 'Electricity', 'Monthly electricity bill']
   ]);
   
-  Logger.log('✅ Test data added successfully!');
-  SpreadsheetApp.getUi().alert('✅ Test data added successfully! Check your app now.');
+  Logger.log('✅ Test data added successfully! Check your app now.');
+  return '✅ Test data added successfully! Check your app now.';
 }
 ```
 
@@ -61,7 +61,8 @@ function addTestData() {
 1. In the Apps Script editor, select `addTestData` from the function dropdown at the top
 2. Click the **Run** button (▶️)
 3. Wait a few seconds
-4. You should see a popup: "✅ Test data added successfully!"
+4. Check the "Execution log" at the bottom - you should see "✅ Test data added successfully!"
+5. Go back to your Google Sheet and refresh the page to see the data
 
 ### Step 4: Check Your App
 1. Open your app (make sure Cloud Sync is enabled)
