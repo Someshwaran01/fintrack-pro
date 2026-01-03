@@ -46,7 +46,7 @@ const App: React.FC = () => {
   useEffect(() => {
     StorageService.saveBills(bills);
     const cloudEnabled = localStorage.getItem('cloudSyncEnabled') === 'true';
-    if (cloudEnabled && bills.length > 0) {
+    if (cloudEnabled) {
       GoogleSheetsService.saveBills(bills)
         .then(success => {
           if (success) {
@@ -62,7 +62,7 @@ const App: React.FC = () => {
   useEffect(() => {
     StorageService.saveMedical(medical);
     const cloudEnabled = localStorage.getItem('cloudSyncEnabled') === 'true';
-    if (cloudEnabled && medical.length > 0) {
+    if (cloudEnabled) {
       GoogleSheetsService.saveMedical(medical)
         .then(success => {
           if (success) {
@@ -78,7 +78,7 @@ const App: React.FC = () => {
   useEffect(() => {
     StorageService.saveHome(home);
     const cloudEnabled = localStorage.getItem('cloudSyncEnabled') === 'true';
-    if (cloudEnabled && home.length > 0) {
+    if (cloudEnabled) {
       GoogleSheetsService.saveHome(home)
         .then(success => {
           if (success) {
@@ -182,20 +182,27 @@ const App: React.FC = () => {
 
     setIsSyncing(true);
     console.log('🔄 Manual sync started...');
+    console.log(`Data to sync - Bills: ${bills.length}, Medical: ${medical.length}, Home: ${home.length}`);
 
     try {
       const results = await Promise.all([
-        GoogleSheetsService.saveBills(bills),
-        GoogleSheetsService.saveMedical(medical),
-        GoogleSheetsService.saveHome(home)
+        GoogleSheetsService.saveBills(bills).catch(e => { console.error('Bills sync error:', e); return false; }),
+        GoogleSheetsService.saveMedical(medical).catch(e => { console.error('Medical sync error:', e); return false; }),
+        GoogleSheetsService.saveHome(home).catch(e => { console.error('Home sync error:', e); return false; })
       ]);
+
+      console.log('Sync results:', { bills: results[0], medical: results[1], home: results[2] });
 
       if (results.every(r => r)) {
         alert('✅ All data synced successfully!');
         console.log('✅ Manual sync completed successfully');
       } else {
-        alert('⚠️ Some data failed to sync. Check console for details.');
-        console.warn('⚠️ Manual sync completed with errors');
+        const failed = [];
+        if (!results[0]) failed.push('Bills');
+        if (!results[1]) failed.push('Medical');
+        if (!results[2]) failed.push('Home');
+        alert(`⚠️ Failed to sync: ${failed.join(', ')}. Check console for details.`);
+        console.warn('⚠️ Manual sync completed with errors:', failed);
       }
     } catch (error) {
       alert('❌ Sync failed. Check console for details.');
