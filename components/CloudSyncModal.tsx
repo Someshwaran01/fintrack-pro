@@ -46,6 +46,46 @@ const CloudSyncModal: React.FC<CloudSyncModalProps> = ({ show, onClose, bills, m
         setMessage('Google Sheets sync disabled. Using local storage only.');
     };
 
+    const handleExportToSheet = () => {
+        // Convert data to TSV format for easy pasting
+        let tsvData = '';
+
+        // Bills data
+        if (bills.length > 0) {
+            tsvData += 'BILLS DATA:\n';
+            tsvData += 'ID\tCard Name\tCategory\tDue Date\tMonth\tIs EMI\tEMI Details\tTotal Amount\tTenure\tMonthly Amount\tPayments\n';
+            bills.forEach(b => {
+                tsvData += `${b.id}\t${b.cardName}\t${b.category}\t${b.dueDate}\t${b.month}\t${b.isEmi ? 'Yes' : 'No'}\t${b.emiDetails || ''}\t${b.totalAmount}\t${b.tenure || ''}\t${b.monthlyAmount}\t${JSON.stringify(b.payments || [])}\n`;
+            });
+            tsvData += '\n';
+        }
+
+        // Medical data
+        if (medical.length > 0) {
+            tsvData += 'MEDICAL DATA:\n';
+            tsvData += 'ID\tDate\tAmount\tPayment Method\tDescription\n';
+            medical.forEach(m => {
+                tsvData += `${m.id}\t${m.date}\t${m.amount}\t${m.paymentMethod}\t${m.description}\n`;
+            });
+            tsvData += '\n';
+        }
+
+        // Home data
+        if (home.length > 0) {
+            tsvData += 'HOME DATA:\n';
+            tsvData += 'ID\tDate\tAmount\tPayment Method\tCategory\tDescription\n';
+            home.forEach(h => {
+                tsvData += `${h.id}\t${h.date}\t${h.amount}\t${h.paymentMethod}\t${h.category}\t${h.description}\n`;
+            });
+        }
+
+        navigator.clipboard.writeText(tsvData).then(() => {
+            setMessage('📋 Data copied! Open your Google Sheet and paste (Ctrl+V)');
+        }).catch(() => {
+            setMessage('❌ Failed to copy to clipboard');
+        });
+    };
+
     if (!show) return null;
 
     return (
@@ -91,6 +131,14 @@ const CloudSyncModal: React.FC<CloudSyncModalProps> = ({ show, onClose, bills, m
 
                     {/* Actions */}
                     <div className="space-y-2">
+                        <button
+                            onClick={handleExportToSheet}
+                            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-colors"
+                        >
+                            <i className="fa-solid fa-copy mr-2"></i>
+                            Copy Data to Paste in Sheet
+                        </button>
+
                         {!cloudEnabled ? (
                             <button
                                 onClick={handleEnableCloud}
