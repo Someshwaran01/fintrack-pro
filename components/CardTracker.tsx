@@ -282,13 +282,17 @@ const CardTracker: React.FC<CardTrackerProps> = ({ bills, onAdd, onUpdate, onDel
                   ₹{bill.monthlyAmount - calculateTotalPaid(bill)}
                 </td>
                 <td className="px-4 py-4">
-                  {DEFAULT_CARDS.some(dc => dc.cardName === bill.cardName) ? (
-                    <span className="text-gray-300 text-xs">Default</span>
-                  ) : (
-                    <button onClick={() => onDelete(bill.id)} className="text-red-400 hover:text-red-600 p-2">
-                      <i className="fa-solid fa-trash"></i>
-                    </button>
-                  )}
+                  <button
+                    onClick={() => {
+                      if (window.confirm(`Delete ${bill.cardName} bill?`)) {
+                        onDelete(bill.id);
+                      }
+                    }}
+                    className="text-red-400 hover:text-red-600 p-2"
+                    title="Delete Bill"
+                  >
+                    <i className="fa-solid fa-trash"></i>
+                  </button>
                 </td>
               </tr>
             ))}
