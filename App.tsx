@@ -7,12 +7,22 @@ import Dashboard from './components/Dashboard';
 import CardTracker from './components/CardTracker';
 import MedicalTracker from './components/MedicalTracker';
 
+// Helper function to get current month in format 'Jan-26'
+const getCurrentMonth = () => {
+  const now = new Date();
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const month = months[now.getMonth()];
+  const year = now.getFullYear().toString().slice(-2);
+  return `${month}-${year}`;
+};
+
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<AppTab>('dashboard');
   const [bills, setBills] = useState<CreditCardBill[]>([]);
   const [medical, setMedical] = useState<MedicalExpense[]>([]);
   const [aiInsight, setAiInsight] = useState<string | null>(null);
   const [isAiLoading, setIsAiLoading] = useState(false);
+  const [selectedMonth, setSelectedMonth] = useState<string>(getCurrentMonth());
 
   // Initialize data
   useEffect(() => {
@@ -118,8 +128,8 @@ const App: React.FC = () => {
 
       {/* Main Content Area */}
       <main className="flex-grow">
-        {activeTab === 'dashboard' && <Dashboard bills={bills} medical={medical} />}
-        {activeTab === 'bills' && <CardTracker bills={bills} onAdd={handleAddBill} onUpdate={handleUpdateBill} onDelete={handleDeleteBill} />}
+        {activeTab === 'dashboard' && <Dashboard bills={bills} medical={medical} selectedMonth={selectedMonth} />}
+        {activeTab === 'bills' && <CardTracker bills={bills} onAdd={handleAddBill} onUpdate={handleUpdateBill} onDelete={handleDeleteBill} selectedMonth={selectedMonth} onMonthChange={setSelectedMonth} />}
         {activeTab === 'medical' && <MedicalTracker expenses={medical} onAdd={handleAddMedical} onDelete={handleDeleteMedical} />}
       </main>
 

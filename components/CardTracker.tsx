@@ -8,6 +8,8 @@ interface CardTrackerProps {
   onAdd: (bill: CreditCardBill) => void;
   onUpdate: (id: string, updates: Partial<CreditCardBill>) => void;
   onDelete: (id: string) => void;
+  selectedMonth: string;
+  onMonthChange: (month: string) => void;
 }
 
 // Default bank cards
@@ -16,11 +18,11 @@ const DEFAULT_CARDS = [
   { cardName: 'RBL', dueDate: '9' },
   { cardName: 'AXIS', dueDate: '2' },
   { cardName: 'ICICI', dueDate: '16' },
-  { cardName: 'SBI', dueDate: '21' }
+  { cardName: 'SBI', dueDate: '21' },
+  { cardName: 'AU', dueDate: '15' }
 ];
 
-const CardTracker: React.FC<CardTrackerProps> = ({ bills, onAdd, onUpdate, onDelete }) => {
-  const [selectedMonth, setSelectedMonth] = useState<string>(generateMonthOptions()[23]); // Defaults roughly to mid-2025
+const CardTracker: React.FC<CardTrackerProps> = ({ bills, onAdd, onUpdate, onDelete, selectedMonth, onMonthChange }) => {
   const [isAdding, setIsAdding] = useState(false);
   const [addingPaymentFor, setAddingPaymentFor] = useState<string | null>(null);
   const [newPayment, setNewPayment] = useState({ amount: 0, date: new Date().toISOString().split('T')[0], note: '' });
@@ -147,7 +149,7 @@ const CardTracker: React.FC<CardTrackerProps> = ({ bills, onAdd, onUpdate, onDel
         <select
           className="bg-white border border-gray-200 rounded-lg px-3 py-1 text-sm outline-none"
           value={selectedMonth}
-          onChange={(e) => setSelectedMonth(e.target.value)}
+          onChange={(e) => onMonthChange(e.target.value)}
         >
           {generateMonthOptions().map(opt => <option key={opt} value={opt}>{opt}</option>)}
         </select>

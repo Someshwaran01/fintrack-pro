@@ -6,21 +6,29 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 interface DashboardProps {
   bills: CreditCardBill[];
   medical: MedicalExpense[];
+  selectedMonth: string;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ bills, medical }) => {
+const Dashboard: React.FC<DashboardProps> = ({ bills, medical, selectedMonth }) => {
   const stats = useMemo(() => {
-    const totalBills = bills.reduce((acc, b) => acc + b.monthlyAmount, 0);
-    const totalPaidBills = bills.reduce((acc, b) => acc + b.paidAmount, 0);
-    const totalMedical = medical.reduce((acc, m) => acc + m.amount, 0);
-    
+    // Filter data by selected month
+    const monthBills = bills.filter(b => b.month === selectedMonth);
+    const monthMedical = medical.filter(m => {
+      const expenseMonth = new Date(m.date).toLocaleDateString('en-US', { month: 'short', year: '2-digit' }).replace(' ', '-').replace(', ', '-');
+      return expenseMonth === selectedMonth;
+    });
+
+    const totalBills = monthBills.reduce((acc, b) => acc + b.monthlyAmount, 0);
+    const totalPaidBills = monthBills.reduce((acc, b) => acc + b.paidAmount, 0);
+    const totalMedical = monthMedical.reduce((acc, m) => acc + m.amount, 0);
+
     return {
       totalDue: totalBills - totalPaidBills,
       totalPaid: totalPaidBills,
       totalMedical,
-      pendingCount: bills.filter(b => b.paidAmount < b.monthlyAmount).length
+      pendingCount: monthBills.filter(b => b.paidAmount < b.monthlyAmount).length
     };
-  }, [bills, medical]);
+  }, [bills, medical, selectedMonth]);
 
   const chartData = [
     { name: 'CC Bills', value: stats.totalPaid + stats.totalDue },
@@ -31,7 +39,7 @@ const Dashboard: React.FC<DashboardProps> = ({ bills, medical }) => {
     <div className="p-4 space-y-6 pb-24">
       <header className="mb-4">
         <h1 className="text-2xl font-bold text-gray-800">Financial Snapshot</h1>
-        <p className="text-gray-500 text-sm">Real-time status of your expenses</p>
+        <p className="text-gray-500 text-sm">{selectedMonth} - Real-time status</p>
       </header>
 
       <div className="grid grid-cols-2 gap-4">
@@ -55,7 +63,7 @@ const Dashboard: React.FC<DashboardProps> = ({ bills, medical }) => {
               <CartesianGrid strokeDasharray="3 3" vertical={false} />
               <XAxis dataKey="name" axisLine={false} tickLine={false} />
               <YAxis hide />
-              <Tooltip cursor={{fill: 'transparent'}} />
+              <Tooltip cursor={{ fill: 'transparent' }} />
               <Bar dataKey="value" radius={[10, 10, 0, 0]}>
                 {chartData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={index === 0 ? '#ef4444' : '#3b82f6'} />
