@@ -1,8 +1,9 @@
 
-import { CreditCardBill, MedicalExpense } from '../types';
+import { CreditCardBill, MedicalExpense, HomeExpense } from '../types';
 
 const BILLS_KEY = 'fintrack_bills';
 const MEDICAL_KEY = 'fintrack_medical';
+const HOME_KEY = 'fintrack_home';
 
 export const StorageService = {
   saveBills: (bills: CreditCardBill[]) => {
@@ -17,6 +18,13 @@ export const StorageService = {
   },
   getMedical: (): MedicalExpense[] => {
     const data = localStorage.getItem(MEDICAL_KEY);
+    return data ? JSON.parse(data) : [];
+  },
+  saveHome: (expenses: HomeExpense[]) => {
+    localStorage.setItem(HOME_KEY, JSON.stringify(expenses));
+  },
+  getHome: (): HomeExpense[] => {
+    const data = localStorage.getItem(HOME_KEY);
     return data ? JSON.parse(data) : [];
   },
   exportToCSV: (data: any[], filename: string) => {

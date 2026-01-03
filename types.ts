@@ -36,4 +36,13 @@ export interface MedicalExpense {
   description: string;
 }
 
-export type AppTab = 'dashboard' | 'bills' | 'medical';
+export interface HomeExpense {
+  id: string;
+  date: string;
+  amount: number;
+  paymentMethod: PaymentMethod;
+  category: string;
+  description: string;
+}
+
+export type AppTab = 'dashboard' | 'bills' | 'medical' | 'home';

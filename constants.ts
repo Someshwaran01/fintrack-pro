@@ -25,6 +25,20 @@ export const BILL_CATEGORIES = [
   'Other'
 ];
 
+export const HOME_EXPENSE_CATEGORIES = [
+  'Groceries',
+  'Rent',
+  'Electricity',
+  'Water',
+  'Gas',
+  'Internet',
+  'Maintenance',
+  'Furniture',
+  'Kitchen',
+  'Cleaning',
+  'Other'
+];
+
 export const generateMonthOptions = () => {
   const options: string[] = [];
   const startYear = 2024;

@@ -1,11 +1,13 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { GoogleGenAI } from "@google/genai";
-import { AppTab, CreditCardBill, MedicalExpense } from './types';
+import { AppTab, CreditCardBill, MedicalExpense, HomeExpense } from './types';
 import { StorageService } from './services/storage';
 import Dashboard from './components/Dashboard';
 import CardTracker from './components/CardTracker';
 import MedicalTracker from './components/MedicalTracker';
+import HomeExpenseTracker from './components/HomeExpenseTracker';
+import HomeExpenseTracker from './components/HomeExpenseTracker';
 
 // Helper function to get current month in format 'Jan-26'
 const getCurrentMonth = () => {
@@ -20,17 +22,20 @@ const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<AppTab>('dashboard');
   const [bills, setBills] = useState<CreditCardBill[]>([]);
   const [medical, setMedical] = useState<MedicalExpense[]>([]);
+  const [home, setHome] = useState<HomeExpense[]>([]);
   const [aiInsight, setAiInsight] = useState<string | null>(null);
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState<string>(getCurrentMonth());
   const [showImportModal, setShowImportModal] = useState(false);
   const billsFileInputRef = React.useRef<HTMLInputElement>(null);
   const medicalFileInputRef = React.useRef<HTMLInputElement>(null);
+  const homeFileInputRef = React.useRef<HTMLInputElement>(null);
 
   // Initialize data
   useEffect(() => {
     setBills(StorageService.getBills());
     setMedical(StorageService.getMedical());
+    setHome(StorageService.getHome());
   }, []);
 
   // Update Storage on changes
@@ -42,6 +47,10 @@ const App: React.FC = () => {
     StorageService.saveMedical(medical);
   }, [medical]);
 
+  useEffect(() => {
+    StorageService.saveHome(home);
+  }, [home]);
+
   const handleAddBill = (bill: CreditCardBill) => setBills([...bills, bill]);
   const handleUpdateBill = (id: string, updates: Partial<CreditCardBill>) => {
     setBills(bills.map(b => b.id === id ? { ...b, ...updates } : b));
@@ -50,6 +59,9 @@ const App: React.FC = () => {
 
   const handleAddMedical = (expense: MedicalExpense) => setMedical([...medical, expense]);
   const handleDeleteMedical = (id: string) => setMedical(medical.filter(m => m.id !== id));
+
+  const handleAddHome = (expense: HomeExpense) => setHome([...home, expense]);
+  const handleDeleteHome = (id: string) => setHome(home.filter(h => h.id !== id));
 
   const runAIAnalysis = async () => {
     setIsAiLoading(true);
@@ -61,6 +73,7 @@ const App: React.FC = () => {
         Keep it under 60 words.
         Credit Card Bills: ${JSON.stringify(bills)}
         Medical Expenses: ${JSON.stringify(medical)}
+        Home Expenses: ${JSON.stringify(home)}
       `;
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
@@ -84,11 +97,17 @@ const App: React.FC = () => {
       StorageService.exportToCSV(medical, 'medical_expenses');
       StorageService.exportToJSON(medical, 'medical_expenses');
     }
+    if (activeTab === 'home') {
+      StorageService.exportToCSV(home, 'home_expenses');
+      StorageService.exportToJSON(home, 'home_expenses');
+    }
     if (activeTab === 'dashboard') {
       StorageService.exportToCSV(bills, 'all_cc_bills');
       StorageService.exportToJSON(bills, 'all_cc_bills');
       StorageService.exportToCSV(medical, 'all_medical_expenses');
       StorageService.exportToJSON(medical, 'all_medical_expenses');
+      StorageService.exportToCSV(home, 'all_home_expenses');
+      StorageService.exportToJSON(home, 'all_home_expenses');
     }
   };
 
@@ -148,6 +167,34 @@ const App: React.FC = () => {
     if (medicalFileInputRef.current) medicalFileInputRef.current.value = '';
   };
 
+  const handleImportHome = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const importedData = await StorageService.importFromJSON(file);
+      const validExpenses = importedData.filter(item => item.category && item.date);
+
+      if (validExpenses.length === 0) {
+        alert('No valid home expenses found in the file.');
+        return;
+      }
+
+      // Merge with existing expenses, avoiding duplicates
+      const existingIds = new Set(home.map(h => h.id));
+      const newExpenses = validExpenses.filter(e => !existingIds.has(e.id));
+
+      setHome([...home, ...newExpenses]);
+      alert(`Successfully imported ${newExpenses.length} home expenses!`);
+      setShowImportModal(false);
+    } catch (error) {
+      alert('Failed to import home expenses. Please check the file format.');
+      console.error(error);
+    }
+
+    if (homeFileInputRef.current) homeFileInputRef.current.value = '';
+  };
+
   return (
     <div className="max-w-md mx-auto min-h-screen relative flex flex-col">
       {/* Top Header */}
@@ -204,6 +251,7 @@ const App: React.FC = () => {
         {activeTab === 'dashboard' && <Dashboard bills={bills} medical={medical} selectedMonth={selectedMonth} />}
         {activeTab === 'bills' && <CardTracker bills={bills} onAdd={handleAddBill} onUpdate={handleUpdateBill} onDelete={handleDeleteBill} selectedMonth={selectedMonth} onMonthChange={setSelectedMonth} />}
         {activeTab === 'medical' && <MedicalTracker expenses={medical} onAdd={handleAddMedical} onDelete={handleDeleteMedical} />}
+        {activeTab === 'home' && <HomeExpenseTracker expenses={home} onAdd={handleAddHome} onDelete={handleDeleteHome} />}
       </main>
 
       {/* Import Modal */}
@@ -269,6 +317,28 @@ const App: React.FC = () => {
                     Choose Medical File (.json)
                   </button>
                 </div>
+
+                <div>
+                  <label className="text-sm font-bold text-gray-700 mb-2 block">
+                    <i className="fa-solid fa-home mr-2 text-green-600"></i>
+                    Home Expenses
+                  </label>
+                  <input
+                    ref={homeFileInputRef}
+                    type="file"
+                    accept=".json"
+                    onChange={handleImportHome}
+                    className="hidden"
+                    id="homeFileInput"
+                  />
+                  <button
+                    onClick={() => homeFileInputRef.current?.click()}
+                    className="w-full bg-green-50 hover:bg-green-100 text-green-600 font-semibold py-3 px-4 rounded-xl border-2 border-green-200 border-dashed transition-colors"
+                  >
+                    <i className="fa-solid fa-file-arrow-up mr-2"></i>
+                    Choose Home File (.json)
+                  </button>
+                </div>
               </div>
 
               <div className="pt-2">
@@ -306,6 +376,13 @@ const App: React.FC = () => {
         >
           <i className="fa-solid fa-house-medical text-xl"></i>
           <span className="text-[10px] font-bold">Medical</span>
+        </button>
+        <button
+          onClick={() => setActiveTab('home')}
+          className={`flex flex-col items-center space-y-1 transition-all ${activeTab === 'home' ? 'text-indigo-600 transform scale-110' : 'text-gray-400'}`}
+        >
+          <i className="fa-solid fa-home text-xl"></i>
+          <span className="text-[10px] font-bold">Home</span>
         </button>
       </footer>
     </div>
