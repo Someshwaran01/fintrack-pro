@@ -2,7 +2,7 @@ import { CreditCardBill, MedicalExpense, HomeExpense } from '../types';
 
 // Google Apps Script Web App URL (deploy from your Google Sheet)
 // See APPS_SCRIPT_SETUP.md for complete setup instructions
-const SCRIPT_URL = 'https://script.google.com/macros/s/YOUR_SCRIPT_ID_HERE/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby4l28D3GvUuSoIClcW5i1FVRpSHA3io8yJt6MvLFBh8h93EzhdK8PypxJVtyq5oFEc/exec';
 
 // Sheet names/tabs
 const SHEETS = {
