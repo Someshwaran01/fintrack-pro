@@ -29,9 +29,9 @@ const CloudSyncModal: React.FC<CloudSyncModalProps> = ({ show, onClose, bills, m
             if (success) {
                 localStorage.setItem('cloudSyncEnabled', 'true');
                 setCloudEnabled(true);
-                setMessage('✅ Google Sheets sync enabled! Data synced successfully. All family devices will see updates within 30 seconds.');
+                setMessage('✅ Google Sheets sync enabled! App will check for updates every 30 seconds. Add data directly to the sheet to share with family.');
             } else {
-                setMessage('❌ Failed to sync data. Please check Google Sheets setup.');
+                setMessage('❌ Failed to connect. Check that Sheet ID and API key are correct, and sheet is shared as "Anyone with link can view".');
             }
         } catch (error) {
             setMessage('❌ Error: ' + (error as Error).message);
@@ -66,8 +66,8 @@ const CloudSyncModal: React.FC<CloudSyncModalProps> = ({ show, onClose, bills, m
                         </p>
                         <p className="text-xs text-gray-600">
                             {cloudEnabled
-                                ? 'Your data syncs with Google Sheets every 30 seconds. All family devices share the same sheet.'
-                                : 'Data is stored locally only. Enable sync for family sharing across 3 devices.'}
+                                ? 'App pulls latest data from Google Sheets every 30 seconds. Update the sheet directly to share with family.'
+                                : 'Data is stored locally only. Enable sync to pull data from shared Google Sheet.'}
                         </p>
                     </div>
 
@@ -77,7 +77,7 @@ const CloudSyncModal: React.FC<CloudSyncModalProps> = ({ show, onClose, bills, m
                             📊 Shared Google Sheet
                         </p>
                         <p className="text-xs text-gray-600 mb-2">
-                            All family members use the same Google Sheet to share expenses. No Family ID needed - just enable sync on each device.
+                            All family members can manually add data to the shared Google Sheet. Each device reads from the sheet every 30 seconds. No Family ID needed.
                         </p>
                         <a
                             href="https://docs.google.com/spreadsheets/d/1v6mUZqe1AXW3D5b1PUjWKzdvDkAD45uTEXl5nWnEwrw"

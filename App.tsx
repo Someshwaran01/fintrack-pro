@@ -44,27 +44,14 @@ const App: React.FC = () => {
   // Update Storage on changes
   useEffect(() => {
     StorageService.saveBills(bills);
-    // Also save to Google Sheets if enabled
-    const cloudEnabled = localStorage.getItem('cloudSyncEnabled') === 'true';
-    if (cloudEnabled) {
-      GoogleSheetsService.saveBills(bills).catch(console.error);
-    }
   }, [bills]);
 
   useEffect(() => {
     StorageService.saveMedical(medical);
-    const cloudEnabled = localStorage.getItem('cloudSyncEnabled') === 'true';
-    if (cloudEnabled) {
-      GoogleSheetsService.saveMedical(medical).catch(console.error);
-    }
   }, [medical]);
 
   useEffect(() => {
     StorageService.saveHome(home);
-    const cloudEnabled = localStorage.getItem('cloudSyncEnabled') === 'true';
-    if (cloudEnabled) {
-      GoogleSheetsService.saveHome(home).catch(console.error);
-    }
   }, [home]);
 
   // Google Sheets Sync - Poll for updates every 30 seconds

@@ -215,14 +215,21 @@ export const GoogleSheetsService = {
         }
     },
 
-    // Sync all data (called periodically)
+    // Sync all data (read-only - API keys can't write)
     syncAll: async (bills: CreditCardBill[], medical: MedicalExpense[], home: HomeExpense[]) => {
-        const results = await Promise.all([
-            GoogleSheetsService.saveBills(bills),
-            GoogleSheetsService.saveMedical(medical),
-            GoogleSheetsService.saveHome(home)
-        ]);
-
-        return results.every(r => r);
+        try {
+            // API keys are read-only, so we just verify connection
+            // Data is saved to localStorage and read from sheets
+            const response = await fetch(`${BASE_URL}?key=${API_KEY}`);
+            if (response.ok) {
+                console.log('✅ Google Sheets sync enabled (read-only mode)');
+                return true;
+            }
+            console.error('❌ Failed to connect to Google Sheets');
+            return false;
+        } catch (error) {
+            console.error('❌ Error syncing:', error);
+            return false;
+        }
     }
 };
