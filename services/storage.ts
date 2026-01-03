@@ -31,5 +31,29 @@ export const StorageService = {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  },
+  exportToJSON: (data: any[], filename: string) => {
+    const jsonContent = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
+    const link = document.createElement("a");
+    link.setAttribute("href", jsonContent);
+    link.setAttribute("download", `${filename}.json`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  },
+  importFromJSON: (file: File): Promise<any[]> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = JSON.parse(e.target?.result as string);
+          resolve(Array.isArray(data) ? data : []);
+        } catch (error) {
+          reject(new Error('Invalid JSON file'));
+        }
+      };
+      reader.onerror = () => reject(new Error('Failed to read file'));
+      reader.readAsText(file);
+    });
   }
 };

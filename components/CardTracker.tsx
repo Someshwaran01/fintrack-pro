@@ -12,14 +12,15 @@ interface CardTrackerProps {
   onMonthChange: (month: string) => void;
 }
 
-// Default bank cards
+// Default bank cards with bill generation dates (bills show in current month for next month's due date)
+// For example: ICICI due on 16th of next month, bill generated on 28th of current month
 const DEFAULT_CARDS = [
-  { cardName: 'HSBC', dueDate: '31' },
-  { cardName: 'RBL', dueDate: '9' },
-  { cardName: 'AXIS', dueDate: '2' },
-  { cardName: 'ICICI', dueDate: '16' },
-  { cardName: 'SBI', dueDate: '21' },
-  { cardName: 'AU', dueDate: '15' }
+  { cardName: 'HSBC', dueDate: '31', billGenerationDate: '11' },  // Due 31st next month, bill on 11th current month
+  { cardName: 'RBL', dueDate: '9', billGenerationDate: '19' },     // Due 9th next month, bill on 19th current month
+  { cardName: 'AXIS', dueDate: '2', billGenerationDate: '12' },    // Due 2nd next month, bill on 12th current month
+  { cardName: 'ICICI', dueDate: '16', billGenerationDate: '28' },  // Due 16th next month, bill on 28th current month
+  { cardName: 'SBI', dueDate: '21', billGenerationDate: '1' },     // Due 21st next month, bill on 1st current month
+  { cardName: 'AU', dueDate: '15', billGenerationDate: '26' }      // Due 15th next month, bill on 26th current month
 ];
 
 const CardTracker: React.FC<CardTrackerProps> = ({ bills, onAdd, onUpdate, onDelete, selectedMonth, onMonthChange }) => {
@@ -39,6 +40,22 @@ const CardTracker: React.FC<CardTrackerProps> = ({ bills, onAdd, onUpdate, onDel
     lastPaymentDate: '',
   });
 
+  // Helper function to get next month for bill due dates
+  const getNextMonth = (currentMonth: string): string => {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const [month, year] = currentMonth.split('-');
+    const monthIndex = months.indexOf(month);
+
+    if (monthIndex === 11) {
+      // December -> go to January of next year
+      const nextYear = (parseInt(year) + 1).toString().padStart(2, '0');
+      return `Jan-${nextYear}`;
+    } else {
+      // Go to next month in same year
+      return `${months[monthIndex + 1]}-${year}`;
+    }
+  };
+
   // Helper function to calculate total paid from payments array
   const calculateTotalPaid = (bill: CreditCardBill): number => {
     if (bill.payments && bill.payments.length > 0) {
@@ -49,8 +66,18 @@ const CardTracker: React.FC<CardTrackerProps> = ({ bills, onAdd, onUpdate, onDel
 
   // Initialize default cards for the selected month if they don't exist
   useEffect(() => {
-    const currentMonthBills = bills.filter(b => b.month === selectedMonth);
-    const existingCardNames = currentMonthBills.map(b => b.cardName);
+    const nextMonth = getNextMonth(selectedMonth);
+
+    // Check for bills with due dates in current month (created in previous month)
+    // or bills created in current month
+    const existingCards = bills.filter(b => {
+      // Check if bill's due date is in current month
+      if (b.dueDate && b.dueDate.includes(selectedMonth)) return true;
+      // Or if bill was created in current month
+      if (b.month === selectedMonth) return true;
+      return false;
+    });
+    const existingCardNames = existingCards.map(b => b.cardName);
 
     DEFAULT_CARDS.forEach(defaultCard => {
       if (!existingCardNames.includes(defaultCard.cardName)) {
@@ -58,8 +85,8 @@ const CardTracker: React.FC<CardTrackerProps> = ({ bills, onAdd, onUpdate, onDel
           id: `${defaultCard.cardName}-${selectedMonth}`,
           cardName: defaultCard.cardName,
           category: 'Banking',
-          dueDate: defaultCard.dueDate,
-          month: selectedMonth,
+          dueDate: `${defaultCard.dueDate} ${nextMonth}`,  // Show due date in next month
+          month: selectedMonth,  // Bill generated in current month
           isEmi: false,
           totalAmount: 0,
           monthlyAmount: 0,
@@ -72,7 +99,13 @@ const CardTracker: React.FC<CardTrackerProps> = ({ bills, onAdd, onUpdate, onDel
     });
   }, [selectedMonth]);
 
-  const filteredBills = bills.filter(b => b.month === selectedMonth);
+  // Filter bills by due date month instead of creation month
+  // This ensures bills created in Dec with Jan due dates appear in Jan
+  const filteredBills = bills.filter(b => {
+    if (!b.dueDate) return b.month === selectedMonth;
+    // Check if due date contains the selected month (e.g., "16 Jan-26" contains "Jan-26")
+    return b.dueDate.includes(selectedMonth);
+  });
 
   const totalDue = filteredBills.reduce((acc, b) => acc + b.monthlyAmount, 0);
   const totalPaid = filteredBills.reduce((acc, b) => acc + calculateTotalPaid(b), 0);

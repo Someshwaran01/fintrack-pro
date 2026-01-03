@@ -23,6 +23,9 @@ const App: React.FC = () => {
   const [aiInsight, setAiInsight] = useState<string | null>(null);
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState<string>(getCurrentMonth());
+  const [showImportModal, setShowImportModal] = useState(false);
+  const billsFileInputRef = React.useRef<HTMLInputElement>(null);
+  const medicalFileInputRef = React.useRef<HTMLInputElement>(null);
 
   // Initialize data
   useEffect(() => {
@@ -73,13 +76,76 @@ const App: React.FC = () => {
   };
 
   const handleExport = () => {
-    if (activeTab === 'bills') StorageService.exportToCSV(bills, 'cc_bills');
-    if (activeTab === 'medical') StorageService.exportToCSV(medical, 'medical_expenses');
-    if (activeTab === 'dashboard') {
-      alert("Exporting all data...");
-      StorageService.exportToCSV(bills, 'all_cc_bills');
-      StorageService.exportToCSV(medical, 'all_medical_expenses');
+    if (activeTab === 'bills') {
+      StorageService.exportToCSV(bills, 'cc_bills');
+      StorageService.exportToJSON(bills, 'cc_bills');
     }
+    if (activeTab === 'medical') {
+      StorageService.exportToCSV(medical, 'medical_expenses');
+      StorageService.exportToJSON(medical, 'medical_expenses');
+    }
+    if (activeTab === 'dashboard') {
+      StorageService.exportToCSV(bills, 'all_cc_bills');
+      StorageService.exportToJSON(bills, 'all_cc_bills');
+      StorageService.exportToCSV(medical, 'all_medical_expenses');
+      StorageService.exportToJSON(medical, 'all_medical_expenses');
+    }
+  };
+
+  const handleImportBills = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const importedData = await StorageService.importFromJSON(file);
+      const validBills = importedData.filter(item => item.cardName && item.month);
+
+      if (validBills.length === 0) {
+        alert('No valid credit card bills found in the file.');
+        return;
+      }
+
+      // Merge with existing bills, avoiding duplicates
+      const existingIds = new Set(bills.map(b => b.id));
+      const newBills = validBills.filter(b => !existingIds.has(b.id));
+
+      setBills([...bills, ...newBills]);
+      alert(`Successfully imported ${newBills.length} credit card bills!`);
+      setShowImportModal(false);
+    } catch (error) {
+      alert('Failed to import bills. Please check the file format.');
+      console.error(error);
+    }
+
+    if (billsFileInputRef.current) billsFileInputRef.current.value = '';
+  };
+
+  const handleImportMedical = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const importedData = await StorageService.importFromJSON(file);
+      const validExpenses = importedData.filter(item => item.memberName && item.date);
+
+      if (validExpenses.length === 0) {
+        alert('No valid medical expenses found in the file.');
+        return;
+      }
+
+      // Merge with existing expenses, avoiding duplicates
+      const existingIds = new Set(medical.map(m => m.id));
+      const newExpenses = validExpenses.filter(e => !existingIds.has(e.id));
+
+      setMedical([...medical, ...newExpenses]);
+      alert(`Successfully imported ${newExpenses.length} medical expenses!`);
+      setShowImportModal(false);
+    } catch (error) {
+      alert('Failed to import medical expenses. Please check the file format.');
+      console.error(error);
+    }
+
+    if (medicalFileInputRef.current) medicalFileInputRef.current.value = '';
   };
 
   return (
@@ -90,7 +156,7 @@ const App: React.FC = () => {
           <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
             <i className="fa-solid fa-wallet text-white text-sm"></i>
           </div>
-          <span className="font-bold text-gray-800">FinTrack Pro</span>
+          <span className="font-bold text-gray-800">Somu Fin - Tracker</span>
         </div>
         <div className="flex space-x-2">
           <button
@@ -99,6 +165,13 @@ const App: React.FC = () => {
             title="AI Analysis"
           >
             <i className="fa-solid fa-wand-magic-sparkles"></i>
+          </button>
+          <button
+            onClick={() => setShowImportModal(true)}
+            className="w-9 h-9 bg-green-50 text-green-600 rounded-full flex items-center justify-center hover:bg-green-100"
+            title="Import Data"
+          >
+            <i className="fa-solid fa-upload"></i>
           </button>
           <button
             onClick={handleExport}
@@ -132,6 +205,84 @@ const App: React.FC = () => {
         {activeTab === 'bills' && <CardTracker bills={bills} onAdd={handleAddBill} onUpdate={handleUpdateBill} onDelete={handleDeleteBill} selectedMonth={selectedMonth} onMonthChange={setSelectedMonth} />}
         {activeTab === 'medical' && <MedicalTracker expenses={medical} onAdd={handleAddMedical} onDelete={handleDeleteMedical} />}
       </main>
+
+      {/* Import Modal */}
+      {showImportModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white p-6 rounded-2xl shadow-xl max-w-md w-full">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="font-bold text-lg">Import Data</h3>
+              <button onClick={() => setShowImportModal(false)} className="text-gray-400 hover:text-gray-600">
+                <i className="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div className="bg-blue-50 p-4 rounded-xl">
+                <p className="text-xs text-blue-800 mb-3">
+                  <i className="fa-solid fa-info-circle mr-1"></i>
+                  Import JSON files that were previously exported from this app.
+                </p>
+              </div>
+
+              <div className="space-y-3">
+                <div>
+                  <label className="text-sm font-bold text-gray-700 mb-2 block">
+                    <i className="fa-solid fa-credit-card mr-2 text-indigo-600"></i>
+                    Credit Card Bills
+                  </label>
+                  <input
+                    ref={billsFileInputRef}
+                    type="file"
+                    accept=".json"
+                    onChange={handleImportBills}
+                    className="hidden"
+                    id="billsFileInput"
+                  />
+                  <button
+                    onClick={() => billsFileInputRef.current?.click()}
+                    className="w-full bg-indigo-50 hover:bg-indigo-100 text-indigo-600 font-semibold py-3 px-4 rounded-xl border-2 border-indigo-200 border-dashed transition-colors"
+                  >
+                    <i className="fa-solid fa-file-arrow-up mr-2"></i>
+                    Choose Bills File (.json)
+                  </button>
+                </div>
+
+                <div>
+                  <label className="text-sm font-bold text-gray-700 mb-2 block">
+                    <i className="fa-solid fa-house-medical mr-2 text-blue-600"></i>
+                    Medical Expenses
+                  </label>
+                  <input
+                    ref={medicalFileInputRef}
+                    type="file"
+                    accept=".json"
+                    onChange={handleImportMedical}
+                    className="hidden"
+                    id="medicalFileInput"
+                  />
+                  <button
+                    onClick={() => medicalFileInputRef.current?.click()}
+                    className="w-full bg-blue-50 hover:bg-blue-100 text-blue-600 font-semibold py-3 px-4 rounded-xl border-2 border-blue-200 border-dashed transition-colors"
+                  >
+                    <i className="fa-solid fa-file-arrow-up mr-2"></i>
+                    Choose Medical File (.json)
+                  </button>
+                </div>
+              </div>
+
+              <div className="pt-2">
+                <button
+                  onClick={() => setShowImportModal(false)}
+                  className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-3 rounded-xl transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Bottom Navigation */}
       <footer className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white border-t border-gray-100 flex justify-around items-center py-3 px-6 pb-6 z-50 shadow-[0_-5px_20px_rgba(0,0,0,0.05)]">
