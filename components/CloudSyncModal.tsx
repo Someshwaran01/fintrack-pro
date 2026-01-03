@@ -46,46 +46,6 @@ const CloudSyncModal: React.FC<CloudSyncModalProps> = ({ show, onClose, bills, m
         setMessage('Google Sheets sync disabled. Using local storage only.');
     };
 
-    const handleExportToSheet = () => {
-        // Convert data to TSV format for easy pasting
-        let tsvData = '';
-
-        // Bills data
-        if (bills.length > 0) {
-            tsvData += 'BILLS DATA:\n';
-            tsvData += 'ID\tCard Name\tCategory\tDue Date\tMonth\tIs EMI\tEMI Details\tTotal Amount\tTenure\tMonthly Amount\tPayments\n';
-            bills.forEach(b => {
-                tsvData += `${b.id}\t${b.cardName}\t${b.category}\t${b.dueDate}\t${b.month}\t${b.isEmi ? 'Yes' : 'No'}\t${b.emiDetails || ''}\t${b.totalAmount}\t${b.tenure || ''}\t${b.monthlyAmount}\t${JSON.stringify(b.payments || [])}\n`;
-            });
-            tsvData += '\n';
-        }
-
-        // Medical data
-        if (medical.length > 0) {
-            tsvData += 'MEDICAL DATA:\n';
-            tsvData += 'ID\tDate\tAmount\tPayment Method\tDescription\n';
-            medical.forEach(m => {
-                tsvData += `${m.id}\t${m.date}\t${m.amount}\t${m.paymentMethod}\t${m.description}\n`;
-            });
-            tsvData += '\n';
-        }
-
-        // Home data
-        if (home.length > 0) {
-            tsvData += 'HOME DATA:\n';
-            tsvData += 'ID\tDate\tAmount\tPayment Method\tCategory\tDescription\n';
-            home.forEach(h => {
-                tsvData += `${h.id}\t${h.date}\t${h.amount}\t${h.paymentMethod}\t${h.category}\t${h.description}\n`;
-            });
-        }
-
-        navigator.clipboard.writeText(tsvData).then(() => {
-            setMessage('📋 Data copied! Open your Google Sheet and paste (Ctrl+V)');
-        }).catch(() => {
-            setMessage('❌ Failed to copy to clipboard');
-        });
-    };
-
     if (!show) return null;
 
     return (
@@ -106,8 +66,8 @@ const CloudSyncModal: React.FC<CloudSyncModalProps> = ({ show, onClose, bills, m
                         </p>
                         <p className="text-xs text-gray-600">
                             {cloudEnabled
-                                ? 'App pulls latest data from Google Sheets every 30 seconds. Update the sheet directly to share with family.'
-                                : 'Data is stored locally only. Enable sync to pull data from shared Google Sheet.'}
+                                ? 'Data syncs automatically every time you add or edit expenses. All family devices share the same sheet.'
+                                : 'Data is stored locally only. Enable sync to share with family across devices.'}
                         </p>
                     </div>
 
@@ -117,28 +77,33 @@ const CloudSyncModal: React.FC<CloudSyncModalProps> = ({ show, onClose, bills, m
                             📊 Shared Google Sheet
                         </p>
                         <p className="text-xs text-gray-600 mb-2">
-                            All family members can manually add data to the shared Google Sheet. Each device reads from the sheet every 30 seconds. No Family ID needed.
+                            Data syncs automatically to Google Sheets. All family devices will see updates within 30 seconds.
                         </p>
-                        <a
-                            href="https://docs.google.com/spreadsheets/d/1v6mUZqe1AXW3D5b1PUjWKzdvDkAD45uTEXl5nWnEwrw"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-xs text-blue-600 hover:underline"
-                        >
-                            View Google Sheet →
-                        </a>
+                        <div className="flex items-center gap-2">
+                            <a
+                                href="https://docs.google.com/spreadsheets/d/1v6mUZqe1AXW3D5b1PUjWKzdvDkAD45uTEXl5nWnEwrw"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs text-blue-600 hover:underline flex-1"
+                            >
+                                View Google Sheet →
+                            </a>
+                            <button
+                                onClick={() => {
+                                    navigator.clipboard.writeText('https://docs.google.com/spreadsheets/d/1v6mUZqe1AXW3D5b1PUjWKzdvDkAD45uTEXl5nWnEwrw');
+                                    setMessage('✅ Sheet URL copied to clipboard!');
+                                    setTimeout(() => setMessage(''), 2000);
+                                }}
+                                className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded-lg transition-colors"
+                                title="Copy Sheet URL"
+                            >
+                                <i className="fa-solid fa-copy"></i>
+                            </button>
+                        </div>
                     </div>
 
                     {/* Actions */}
                     <div className="space-y-2">
-                        <button
-                            onClick={handleExportToSheet}
-                            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-colors"
-                        >
-                            <i className="fa-solid fa-copy mr-2"></i>
-                            Copy Data to Paste in Sheet
-                        </button>
-
                         {!cloudEnabled ? (
                             <button
                                 onClick={handleEnableCloud}

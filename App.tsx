@@ -46,7 +46,15 @@ const App: React.FC = () => {
     StorageService.saveBills(bills);
     const cloudEnabled = localStorage.getItem('cloudSyncEnabled') === 'true';
     if (cloudEnabled && bills.length > 0) {
-      GoogleSheetsService.saveBills(bills).catch(console.error);
+      GoogleSheetsService.saveBills(bills)
+        .then(success => {
+          if (success) {
+            console.log('✅ Bills saved to Google Sheets');
+          } else {
+            console.warn('⚠️ Failed to save bills to Google Sheets (kept local copy)');
+          }
+        })
+        .catch(err => console.error('❌ Error saving bills to Google Sheets:', err));
     }
   }, [bills]);
 
@@ -54,7 +62,15 @@ const App: React.FC = () => {
     StorageService.saveMedical(medical);
     const cloudEnabled = localStorage.getItem('cloudSyncEnabled') === 'true';
     if (cloudEnabled && medical.length > 0) {
-      GoogleSheetsService.saveMedical(medical).catch(console.error);
+      GoogleSheetsService.saveMedical(medical)
+        .then(success => {
+          if (success) {
+            console.log('✅ Medical expenses saved to Google Sheets');
+          } else {
+            console.warn('⚠️ Failed to save medical to Google Sheets (kept local copy)');
+          }
+        })
+        .catch(err => console.error('❌ Error saving medical to Google Sheets:', err));
     }
   }, [medical]);
 
@@ -62,7 +78,15 @@ const App: React.FC = () => {
     StorageService.saveHome(home);
     const cloudEnabled = localStorage.getItem('cloudSyncEnabled') === 'true';
     if (cloudEnabled && home.length > 0) {
-      GoogleSheetsService.saveHome(home).catch(console.error);
+      GoogleSheetsService.saveHome(home)
+        .then(success => {
+          if (success) {
+            console.log('✅ Home expenses saved to Google Sheets');
+          } else {
+            console.warn('⚠️ Failed to save home to Google Sheets (kept local copy)');
+          }
+        })
+        .catch(err => console.error('❌ Error saving home to Google Sheets:', err));
     }
   }, [home]);
 
@@ -70,6 +94,8 @@ const App: React.FC = () => {
   useEffect(() => {
     const cloudEnabled = localStorage.getItem('cloudSyncEnabled') === 'true';
     if (!cloudEnabled) return;
+
+    let lastSyncTime = Date.now();
 
     // Initial sync
     const syncFromSheets = async () => {
@@ -80,24 +106,52 @@ const App: React.FC = () => {
           GoogleSheetsService.getHome()
         ]);
 
-        if (sheetBills.length > 0) {
-          setBills(sheetBills);
-          StorageService.saveBills(sheetBills);
+        // Only update if we got valid data from sheets
+        // Check if data exists and has different timestamp/content
+        const currentTime = Date.now();
+        const timeSinceLastSync = currentTime - lastSyncTime;
+
+        // Update bills if sheet has data OR if this is first sync and local is empty
+        if (sheetBills.length > 0 || (timeSinceLastSync < 1000 && bills.length === 0)) {
+          const currentBillsJson = JSON.stringify(bills);
+          const sheetBillsJson = JSON.stringify(sheetBills);
+          if (currentBillsJson !== sheetBillsJson) {
+            setBills(sheetBills);
+            StorageService.saveBills(sheetBills);
+            console.log('✅ Bills synced from Google Sheets');
+          }
         }
-        if (sheetMedical.length > 0) {
-          setMedical(sheetMedical);
-          StorageService.saveMedical(sheetMedical);
+
+        // Update medical if sheet has data OR if this is first sync and local is empty
+        if (sheetMedical.length > 0 || (timeSinceLastSync < 1000 && medical.length === 0)) {
+          const currentMedicalJson = JSON.stringify(medical);
+          const sheetMedicalJson = JSON.stringify(sheetMedical);
+          if (currentMedicalJson !== sheetMedicalJson) {
+            setMedical(sheetMedical);
+            StorageService.saveMedical(sheetMedical);
+            console.log('✅ Medical synced from Google Sheets');
+          }
         }
-        if (sheetHome.length > 0) {
-          setHome(sheetHome);
-          StorageService.saveHome(sheetHome);
+
+        // Update home if sheet has data OR if this is first sync and local is empty
+        if (sheetHome.length > 0 || (timeSinceLastSync < 1000 && home.length === 0)) {
+          const currentHomeJson = JSON.stringify(home);
+          const sheetHomeJson = JSON.stringify(sheetHome);
+          if (currentHomeJson !== sheetHomeJson) {
+            setHome(sheetHome);
+            StorageService.saveHome(sheetHome);
+            console.log('✅ Home expenses synced from Google Sheets');
+          }
         }
+
+        lastSyncTime = currentTime;
       } catch (error) {
-        console.error('Error syncing from Google Sheets:', error);
+        console.error('❌ Error syncing from Google Sheets:', error);
+        // Don't update local data on error - keep existing data
       }
     };
 
-    // Sync immediately
+    // Sync immediately on mount
     syncFromSheets();
 
     // Poll every 30 seconds for updates
