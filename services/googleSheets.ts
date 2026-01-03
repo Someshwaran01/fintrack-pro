@@ -32,18 +32,20 @@ export const GoogleSheetsService = {
     saveBills: async (bills: CreditCardBill[]) => {
         try {
             const data = [
-                ['ID', 'Card Name', 'Category', 'Due Date', 'Month', 'Is EMI', 'EMI Details', 'Total Amount', 'Tenure', 'Monthly Amount', 'Payments'],
+                ['ID', 'Card Name', 'Category', 'Due Date', 'Month', 'Is EMI', 'EMI Details', 'Total Amount', 'Tenure', 'Monthly Amount', 'Paid Amount', 'Last Payment Date', 'Payments'],
                 ...bills.map(b => [
-                    b.id,
-                    b.cardName,
-                    b.category,
-                    b.dueDate,
-                    b.month,
+                    b.id || '',
+                    b.cardName || '',
+                    b.category || '',
+                    b.dueDate || '',
+                    b.month || '',
                     b.isEmi ? 'Yes' : 'No',
                     b.emiDetails || '',
-                    b.totalAmount,
+                    b.totalAmount || 0,
                     b.tenure || '',
-                    b.monthlyAmount,
+                    b.monthlyAmount || 0,
+                    b.paidAmount || 0,
+                    b.lastPaymentDate || '',
                     JSON.stringify(b.payments || [])
                 ])
             ];
@@ -79,23 +81,27 @@ export const GoogleSheetsService = {
             if (!response.ok) return [];
 
             const result = await response.json();
-            if (!result.success || !result.data) return [];
+            if (!result.success || !result.data || result.data.length <= 1) return [];
 
             const rows = result.data.slice(1); // Skip header row
 
-            return rows.map((row: any[]) => ({
-                id: row[0],
-                cardName: row[1],
-                category: row[2],
-                dueDate: row[3],
-                month: row[4],
-                isEmi: row[5] === 'Yes',
-                emiDetails: row[6],
-                totalAmount: parseFloat(row[7]),
-                tenure: row[8] ? parseInt(row[8]) : undefined,
-                monthlyAmount: parseFloat(row[9]),
-                payments: row[10] ? JSON.parse(row[10]) : []
-            }));
+            return rows
+                .filter((row: any[]) => row && row[0]) // Filter out empty rows
+                .map((row: any[]) => ({
+                    id: row[0] || '',
+                    cardName: row[1] || '',
+                    category: row[2] || '',
+                    dueDate: row[3] || '',
+                    month: row[4] || '',
+                    isEmi: row[5] === 'Yes',
+                    emiDetails: row[6] || '',
+                    totalAmount: parseFloat(row[7]) || 0,
+                    tenure: row[8] || undefined,
+                    monthlyAmount: parseFloat(row[9]) || 0,
+                    paidAmount: parseFloat(row[10]) || 0,
+                    lastPaymentDate: row[11] || undefined,
+                    payments: row[12] ? (typeof row[12] === 'string' ? JSON.parse(row[12]) : row[12]) : []
+                }));
         } catch (error) {
             console.error('❌ Error fetching bills:', error);
             return [];
@@ -108,11 +114,11 @@ export const GoogleSheetsService = {
             const data = [
                 ['ID', 'Date', 'Amount', 'Payment Method', 'Description'],
                 ...medical.map(m => [
-                    m.id,
-                    m.date,
-                    m.amount,
-                    m.paymentMethod,
-                    m.description
+                    m.id || '',
+                    m.date || '',
+                    m.amount || 0,
+                    m.paymentMethod || '',
+                    m.description || ''
                 ])
             ];
 
@@ -145,17 +151,19 @@ export const GoogleSheetsService = {
             if (!response.ok) return [];
 
             const result = await response.json();
-            if (!result.success || !result.data) return [];
+            if (!result.success || !result.data || result.data.length <= 1) return [];
 
             const rows = result.data.slice(1);
 
-            return rows.map((row: any[]) => ({
-                id: row[0],
-                date: row[1],
-                amount: parseFloat(row[2]),
-                paymentMethod: row[3],
-                description: row[4]
-            }));
+            return rows
+                .filter((row: any[]) => row && row[0]) // Filter out empty rows
+                .map((row: any[]) => ({
+                    id: row[0] || '',
+                    date: row[1] || '',
+                    amount: parseFloat(row[2]) || 0,
+                    paymentMethod: row[3] as PaymentMethod || PaymentMethod.CASH,
+                    description: row[4] || ''
+                }));
         } catch (error) {
             console.error('❌ Error fetching medical:', error);
             return [];
@@ -168,12 +176,12 @@ export const GoogleSheetsService = {
             const data = [
                 ['ID', 'Date', 'Amount', 'Payment Method', 'Category', 'Description'],
                 ...home.map(h => [
-                    h.id,
-                    h.date,
-                    h.amount,
-                    h.paymentMethod,
-                    h.category,
-                    h.description
+                    h.id || '',
+                    h.date || '',
+                    h.amount || 0,
+                    h.paymentMethod || '',
+                    h.category || '',
+                    h.description || ''
                 ])
             ];
 
@@ -206,18 +214,20 @@ export const GoogleSheetsService = {
             if (!response.ok) return [];
 
             const result = await response.json();
-            if (!result.success || !result.data) return [];
+            if (!result.success || !result.data || result.data.length <= 1) return [];
 
             const rows = result.data.slice(1);
 
-            return rows.map((row: any[]) => ({
-                id: row[0],
-                date: row[1],
-                amount: parseFloat(row[2]),
-                paymentMethod: row[3],
-                category: row[4],
-                description: row[5]
-            }));
+            return rows
+                .filter((row: any[]) => row && row[0]) // Filter out empty rows
+                .map((row: any[]) => ({
+                    id: row[0] || '',
+                    date: row[1] || '',
+                    amount: parseFloat(row[2]) || 0,
+                    paymentMethod: row[3] as PaymentMethod || PaymentMethod.CASH,
+                    category: row[4] || '',
+                    description: row[5] || ''
+                }));
         } catch (error) {
             console.error('❌ Error fetching home:', error);
             return [];
