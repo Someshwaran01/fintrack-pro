@@ -45,7 +45,7 @@ const App: React.FC = () => {
     StorageService.saveBills(bills);
     // Also save to cloud if enabled
     const cloudEnabled = localStorage.getItem('cloudSyncEnabled') === 'true';
-    if (cloudEnabled && bills.length > 0) {
+    if (cloudEnabled) {
       CloudStorageService.saveBills(bills).catch(console.error);
     }
   }, [bills]);
@@ -53,7 +53,7 @@ const App: React.FC = () => {
   useEffect(() => {
     StorageService.saveMedical(medical);
     const cloudEnabled = localStorage.getItem('cloudSyncEnabled') === 'true';
-    if (cloudEnabled && medical.length > 0) {
+    if (cloudEnabled) {
       CloudStorageService.saveMedical(medical).catch(console.error);
     }
   }, [medical]);
@@ -61,7 +61,7 @@ const App: React.FC = () => {
   useEffect(() => {
     StorageService.saveHome(home);
     const cloudEnabled = localStorage.getItem('cloudSyncEnabled') === 'true';
-    if (cloudEnabled && home.length > 0) {
+    if (cloudEnabled) {
       CloudStorageService.saveHome(home).catch(console.error);
     }
   }, [home]);
@@ -73,24 +73,18 @@ const App: React.FC = () => {
 
     // Set up real-time listeners for cloud data
     const unsubscribeBills = CloudStorageService.listenToBills((cloudBills) => {
-      if (cloudBills.length > 0) {
-        setBills(cloudBills);
-        StorageService.saveBills(cloudBills); // Backup to local
-      }
+      setBills(cloudBills);
+      StorageService.saveBills(cloudBills); // Backup to local
     });
 
     const unsubscribeMedical = CloudStorageService.listenToMedical((cloudMedical) => {
-      if (cloudMedical.length > 0) {
-        setMedical(cloudMedical);
-        StorageService.saveMedical(cloudMedical); // Backup to local
-      }
+      setMedical(cloudMedical);
+      StorageService.saveMedical(cloudMedical); // Backup to local
     });
 
     const unsubscribeHome = CloudStorageService.listenToHome((cloudHome) => {
-      if (cloudHome.length > 0) {
-        setHome(cloudHome);
-        StorageService.saveHome(cloudHome); // Backup to local
-      }
+      setHome(cloudHome);
+      StorageService.saveHome(cloudHome); // Backup to local
     });
 
     // Cleanup listeners on unmount
