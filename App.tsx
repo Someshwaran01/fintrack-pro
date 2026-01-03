@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { GoogleGenAI } from "@google/genai";
 import { AppTab, CreditCardBill, MedicalExpense, HomeExpense } from './types';
 import { StorageService } from './services/storage';
-import { CloudStorageService } from './services/cloudStorage';
+import { GoogleSheetsService } from './services/googleSheets';
 import Dashboard from './components/Dashboard';
 import CardTracker from './components/CardTracker';
 import MedicalTracker from './components/MedicalTracker';
@@ -43,10 +43,10 @@ const App: React.FC = () => {
   // Update Storage on changes
   useEffect(() => {
     StorageService.saveBills(bills);
-    // Also save to cloud if enabled
+    // Also save to Google Sheets if enabled
     const cloudEnabled = localStorage.getItem('cloudSyncEnabled') === 'true';
     if (cloudEnabled) {
-      CloudStorageService.saveBills(bills).catch(console.error);
+      GoogleSheetsService.saveBills(bills).catch(console.error);
     }
   }, [bills]);
 
@@ -54,7 +54,7 @@ const App: React.FC = () => {
     StorageService.saveMedical(medical);
     const cloudEnabled = localStorage.getItem('cloudSyncEnabled') === 'true';
     if (cloudEnabled) {
-      CloudStorageService.saveMedical(medical).catch(console.error);
+      GoogleSheetsService.saveMedical(medical).catch(console.error);
     }
   }, [medical]);
 
@@ -62,37 +62,48 @@ const App: React.FC = () => {
     StorageService.saveHome(home);
     const cloudEnabled = localStorage.getItem('cloudSyncEnabled') === 'true';
     if (cloudEnabled) {
-      CloudStorageService.saveHome(home).catch(console.error);
+      GoogleSheetsService.saveHome(home).catch(console.error);
     }
   }, [home]);
 
-  // Cloud Sync - Real-time listeners
+  // Google Sheets Sync - Poll for updates every 30 seconds
   useEffect(() => {
     const cloudEnabled = localStorage.getItem('cloudSyncEnabled') === 'true';
     if (!cloudEnabled) return;
 
-    // Set up real-time listeners for cloud data
-    const unsubscribeBills = CloudStorageService.listenToBills((cloudBills) => {
-      setBills(cloudBills);
-      StorageService.saveBills(cloudBills); // Backup to local
-    });
+    // Initial sync
+    const syncFromSheets = async () => {
+      try {
+        const [sheetBills, sheetMedical, sheetHome] = await Promise.all([
+          GoogleSheetsService.getBills(),
+          GoogleSheetsService.getMedical(),
+          GoogleSheetsService.getHome()
+        ]);
 
-    const unsubscribeMedical = CloudStorageService.listenToMedical((cloudMedical) => {
-      setMedical(cloudMedical);
-      StorageService.saveMedical(cloudMedical); // Backup to local
-    });
-
-    const unsubscribeHome = CloudStorageService.listenToHome((cloudHome) => {
-      setHome(cloudHome);
-      StorageService.saveHome(cloudHome); // Backup to local
-    });
-
-    // Cleanup listeners on unmount
-    return () => {
-      unsubscribeBills();
-      unsubscribeMedical();
-      unsubscribeHome();
+        if (sheetBills.length > 0) {
+          setBills(sheetBills);
+          StorageService.saveBills(sheetBills);
+        }
+        if (sheetMedical.length > 0) {
+          setMedical(sheetMedical);
+          StorageService.saveMedical(sheetMedical);
+        }
+        if (sheetHome.length > 0) {
+          setHome(sheetHome);
+          StorageService.saveHome(sheetHome);
+        }
+      } catch (error) {
+        console.error('Error syncing from Google Sheets:', error);
+      }
     };
+
+    // Sync immediately
+    syncFromSheets();
+
+    // Poll every 30 seconds for updates
+    const intervalId = setInterval(syncFromSheets, 30000);
+
+    return () => clearInterval(intervalId);
   }, []);
 
   const handleAddBill = (bill: CreditCardBill) => setBills([...bills, bill]);

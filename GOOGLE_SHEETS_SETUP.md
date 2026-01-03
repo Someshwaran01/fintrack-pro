@@ -18,7 +18,7 @@ Use Google Sheets as a free cloud database for family data sharing. No quota lim
    ```
    https://docs.google.com/spreadsheets/d/COPY_THIS_PART/edit
    ```
-   Example: `1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms`
+   Example: `1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms1v6mUZqe1AXW3D5b1PUjWKzdvDkAD45uTEXl5nWnEwrw`
 
 ### Step 2: Make Sheet Public (Simplest Method)
 
@@ -45,7 +45,7 @@ Use Google Sheets as a free cloud database for family data sharing. No quota lim
    - Click **"Credentials"** in left menu
    - Click **"+ CREATE CREDENTIALS"**
    - Choose **"API key"**
-   - Copy the API key (looks like: `AIzaSyXXXXXXXXXXXXXXXXXXXXXXXX`)
+   - Copy the API key (looks like: `AIzaSyBWPZpXDan8iApBLnQ6xd5CkmWAFUAT1fw`)
    - Click **"RESTRICT KEY"** (recommended)
    - Under "API restrictions", select **"Restrict key"**
    - Check **"Google Sheets API"**

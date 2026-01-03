@@ -1,8 +1,8 @@
 import { CreditCardBill, MedicalExpense, HomeExpense } from '../types';
 
 // Google Sheets Configuration
-const SHEET_ID = 'YOUR_SHEET_ID_HERE'; // Get from sheet URL
-const API_KEY = 'YOUR_API_KEY_HERE'; // Get from Google Cloud Console
+const SHEET_ID = '1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms1v6mUZqe1AXW3D5b1PUjWKzdvDkAD45uTEXl5nWnEwrw'; // Get from sheet URL
+const API_KEY = 'AIzaSyBWPZpXDan8iApBLnQ6xd5CkmWAFUAT1fw'; // Get from Google Cloud Console
 const BASE_URL = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}`;
 
 // Sheet names/tabs
