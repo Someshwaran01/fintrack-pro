@@ -35,8 +35,10 @@ export const CloudStorageService = {
     // Credit Card Bills
     saveBills: async (bills: CreditCardBill[]) => {
         const familyId = getFamilyId();
+        console.log('Saving bills to cloud:', familyId, bills.length, 'items');
         const billsRef = doc(db, 'families', familyId, 'data', 'bills');
         await setDoc(billsRef, { bills, updatedAt: Timestamp.now() });
+        console.log('Bills saved successfully');
     },
 
     getBills: async (): Promise<CreditCardBill[]> => {
@@ -56,15 +58,19 @@ export const CloudStorageService = {
     // Medical Expenses
     saveMedical: async (medical: MedicalExpense[]) => {
         const familyId = getFamilyId();
+        console.log('Saving medical to cloud:', familyId, medical.length, 'items');
         const medicalRef = doc(db, 'families', familyId, 'data', 'medical');
         await setDoc(medicalRef, { medical, updatedAt: Timestamp.now() });
+        console.log('Medical saved successfully');
     },
 
     // Home Expenses
     saveHome: async (home: HomeExpense[]) => {
         const familyId = getFamilyId();
+        console.log('Saving home to cloud:', familyId, home.length, 'items');
         const homeRef = doc(db, 'families', familyId, 'data', 'home');
         await setDoc(homeRef, { home, updatedAt: Timestamp.now() });
+        console.log('Home saved successfully');
     },
 
     // Real-time listener for bills
@@ -73,10 +79,17 @@ export const CloudStorageService = {
         const billsRef = doc(db, 'families', familyId, 'data', 'bills');
 
         return onSnapshot(billsRef, (snapshot) => {
+            console.log('Bills snapshot received:', snapshot.exists());
             if (snapshot.exists()) {
                 const data = snapshot.data();
+                console.log('Bills data:', data.bills?.length || 0, 'items');
                 callback(data.bills || []);
+            } else {
+                console.log('No bills document exists yet');
+                callback([]);
             }
+        }, (error) => {
+            console.error('Bills listener error:', error);
         });
     },
 
@@ -86,10 +99,17 @@ export const CloudStorageService = {
         const medicalRef = doc(db, 'families', familyId, 'data', 'medical');
 
         return onSnapshot(medicalRef, (snapshot) => {
+            console.log('Medical snapshot received:', snapshot.exists());
             if (snapshot.exists()) {
                 const data = snapshot.data();
+                console.log('Medical data:', data.medical?.length || 0, 'items');
                 callback(data.medical || []);
+            } else {
+                console.log('No medical document exists yet');
+                callback([]);
             }
+        }, (error) => {
+            console.error('Medical listener error:', error);
         });
     },
 
@@ -99,10 +119,17 @@ export const CloudStorageService = {
         const homeRef = doc(db, 'families', familyId, 'data', 'home');
 
         return onSnapshot(homeRef, (snapshot) => {
+            console.log('Home snapshot received:', snapshot.exists());
             if (snapshot.exists()) {
                 const data = snapshot.data();
+                console.log('Home data:', data.home?.length || 0, 'items');
                 callback(data.home || []);
+            } else {
+                console.log('No home document exists yet');
+                callback([]);
             }
+        }, (error) => {
+            console.error('Home listener error:', error);
         });
     },
 
