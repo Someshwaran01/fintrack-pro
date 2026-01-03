@@ -99,12 +99,16 @@ const CardTracker: React.FC<CardTrackerProps> = ({ bills, onAdd, onUpdate, onDel
     });
   }, [selectedMonth]);
 
-  // Filter bills by due date month instead of creation month
-  // This ensures bills created in Dec with Jan due dates appear in Jan
+  // Filter bills: show bills created in current month OR bills with due dates in current month
+  // This ensures:
+  // 1. Default cards created in Jan with Feb due dates show in Jan
+  // 2. Bills from Dec with Jan due dates also show in Jan
   const filteredBills = bills.filter(b => {
-    if (!b.dueDate) return b.month === selectedMonth;
-    // Check if due date contains the selected month (e.g., "16 Jan-26" contains "Jan-26")
-    return b.dueDate.includes(selectedMonth);
+    // Show bills created in this month (includes default cards just created)
+    if (b.month === selectedMonth) return true;
+    // Also show bills with due dates in this month (from previous month)
+    if (b.dueDate && b.dueDate.includes(selectedMonth)) return true;
+    return false;
   });
 
   const totalDue = filteredBills.reduce((acc, b) => acc + b.monthlyAmount, 0);
