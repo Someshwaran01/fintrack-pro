@@ -3,12 +3,10 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { GoogleGenAI } from "@google/genai";
 import { AppTab, CreditCardBill, MedicalExpense, HomeExpense } from './types';
 import { StorageService } from './services/storage';
-import { GoogleSheetsService } from './services/googleSheets';
 import Dashboard from './components/Dashboard';
 import CardTracker from './components/CardTracker';
 import MedicalTracker from './components/MedicalTracker';
 import HomeExpenseTracker from './components/HomeExpenseTracker';
-import CloudSyncModal from './components/CloudSyncModal';
 
 // Helper function to get current month in format 'Jan-26'
 const getCurrentMonth = () => {
@@ -19,7 +17,7 @@ const getCurrentMonth = () => {
   return `${month}-${year}`;
 };
 
-// v1.1.0 - Google Sheets sync enabled
+// v1.0.0 - Local Storage Only
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<AppTab>('dashboard');
   const [bills, setBills] = useState<CreditCardBill[]>([]);
@@ -29,8 +27,6 @@ const App: React.FC = () => {
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState<string>(getCurrentMonth());
   const [showImportModal, setShowImportModal] = useState(false);
-  const [showCloudModal, setShowCloudModal] = useState(false);
-  const [isSyncing, setIsSyncing] = useState(false);
   const billsFileInputRef = React.useRef<HTMLInputElement>(null);
   const medicalFileInputRef = React.useRef<HTMLInputElement>(null);
   const homeFileInputRef = React.useRef<HTMLInputElement>(null);
@@ -42,124 +38,18 @@ const App: React.FC = () => {
     setHome(StorageService.getHome());
   }, []);
 
-  // Update Storage on changes and sync to Google Sheets
+  // Update Storage on changes
   useEffect(() => {
     StorageService.saveBills(bills);
-    const cloudEnabled = localStorage.getItem('cloudSyncEnabled') === 'true';
-    if (cloudEnabled) {
-      GoogleSheetsService.saveBills(bills)
-        .then(success => {
-          if (success) {
-            console.log('✅ Bills saved to Google Sheets');
-          } else {
-            console.warn('⚠️ Failed to save bills to Google Sheets (kept local copy)');
-          }
-        })
-        .catch(err => console.error('❌ Error saving bills to Google Sheets:', err));
-    }
   }, [bills]);
 
   useEffect(() => {
     StorageService.saveMedical(medical);
-    const cloudEnabled = localStorage.getItem('cloudSyncEnabled') === 'true';
-    if (cloudEnabled) {
-      GoogleSheetsService.saveMedical(medical)
-        .then(success => {
-          if (success) {
-            console.log('✅ Medical expenses saved to Google Sheets');
-          } else {
-            console.warn('⚠️ Failed to save medical to Google Sheets (kept local copy)');
-          }
-        })
-        .catch(err => console.error('❌ Error saving medical to Google Sheets:', err));
-    }
   }, [medical]);
 
   useEffect(() => {
     StorageService.saveHome(home);
-    const cloudEnabled = localStorage.getItem('cloudSyncEnabled') === 'true';
-    if (cloudEnabled) {
-      GoogleSheetsService.saveHome(home)
-        .then(success => {
-          if (success) {
-            console.log('✅ Home expenses saved to Google Sheets');
-          } else {
-            console.warn('⚠️ Failed to save home to Google Sheets (kept local copy)');
-          }
-        })
-        .catch(err => console.error('❌ Error saving home to Google Sheets:', err));
-    }
   }, [home]);
-
-  // Google Sheets Sync - Poll for updates every 30 seconds
-  useEffect(() => {
-    const cloudEnabled = localStorage.getItem('cloudSyncEnabled') === 'true';
-    if (!cloudEnabled) return;
-
-    let lastSyncTime = Date.now();
-
-    // Initial sync
-    const syncFromSheets = async () => {
-      try {
-        const [sheetBills, sheetMedical, sheetHome] = await Promise.all([
-          GoogleSheetsService.getBills(),
-          GoogleSheetsService.getMedical(),
-          GoogleSheetsService.getHome()
-        ]);
-
-        // Only update if we got valid data from sheets
-        // Check if data exists and has different timestamp/content
-        const currentTime = Date.now();
-        const timeSinceLastSync = currentTime - lastSyncTime;
-
-        // Update bills if sheet has data OR if this is first sync and local is empty
-        if (sheetBills.length > 0 || (timeSinceLastSync < 1000 && bills.length === 0)) {
-          const currentBillsJson = JSON.stringify(bills);
-          const sheetBillsJson = JSON.stringify(sheetBills);
-          if (currentBillsJson !== sheetBillsJson) {
-            setBills(sheetBills);
-            StorageService.saveBills(sheetBills);
-            console.log('✅ Bills synced from Google Sheets');
-          }
-        }
-
-        // Update medical if sheet has data OR if this is first sync and local is empty
-        if (sheetMedical.length > 0 || (timeSinceLastSync < 1000 && medical.length === 0)) {
-          const currentMedicalJson = JSON.stringify(medical);
-          const sheetMedicalJson = JSON.stringify(sheetMedical);
-          if (currentMedicalJson !== sheetMedicalJson) {
-            setMedical(sheetMedical);
-            StorageService.saveMedical(sheetMedical);
-            console.log('✅ Medical synced from Google Sheets');
-          }
-        }
-
-        // Update home if sheet has data OR if this is first sync and local is empty
-        if (sheetHome.length > 0 || (timeSinceLastSync < 1000 && home.length === 0)) {
-          const currentHomeJson = JSON.stringify(home);
-          const sheetHomeJson = JSON.stringify(sheetHome);
-          if (currentHomeJson !== sheetHomeJson) {
-            setHome(sheetHome);
-            StorageService.saveHome(sheetHome);
-            console.log('✅ Home expenses synced from Google Sheets');
-          }
-        }
-
-        lastSyncTime = currentTime;
-      } catch (error) {
-        console.error('❌ Error syncing from Google Sheets:', error);
-        // Don't update local data on error - keep existing data
-      }
-    };
-
-    // Sync immediately on mount
-    syncFromSheets();
-
-    // Poll every 30 seconds for updates
-    const intervalId = setInterval(syncFromSheets, 30000);
-
-    return () => clearInterval(intervalId);
-  }, []);
 
   const handleAddBill = (bill: CreditCardBill) => setBills([...bills, bill]);
   const handleUpdateBill = (id: string, updates: Partial<CreditCardBill>) => {
@@ -172,45 +62,6 @@ const App: React.FC = () => {
 
   const handleAddHome = (expense: HomeExpense) => setHome([...home, expense]);
   const handleDeleteHome = (id: string) => setHome(home.filter(h => h.id !== id));
-
-  const handleManualSync = async () => {
-    const cloudEnabled = localStorage.getItem('cloudSyncEnabled') === 'true';
-    if (!cloudEnabled) {
-      alert('Please enable Cloud Sync first!');
-      return;
-    }
-
-    setIsSyncing(true);
-    console.log('🔄 Manual sync started...');
-    console.log(`Data to sync - Bills: ${bills.length}, Medical: ${medical.length}, Home: ${home.length}`);
-
-    try {
-      const results = await Promise.all([
-        GoogleSheetsService.saveBills(bills).catch(e => { console.error('Bills sync error:', e); return false; }),
-        GoogleSheetsService.saveMedical(medical).catch(e => { console.error('Medical sync error:', e); return false; }),
-        GoogleSheetsService.saveHome(home).catch(e => { console.error('Home sync error:', e); return false; })
-      ]);
-
-      console.log('Sync results:', { bills: results[0], medical: results[1], home: results[2] });
-
-      if (results.every(r => r)) {
-        alert('✅ All data synced successfully!');
-        console.log('✅ Manual sync completed successfully');
-      } else {
-        const failed = [];
-        if (!results[0]) failed.push('Bills');
-        if (!results[1]) failed.push('Medical');
-        if (!results[2]) failed.push('Home');
-        alert(`⚠️ Failed to sync: ${failed.join(', ')}. Check console for details.`);
-        console.warn('⚠️ Manual sync completed with errors:', failed);
-      }
-    } catch (error) {
-      alert('❌ Sync failed. Check console for details.');
-      console.error('❌ Manual sync error:', error);
-    } finally {
-      setIsSyncing(false);
-    }
-  };
 
   const runAIAnalysis = async () => {
     setIsAiLoading(true);
@@ -361,21 +212,6 @@ const App: React.FC = () => {
             title="AI Analysis"
           >
             <i className="fa-solid fa-wand-magic-sparkles"></i>
-          </button>
-          <button
-            onClick={handleManualSync}
-            disabled={isSyncing}
-            className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors ${isSyncing ? 'bg-purple-100 text-purple-400 animate-spin' : 'bg-purple-50 text-purple-600 hover:bg-purple-100'}`}
-            title="Manual Sync"
-          >
-            <i className="fa-solid fa-rotate"></i>
-          </button>
-          <button
-            onClick={() => setShowCloudModal(true)}
-            className="w-9 h-9 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center hover:bg-purple-100"
-            title="Cloud Sync Settings"
-          >
-            <i className="fa-solid fa-cloud"></i>
           </button>
           <button
             onClick={() => setShowImportModal(true)}
@@ -549,15 +385,6 @@ const App: React.FC = () => {
           <span className="text-[10px] font-bold">Home</span>
         </button>
       </footer>
-
-      {/* Cloud Sync Modal */}
-      <CloudSyncModal
-        show={showCloudModal}
-        onClose={() => setShowCloudModal(false)}
-        bills={bills}
-        medical={medical}
-        home={home}
-      />
     </div>
   );
 };
