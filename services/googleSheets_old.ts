@@ -1,7 +1,7 @@
 import { CreditCardBill, MedicalExpense, HomeExpense } from '../types';
 
 // Google Apps Script Web App URL (deploy from your Google Sheet)
-// See APPS_SCRIPT_SETUP.md for complete setup instructions
+// See APPS_SCRIPT_SETUP.md for setup instructions
 const SCRIPT_URL = 'https://script.google.com/macros/s/YOUR_SCRIPT_ID_HERE/exec';
 
 // Sheet names/tabs
@@ -12,18 +12,18 @@ const SHEETS = {
 };
 
 export const GoogleSheetsService = {
-    // Initialize - check if Apps Script is accessible
+    // Initialize - check if sheets are accessible
     init: async () => {
         try {
-            const response = await fetch(`${SCRIPT_URL}?action=get&sheet=${SHEETS.BILLS}`);
+            const response = await fetch(`${BASE_URL}?key=${API_KEY}`);
             if (response.ok) {
-                console.log('✅ Google Apps Script connected');
+                console.log('✅ Google Sheets connected');
                 return true;
             }
-            console.error('❌ Apps Script connection failed');
+            console.error('❌ Google Sheets connection failed');
             return false;
         } catch (error) {
-            console.error('❌ Apps Script error:', error);
+            console.error('❌ Google Sheets error:', error);
             return false;
         }
     },
@@ -31,6 +31,7 @@ export const GoogleSheetsService = {
     // Save Bills to Sheet
     saveBills: async (bills: CreditCardBill[]) => {
         try {
+            // Convert bills to 2D array for sheets
             const data = [
                 ['ID', 'Card Name', 'Category', 'Due Date', 'Month', 'Is EMI', 'EMI Details', 'Total Amount', 'Tenure', 'Monthly Amount', 'Payments'],
                 ...bills.map(b => [
@@ -48,20 +49,18 @@ export const GoogleSheetsService = {
                 ])
             ];
 
-            const response = await fetch(SCRIPT_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    action: 'save',
-                    sheet: SHEETS.BILLS,
-                    values: data
-                })
-            });
+            const response = await fetch(
+                `${BASE_URL}/values/${SHEETS.BILLS}!A1:K${data.length}?valueInputOption=RAW&key=${API_KEY}`,
+                {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ values: data })
+                }
+            );
 
             if (response.ok) {
-                const result = await response.json();
                 console.log('✅ Bills saved to Google Sheets');
-                return result.success;
+                return true;
             }
             console.error('❌ Failed to save bills');
             return false;
@@ -74,14 +73,14 @@ export const GoogleSheetsService = {
     // Get Bills from Sheet
     getBills: async (): Promise<CreditCardBill[]> => {
         try {
-            const response = await fetch(`${SCRIPT_URL}?action=get&sheet=${SHEETS.BILLS}`);
+            const response = await fetch(
+                `${BASE_URL}/values/${SHEETS.BILLS}!A2:K?key=${API_KEY}`
+            );
 
             if (!response.ok) return [];
 
-            const result = await response.json();
-            if (!result.success || !result.data) return [];
-
-            const rows = result.data.slice(1); // Skip header row
+            const data = await response.json();
+            const rows = data.values || [];
 
             return rows.map((row: any[]) => ({
                 id: row[0],
@@ -92,9 +91,10 @@ export const GoogleSheetsService = {
                 isEmi: row[5] === 'Yes',
                 emiDetails: row[6],
                 totalAmount: parseFloat(row[7]),
-                tenure: row[8] ? parseInt(row[8]) : undefined,
+                tenure: row[8],
                 monthlyAmount: parseFloat(row[9]),
-                payments: row[10] ? JSON.parse(row[10]) : []
+                payments: row[10] ? JSON.parse(row[10]) : [],
+                paidAmount: 0
             }));
         } catch (error) {
             console.error('❌ Error fetching bills:', error);
@@ -116,21 +116,16 @@ export const GoogleSheetsService = {
                 ])
             ];
 
-            const response = await fetch(SCRIPT_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    action: 'save',
-                    sheet: SHEETS.MEDICAL,
-                    values: data
-                })
-            });
+            const response = await fetch(
+                `${BASE_URL}/values/${SHEETS.MEDICAL}!A1:E${data.length}?valueInputOption=RAW&key=${API_KEY}`,
+                {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ values: data })
+                }
+            );
 
-            if (response.ok) {
-                const result = await response.json();
-                return result.success;
-            }
-            return false;
+            return response.ok;
         } catch (error) {
             console.error('❌ Error saving medical:', error);
             return false;
@@ -140,14 +135,14 @@ export const GoogleSheetsService = {
     // Get Medical Expenses
     getMedical: async (): Promise<MedicalExpense[]> => {
         try {
-            const response = await fetch(`${SCRIPT_URL}?action=get&sheet=${SHEETS.MEDICAL}`);
+            const response = await fetch(
+                `${BASE_URL}/values/${SHEETS.MEDICAL}!A2:E?key=${API_KEY}`
+            );
 
             if (!response.ok) return [];
 
-            const result = await response.json();
-            if (!result.success || !result.data) return [];
-
-            const rows = result.data.slice(1);
+            const data = await response.json();
+            const rows = data.values || [];
 
             return rows.map((row: any[]) => ({
                 id: row[0],
@@ -177,21 +172,16 @@ export const GoogleSheetsService = {
                 ])
             ];
 
-            const response = await fetch(SCRIPT_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    action: 'save',
-                    sheet: SHEETS.HOME,
-                    values: data
-                })
-            });
+            const response = await fetch(
+                `${BASE_URL}/values/${SHEETS.HOME}!A1:F${data.length}?valueInputOption=RAW&key=${API_KEY}`,
+                {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ values: data })
+                }
+            );
 
-            if (response.ok) {
-                const result = await response.json();
-                return result.success;
-            }
-            return false;
+            return response.ok;
         } catch (error) {
             console.error('❌ Error saving home:', error);
             return false;
@@ -201,14 +191,14 @@ export const GoogleSheetsService = {
     // Get Home Expenses
     getHome: async (): Promise<HomeExpense[]> => {
         try {
-            const response = await fetch(`${SCRIPT_URL}?action=get&sheet=${SHEETS.HOME}`);
+            const response = await fetch(
+                `${BASE_URL}/values/${SHEETS.HOME}!A2:F?key=${API_KEY}`
+            );
 
             if (!response.ok) return [];
 
-            const result = await response.json();
-            if (!result.success || !result.data) return [];
-
-            const rows = result.data.slice(1);
+            const data = await response.json();
+            const rows = data.values || [];
 
             return rows.map((row: any[]) => ({
                 id: row[0],
@@ -224,14 +214,21 @@ export const GoogleSheetsService = {
         }
     },
 
-    // Sync all data
+    // Sync all data (read-only - API keys can't write)
     syncAll: async (bills: CreditCardBill[], medical: MedicalExpense[], home: HomeExpense[]) => {
-        const results = await Promise.all([
-            GoogleSheetsService.saveBills(bills),
-            GoogleSheetsService.saveMedical(medical),
-            GoogleSheetsService.saveHome(home)
-        ]);
-
-        return results.every(r => r);
+        try {
+            // API keys are read-only, so we just verify connection
+            // Data is saved to localStorage and read from sheets
+            const response = await fetch(`${BASE_URL}?key=${API_KEY}`);
+            if (response.ok) {
+                console.log('✅ Google Sheets sync enabled (read-only mode)');
+                return true;
+            }
+            console.error('❌ Failed to connect to Google Sheets');
+            return false;
+        } catch (error) {
+            console.error('❌ Error syncing:', error);
+            return false;
+        }
     }
 };

@@ -22,16 +22,16 @@ const CloudSyncModal: React.FC<CloudSyncModalProps> = ({ show, onClose, bills, m
 
     const handleEnableCloud = async () => {
         setSyncing(true);
-        setMessage('Syncing data to Google Sheets...');
+        setMessage('Connecting to Google Sheets...');
 
         try {
             const success = await GoogleSheetsService.syncAll(bills, medical, home);
             if (success) {
                 localStorage.setItem('cloudSyncEnabled', 'true');
                 setCloudEnabled(true);
-                setMessage('✅ Google Sheets sync enabled! App will check for updates every 30 seconds. Add data directly to the sheet to share with family.');
+                setMessage('✅ Google Sheets sync enabled! Data syncs automatically. All family devices will see updates within 30 seconds.');
             } else {
-                setMessage('❌ Failed to connect. Check that Sheet ID and API key are correct, and sheet is shared as "Anyone with link can view".');
+                setMessage('❌ Failed to sync. Make sure you deployed the Apps Script (see APPS_SCRIPT_SETUP.md)');
             }
         } catch (error) {
             setMessage('❌ Error: ' + (error as Error).message);

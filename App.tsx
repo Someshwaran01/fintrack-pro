@@ -41,17 +41,29 @@ const App: React.FC = () => {
     setHome(StorageService.getHome());
   }, []);
 
-  // Update Storage on changes
+  // Update Storage on changes and sync to Google Sheets
   useEffect(() => {
     StorageService.saveBills(bills);
+    const cloudEnabled = localStorage.getItem('cloudSyncEnabled') === 'true';
+    if (cloudEnabled && bills.length > 0) {
+      GoogleSheetsService.saveBills(bills).catch(console.error);
+    }
   }, [bills]);
 
   useEffect(() => {
     StorageService.saveMedical(medical);
+    const cloudEnabled = localStorage.getItem('cloudSyncEnabled') === 'true';
+    if (cloudEnabled && medical.length > 0) {
+      GoogleSheetsService.saveMedical(medical).catch(console.error);
+    }
   }, [medical]);
 
   useEffect(() => {
     StorageService.saveHome(home);
+    const cloudEnabled = localStorage.getItem('cloudSyncEnabled') === 'true';
+    if (cloudEnabled && home.length > 0) {
+      GoogleSheetsService.saveHome(home).catch(console.error);
+    }
   }, [home]);
 
   // Google Sheets Sync - Poll for updates every 30 seconds
