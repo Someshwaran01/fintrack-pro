@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { CreditCardBill, Payment } from '../types';
 import { generateMonthOptions, BILL_CATEGORIES } from '../constants';
 
@@ -40,6 +40,9 @@ const CardTracker: React.FC<CardTrackerProps> = ({ bills, onAdd, onUpdate, onDel
     lastPaymentDate: '',
   });
 
+  // Use ref to track if default cards have been initialized for current month
+  const initializedMonths = useRef<Set<string>>(new Set());
+
   // Helper function to get next month for bill due dates
   const getNextMonth = (currentMonth: string): string => {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -66,6 +69,11 @@ const CardTracker: React.FC<CardTrackerProps> = ({ bills, onAdd, onUpdate, onDel
 
   // Initialize default cards for the selected month if they don't exist
   useEffect(() => {
+    // Skip if already initialized for this month
+    if (initializedMonths.current.has(selectedMonth)) {
+      return;
+    }
+
     const nextMonth = getNextMonth(selectedMonth);
 
     // Check for bills with due dates in current month (created in previous month)
@@ -79,9 +87,11 @@ const CardTracker: React.FC<CardTrackerProps> = ({ bills, onAdd, onUpdate, onDel
     });
     const existingCardNames = existingCards.map(b => b.cardName);
 
+    // Only add cards that don't exist
+    const cardsToAdd: CreditCardBill[] = [];
     DEFAULT_CARDS.forEach(defaultCard => {
       if (!existingCardNames.includes(defaultCard.cardName)) {
-        const bill: CreditCardBill = {
+        cardsToAdd.push({
           id: `${defaultCard.cardName}-${selectedMonth}`,
           cardName: defaultCard.cardName,
           category: 'Banking',
@@ -93,11 +103,19 @@ const CardTracker: React.FC<CardTrackerProps> = ({ bills, onAdd, onUpdate, onDel
           paidAmount: 0,
           payments: [],
           lastPaymentDate: ''
-        };
-        onAdd(bill);
+        });
       }
     });
-  }, [selectedMonth]);
+
+    // Add all cards at once
+    if (cardsToAdd.length > 0) {
+      cardsToAdd.forEach(bill => onAdd(bill));
+      initializedMonths.current.add(selectedMonth);
+    } else if (existingCards.length > 0) {
+      // Mark as initialized even if no cards were added (they already exist)
+      initializedMonths.current.add(selectedMonth);
+    }
+  }, [selectedMonth, bills.length]); // Only depend on selectedMonth and bills.length
 
   // Filter bills: show bills created in current month OR bills with due dates in current month
   // This ensures:
