@@ -3,11 +3,12 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { GoogleGenAI } from "@google/genai";
 import { AppTab, CreditCardBill, MedicalExpense, HomeExpense } from './types';
 import { StorageService } from './services/storage';
+import { CloudStorageService } from './services/cloudStorage';
 import Dashboard from './components/Dashboard';
 import CardTracker from './components/CardTracker';
 import MedicalTracker from './components/MedicalTracker';
 import HomeExpenseTracker from './components/HomeExpenseTracker';
-import HomeExpenseTracker from './components/HomeExpenseTracker';
+import CloudSyncModal from './components/CloudSyncModal';
 
 // Helper function to get current month in format 'Jan-26'
 const getCurrentMonth = () => {
@@ -27,6 +28,7 @@ const App: React.FC = () => {
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState<string>(getCurrentMonth());
   const [showImportModal, setShowImportModal] = useState(false);
+  const [showCloudModal, setShowCloudModal] = useState(false);
   const billsFileInputRef = React.useRef<HTMLInputElement>(null);
   const medicalFileInputRef = React.useRef<HTMLInputElement>(null);
   const homeFileInputRef = React.useRef<HTMLInputElement>(null);
@@ -41,15 +43,63 @@ const App: React.FC = () => {
   // Update Storage on changes
   useEffect(() => {
     StorageService.saveBills(bills);
+    // Also save to cloud if enabled
+    const cloudEnabled = localStorage.getItem('cloudSyncEnabled') === 'true';
+    if (cloudEnabled && bills.length > 0) {
+      CloudStorageService.saveBills(bills).catch(console.error);
+    }
   }, [bills]);
 
   useEffect(() => {
     StorageService.saveMedical(medical);
+    const cloudEnabled = localStorage.getItem('cloudSyncEnabled') === 'true';
+    if (cloudEnabled && medical.length > 0) {
+      CloudStorageService.saveMedical(medical).catch(console.error);
+    }
   }, [medical]);
 
   useEffect(() => {
     StorageService.saveHome(home);
+    const cloudEnabled = localStorage.getItem('cloudSyncEnabled') === 'true';
+    if (cloudEnabled && home.length > 0) {
+      CloudStorageService.saveHome(home).catch(console.error);
+    }
   }, [home]);
+
+  // Cloud Sync - Real-time listeners
+  useEffect(() => {
+    const cloudEnabled = localStorage.getItem('cloudSyncEnabled') === 'true';
+    if (!cloudEnabled) return;
+
+    // Set up real-time listeners for cloud data
+    const unsubscribeBills = CloudStorageService.listenToBills((cloudBills) => {
+      if (cloudBills.length > 0) {
+        setBills(cloudBills);
+        StorageService.saveBills(cloudBills); // Backup to local
+      }
+    });
+
+    const unsubscribeMedical = CloudStorageService.listenToMedical((cloudMedical) => {
+      if (cloudMedical.length > 0) {
+        setMedical(cloudMedical);
+        StorageService.saveMedical(cloudMedical); // Backup to local
+      }
+    });
+
+    const unsubscribeHome = CloudStorageService.listenToHome((cloudHome) => {
+      if (cloudHome.length > 0) {
+        setHome(cloudHome);
+        StorageService.saveHome(cloudHome); // Backup to local
+      }
+    });
+
+    // Cleanup listeners on unmount
+    return () => {
+      unsubscribeBills();
+      unsubscribeMedical();
+      unsubscribeHome();
+    };
+  }, []);
 
   const handleAddBill = (bill: CreditCardBill) => setBills([...bills, bill]);
   const handleUpdateBill = (id: string, updates: Partial<CreditCardBill>) => {
@@ -212,6 +262,13 @@ const App: React.FC = () => {
             title="AI Analysis"
           >
             <i className="fa-solid fa-wand-magic-sparkles"></i>
+          </button>
+          <button
+            onClick={() => setShowCloudModal(true)}
+            className="w-9 h-9 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center hover:bg-purple-100"
+            title="Cloud Sync"
+          >
+            <i className="fa-solid fa-cloud"></i>
           </button>
           <button
             onClick={() => setShowImportModal(true)}
@@ -385,6 +442,15 @@ const App: React.FC = () => {
           <span className="text-[10px] font-bold">Home</span>
         </button>
       </footer>
+
+      {/* Cloud Sync Modal */}
+      <CloudSyncModal 
+        show={showCloudModal} 
+        onClose={() => setShowCloudModal(false)}
+        bills={bills}
+        medical={medical}
+        home={home}
+      />
     </div>
   );
 };
