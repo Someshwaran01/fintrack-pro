@@ -1,15 +1,16 @@
 
 import React, { useMemo, useState } from 'react';
-import { CreditCardBill, MedicalExpense } from '../types';
+import { CreditCardBill, MedicalExpense, HomeExpense } from '../types';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
 interface DashboardProps {
   bills: CreditCardBill[];
   medical: MedicalExpense[];
+  home: HomeExpense[];
   selectedMonth: string;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ bills, medical, selectedMonth }) => {
+const Dashboard: React.FC<DashboardProps> = ({ bills, medical, home, selectedMonth }) => {
   const [showPendingBills, setShowPendingBills] = useState(false);
 
   // Helper function to calculate total paid from payments array
@@ -43,6 +44,10 @@ const Dashboard: React.FC<DashboardProps> = ({ bills, medical, selectedMonth }) 
       const expenseMonth = new Date(m.date).toLocaleDateString('en-US', { month: 'short', year: '2-digit' }).replace(' ', '-').replace(', ', '-');
       return expenseMonth === selectedMonth;
     });
+    const monthHome = home.filter(h => {
+      const expenseMonth = new Date(h.date).toLocaleDateString('en-US', { month: 'short', year: '2-digit' }).replace(' ', '-').replace(', ', '-');
+      return expenseMonth === selectedMonth;
+    });
 
     // Get previous month data
     const previousMonth = getPreviousMonth(selectedMonth);
@@ -51,21 +56,24 @@ const Dashboard: React.FC<DashboardProps> = ({ bills, medical, selectedMonth }) 
     const totalBills = monthBills.reduce((acc, b) => acc + b.monthlyAmount, 0);
     const totalPaidBills = monthBills.reduce((acc, b) => acc + calculateTotalPaid(b), 0);
     const totalMedical = monthMedical.reduce((acc, m) => acc + m.amount, 0);
+    const totalHome = monthHome.reduce((acc, h) => acc + h.amount, 0);
 
     return {
       totalDue: totalBills - totalPaidBills,
       totalPaid: totalPaidBills,
       totalMedical,
+      totalHome,
       pendingCount: monthBills.filter(b => calculateTotalPaid(b) < b.monthlyAmount).length,
       monthBills,
       prevMonthBills,
       previousMonth
     };
-  }, [bills, medical, selectedMonth]);
+  }, [bills, medical, home, selectedMonth]);
 
   const chartData = [
     { name: 'CC Bills', value: stats.totalPaid + stats.totalDue },
     { name: 'Medical', value: stats.totalMedical },
+    { name: 'Home', value: stats.totalHome },
   ];
 
   // Card-wise comparison data
@@ -94,19 +102,24 @@ const Dashboard: React.FC<DashboardProps> = ({ bills, medical, selectedMonth }) 
         <p className="text-gray-500 text-sm">{selectedMonth} - Real-time status</p>
       </header>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-3 gap-3">
         <div
           onClick={() => setShowPendingBills(true)}
-          className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 cursor-pointer hover:shadow-md transition-shadow"
+          className="bg-white p-3 rounded-2xl shadow-sm border border-gray-100 cursor-pointer hover:shadow-md transition-shadow"
         >
-          <p className="text-xs text-gray-500 uppercase font-semibold">CC Due</p>
-          <p className="text-xl font-bold text-red-600">₹{stats.totalDue.toLocaleString()}</p>
-          <p className="text-[10px] text-gray-400 mt-1">{stats.pendingCount} Pending Bills</p>
+          <p className="text-[10px] text-gray-500 uppercase font-semibold">CC Due</p>
+          <p className="text-lg font-bold text-red-600">₹{stats.totalDue.toLocaleString()}</p>
+          <p className="text-[9px] text-gray-400 mt-1">{stats.pendingCount} Bills</p>
         </div>
-        <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
-          <p className="text-xs text-gray-500 uppercase font-semibold">Medical</p>
-          <p className="text-xl font-bold text-blue-600">₹{stats.totalMedical.toLocaleString()}</p>
-          <p className="text-[10px] text-gray-400 mt-1">Total this period</p>
+        <div className="bg-white p-3 rounded-2xl shadow-sm border border-gray-100">
+          <p className="text-[10px] text-gray-500 uppercase font-semibold">Medical</p>
+          <p className="text-lg font-bold text-blue-600">₹{stats.totalMedical.toLocaleString()}</p>
+          <p className="text-[9px] text-gray-400 mt-1">Expenses</p>
+        </div>
+        <div className="bg-white p-3 rounded-2xl shadow-sm border border-gray-100">
+          <p className="text-[10px] text-gray-500 uppercase font-semibold">Home</p>
+          <p className="text-lg font-bold text-green-600">₹{stats.totalHome.toLocaleString()}</p>
+          <p className="text-[9px] text-gray-400 mt-1">Expenses</p>
         </div>
       </div>
 
@@ -121,7 +134,7 @@ const Dashboard: React.FC<DashboardProps> = ({ bills, medical, selectedMonth }) 
               <Tooltip cursor={{ fill: 'transparent' }} />
               <Bar dataKey="value" radius={[10, 10, 0, 0]}>
                 {chartData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={index === 0 ? '#ef4444' : '#3b82f6'} />
+                  <Cell key={`cell-${index}`} fill={index === 0 ? '#ef4444' : index === 1 ? '#3b82f6' : '#10b981'} />
                 ))}
               </Bar>
             </BarChart>

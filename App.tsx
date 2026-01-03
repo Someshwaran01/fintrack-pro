@@ -248,7 +248,7 @@ const App: React.FC = () => {
 
       {/* Main Content Area */}
       <main className="flex-grow">
-        {activeTab === 'dashboard' && <Dashboard bills={bills} medical={medical} selectedMonth={selectedMonth} />}
+        {activeTab === 'dashboard' && <Dashboard bills={bills} medical={medical} home={home} selectedMonth={selectedMonth} />}
         {activeTab === 'bills' && <CardTracker bills={bills} onAdd={handleAddBill} onUpdate={handleUpdateBill} onDelete={handleDeleteBill} selectedMonth={selectedMonth} onMonthChange={setSelectedMonth} />}
         {activeTab === 'medical' && <MedicalTracker expenses={medical} onAdd={handleAddMedical} onDelete={handleDeleteMedical} />}
         {activeTab === 'home' && <HomeExpenseTracker expenses={home} onAdd={handleAddHome} onDelete={handleDeleteHome} />}
