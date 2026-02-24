@@ -50,10 +50,12 @@ export class SyncService {
             throw new Error('Supabase is not configured. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your .env file.');
         }
 
+        const normalizedFamilyId = familyId.trim();
+
         const { data, error } = await supabase
             .from('family_data')
             .select('*')
-            .eq('family_id', familyId)
+            .eq('family_id', normalizedFamilyId)
             .maybeSingle();
 
         if (error) throw error;
@@ -71,12 +73,35 @@ export class SyncService {
             };
         }
 
+        // Try case-insensitive lookup to support users entering existing IDs with different casing
+        const { data: caseInsensitiveData, error: caseInsensitiveError } = await supabase
+            .from('family_data')
+            .select('*')
+            .ilike('family_id', normalizedFamilyId)
+            .limit(1)
+            .maybeSingle();
+
+        if (caseInsensitiveError) throw caseInsensitiveError;
+
+        if (caseInsensitiveData) {
+            return {
+                family_id: caseInsensitiveData.family_id,
+                bills: caseInsensitiveData.bills || [],
+                medical: caseInsensitiveData.medical || [],
+                home: caseInsensitiveData.home || [],
+                income: caseInsensitiveData.income || [],
+                savings: caseInsensitiveData.savings || [],
+                cc_limits: caseInsensitiveData.cc_limits || [],
+                last_updated: caseInsensitiveData.last_updated || new Date().toISOString(),
+            };
+        }
+
         // Family doesn't exist, create it with minimal schema for compatibility
         const { data: created, error: createError } = await supabase
             .from('family_data')
             .insert([
                 {
-                    family_id: familyId,
+                    family_id: normalizedFamilyId,
                     last_updated: new Date().toISOString(),
                 }
             ])
@@ -86,7 +111,7 @@ export class SyncService {
         if (createError) {
             const message = String(createError.message || '').toLowerCase();
             if (message.includes('row-level security') || message.includes('violates row-level security policy')) {
-                throw new Error('RLS_BLOCKED_FAMILY_CREATE: Insert policy is missing on family_data.');
+                throw new Error('RLS_BLOCKED_FAMILY_CREATE: Existing family_id not found by current policies or INSERT policy is missing on family_data.');
             }
             throw createError;
         }
@@ -375,6 +400,8 @@ export class SyncService {
         const familyId = this.getFamilyId();
         if (!familyId) return null;
 
+        let bills: CreditCardBill[] = [];
+
         // Get bills from cc_bills table
         const { data: billsData, error: billsError } = await supabase
             .from('cc_bills')
@@ -384,34 +411,50 @@ export class SyncService {
 
         if (billsError) {
             console.error('Failed to fetch bills:', billsError);
-            throw billsError;
+        } else {
+            // Transform cc_bills table data to CreditCardBill format
+            bills = (billsData || []).map(row => ({
+                id: `${row.card_name}-${row.month}`,
+                month: row.month,
+                cardName: row.card_name,
+                category: row.category,
+                dueDate: row.due_date,
+                isEmi: row.is_emi,
+                monthlyAmount: Number(row.monthly_amount),
+                paidAmount: Number(row.paid_amount),
+                totalAmount: Number(row.total_amount),
+                payments: row.payments || [],
+                lastPaymentDate: row.last_payment_date || '',
+            }));
         }
-
-        // Transform cc_bills table data to CreditCardBill format
-        const bills: CreditCardBill[] = (billsData || []).map(row => ({
-            id: `${row.card_name}-${row.month}`,
-            month: row.month,
-            cardName: row.card_name,
-            category: row.category,
-            dueDate: row.due_date,
-            isEmi: row.is_emi,
-            monthlyAmount: Number(row.monthly_amount),
-            paidAmount: Number(row.paid_amount),
-            totalAmount: Number(row.total_amount),
-            payments: row.payments || [],
-            lastPaymentDate: row.last_payment_date || '',
-        }));
 
         // Get medical and home expenses from family_data table
         const { data: familyData, error: familyError } = await supabase
             .from('family_data')
-            .select('medical, home, income, last_updated')
+            .select('bills, medical, home, income, savings, last_updated')
             .eq('family_id', familyId)
             .single();
 
         if (familyError && familyError.code !== 'PGRST116') {
             console.error('Failed to fetch family data:', familyError);
             throw familyError;
+        }
+
+        // Backward compatibility: fallback to legacy bills in family_data
+        if ((!bills || bills.length === 0) && Array.isArray(familyData?.bills) && familyData.bills.length > 0) {
+            bills = familyData.bills.map((bill: any, index: number) => ({
+                id: bill.id || `${bill.cardName || bill.card_name || 'CARD'}-${bill.month || 'MONTH'}-${index}`,
+                month: bill.month || '',
+                cardName: bill.cardName || bill.card_name || '',
+                category: bill.category || '',
+                dueDate: bill.dueDate || bill.due_date || '',
+                isEmi: Boolean(bill.isEmi ?? bill.is_emi ?? false),
+                monthlyAmount: Number(bill.monthlyAmount ?? bill.monthly_amount ?? 0),
+                paidAmount: Number(bill.paidAmount ?? bill.paid_amount ?? 0),
+                totalAmount: Number(bill.totalAmount ?? bill.total_amount ?? 0),
+                payments: Array.isArray(bill.payments) ? bill.payments : [],
+                lastPaymentDate: bill.lastPaymentDate || bill.last_payment_date || '',
+            }));
         }
 
         // Get credit card limits from cc_limits table
@@ -441,6 +484,7 @@ export class SyncService {
             medical: familyData?.medical || [],
             home: familyData?.home || [],
             income: familyData?.income || [],
+            savings: familyData?.savings || [],
             cc_limits: ccLimits,
             last_updated: familyData?.last_updated || new Date().toISOString(),
         };
@@ -514,6 +558,9 @@ export class SyncService {
                 },
                 (payload) => {
                     const newData = payload.new as FamilyData;
+                    if (Array.isArray((newData as any).bills)) {
+                        onBillsChange((newData as any).bills);
+                    }
                     onMedicalChange(newData.medical || []);
                     onHomeChange(newData.home || []);
                     onIncomeChange(newData.income || []);
