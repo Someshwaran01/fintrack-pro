@@ -484,6 +484,91 @@ export class SyncService {
             }));
         }
 
+        let medical: MedicalExpense[] = familyData?.medical || [];
+        let home: HomeExpense[] = familyData?.home || [];
+        let income: Income[] = familyData?.income || [];
+        let savings: Savings[] = familyData?.savings || [];
+
+        // Fallback to normalized tables if legacy JSON arrays are empty/missing
+        if (!Array.isArray(medical) || medical.length === 0) {
+            const { data: medicalRows, error: medicalError } = await supabase
+                .from('medical')
+                .select('*')
+                .eq('family_id', familyId)
+                .order('date', { ascending: false });
+
+            if (!medicalError && medicalRows) {
+                medical = medicalRows.map((row: any) => ({
+                    id: row.id,
+                    date: row.date,
+                    amount: Number(row.amount),
+                    paymentMethod: row.payment_method,
+                    description: row.description,
+                    spender: row.spender,
+                }));
+            }
+        }
+
+        if (!Array.isArray(home) || home.length === 0) {
+            const { data: homeRows, error: homeError } = await supabase
+                .from('home')
+                .select('*')
+                .eq('family_id', familyId)
+                .order('date', { ascending: false });
+
+            if (!homeError && homeRows) {
+                home = homeRows.map((row: any) => ({
+                    id: row.id,
+                    date: row.date,
+                    amount: Number(row.amount),
+                    paymentMethod: row.payment_method,
+                    category: row.category,
+                    description: row.description,
+                    spender: row.spender,
+                }));
+            }
+        }
+
+        if (!Array.isArray(income) || income.length === 0) {
+            const { data: incomeRows, error: incomeError } = await supabase
+                .from('income')
+                .select('*')
+                .eq('family_id', familyId)
+                .order('month', { ascending: false });
+
+            if (!incomeError && incomeRows) {
+                income = incomeRows.map((row: any) => ({
+                    id: row.id,
+                    month: row.month,
+                    source: row.source,
+                    amount: Number(row.amount),
+                    receivedDate: row.received_date,
+                    spender: row.spender || 'DEVI',
+                    notes: row.notes || '',
+                }));
+            }
+        }
+
+        if (!Array.isArray(savings) || savings.length === 0) {
+            const { data: savingsRows, error: savingsError } = await supabase
+                .from('savings')
+                .select('*')
+                .eq('family_id', familyId)
+                .order('month', { ascending: false });
+
+            if (!savingsError && savingsRows) {
+                savings = savingsRows.map((row: any) => ({
+                    id: row.id,
+                    month: row.month,
+                    category: row.category,
+                    amount: Number(row.amount),
+                    savedDate: row.saved_date,
+                    spender: row.spender || 'DEVI',
+                    notes: row.notes || '',
+                }));
+            }
+        }
+
         // Get credit card limits from cc_limits table
         const { data: limitsData, error: limitsError } = await supabase
             .from('cc_limits')
@@ -508,10 +593,10 @@ export class SyncService {
         return {
             family_id: familyId,
             bills,
-            medical: familyData?.medical || [],
-            home: familyData?.home || [],
-            income: familyData?.income || [],
-            savings: familyData?.savings || [],
+            medical,
+            home,
+            income,
+            savings,
             cc_limits: ccLimits,
             last_updated: familyData?.last_updated || new Date().toISOString(),
         };
