@@ -428,12 +428,30 @@ export class SyncService {
             }));
         }
 
-        // Get medical and home expenses from family_data table
-        const { data: familyData, error: familyError } = await supabase
+        // Get medical/home/income/savings from family_data table with schema-safe fallback
+        let familyData: any = null;
+        let familyError: any = null;
+
+        const primaryFamilyQuery = await supabase
             .from('family_data')
             .select('bills, medical, home, income, savings, last_updated')
             .eq('family_id', familyId)
             .single();
+
+        familyData = primaryFamilyQuery.data;
+        familyError = primaryFamilyQuery.error;
+
+        // If optional columns are missing (older schema), retry with minimal columns
+        if (familyError && (familyError.code === '42703' || String(familyError.message || '').toLowerCase().includes('column'))) {
+            const fallbackFamilyQuery = await supabase
+                .from('family_data')
+                .select('bills, medical, home, last_updated')
+                .eq('family_id', familyId)
+                .single();
+
+            familyData = fallbackFamilyQuery.data;
+            familyError = fallbackFamilyQuery.error;
+        }
 
         if (familyError && familyError.code !== 'PGRST116') {
             console.error('Failed to fetch family data:', familyError);
