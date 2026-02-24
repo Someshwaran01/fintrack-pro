@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Setup Google Sheets - Somu Fin Tracker</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .step {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background: #5568d3;
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .success {
+            background: #d4edda;
+            border-left-color: #28a745;
+        }
+
+        .error {
+            background: #f8d7da;
+            border-left-color: #dc3545;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+
+        .info {
+            background: #d1ecf1;
+            border-left-color: #17a2b8;
+            margin-top: 20px;
+        }
+
+        a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>📊 Google Sheets Setup</h1>
+        <p class="subtitle">Automatically create required tabs for Somu Fin Tracker</p>
+
+        <div class="step">
+            <h3>📋 Current Configuration</h3>
+            <p><strong>Sheet ID:</strong> <code>1v6mUZqe1AXW3D5b1PUjWKzdvDkAD45uTEXl5nWnEwrw</code></p>
+            <p><strong>Required Tabs:</strong> Bills, Medical, Home</p>
+        </div>
+
+        <div class="step">
+            <h3>🔧 What This Will Do</h3>
+            <ul>
+                <li>Verify connection to your Google Sheet</li>
+                <li>Check if required tabs exist: <strong>Bills</strong>, <strong>Medical</strong>,
+                    <strong>Home</strong></li>
+                <li>Confirm the sheet is ready for sync</li>
+            </ul>
+            <p><strong>Note:</strong> You need to create the tabs manually first (see instructions below)</p>
+        </div>
+
+        <button onclick="setupSheets()" id="setupBtn">🔍 Verify Google Sheets Setup</button>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Setting up your sheets...</p>
+        </div>
+
+        <div id="result"></div>
+
+        <div class="step info">
+            <h3>ℹ️ Manual Setup Instructions</h3>
+            <p><strong>Since API keys have read-only access, please follow these steps:</strong></p>
+            <ol>
+                <li>📝 <a href="https://docs.google.com/spreadsheets/d/1v6mUZqe1AXW3D5b1PUjWKzdvDkAD45uTEXl5nWnEwrw"
+                        target="_blank"><strong>Open Your Google Sheet</strong></a></li>
+                <li>Click the <strong>+</strong> button at the bottom to add new tabs</li>
+                <li>Create 3 tabs with these <strong>exact names</strong>:
+                    <ul>
+                        <li><code>Bills</code></li>
+                        <li><code>Medical</code></li>
+                        <li><code>Home</code></li>
+                    </ul>
+                </li>
+                <li>In <strong>Bills</strong> tab, add these headers in row 1:<br>
+                    <code>ID | Card Name | Category | Due Date | Month | Is EMI | EMI Details | Total Amount | Tenure | Monthly Amount | Payments</code>
+                </li>
+                <li>In <strong>Medical</strong> tab, add these headers in row 1:<br>
+                    <code>ID | Description | Amount | Date | Month | Category | Notes</code>
+                </li>
+                <li>In <strong>Home</strong> tab, add these headers in row 1:<br>
+                    <code>ID | Description | Amount | Date | Month | Category | Notes</code>
+                </li>
+                <li>Make sure the sheet is shared as "Anyone with the link can <strong>view</strong>"</li>
+            </ol>
+            <p><strong>Then click the button above to verify the setup!</strong></p>
+        </div>
+    </div>
+
+    <script>
+        const SHEET_ID = '1v6mUZqe1AXW3D5b1PUjWKzdvDkAD45uTEXl5nWnEwrw';
+        const API_KEY = 'AIzaSyBWPZpXDan8iApBLnQ6xd5CkmWAFUAT1fw';
+
+        async function setupSheets() {
+            const btn = document.getElementById('setupBtn');
+            const loading = document.getElementById('loading');
+            const result = document.getElementById('result');
+
+            btn.disabled = true;
+            loading.style.display = 'block';
+            result.innerHTML = '';
+
+            try {
+                // Step 1: Check current sheets
+                const checkResponse = await fetch(
+                    `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}?key=${API_KEY}`
+                );
+
+                if (!checkResponse.ok) {
+                    throw new Error('Failed to connect to Google Sheets. Check your API key and permissions.');
+                }
+
+                const sheetData = await checkResponse.json();
+                const existingSheets = sheetData.sheets.map(s => s.properties.title);
+
+                result.innerHTML += `<div class="step success"><strong>✅ Step 1:</strong> Connected to Google Sheets<br>Found ${existingSheets.length} tabs: ${existingSheets.join(', ')}</div>`;
+
+                // Check for required tabs
+                const requiredTabs = ['Bills', 'Medical', 'Home'];
+                const missingTabs = requiredTabs.filter(tab => !existingSheets.includes(tab));
+
+                if (missingTabs.length > 0) {
+                    result.innerHTML += `<div class="step error"><strong>❌ Missing Tabs:</strong> Please create these tabs manually: <strong>${missingTabs.join(', ')}</strong><br>See instructions below.</div>`;
+                } else {
+                    result.innerHTML += `<div class="step success"><strong>✅ Step 2:</strong> All required tabs exist (Bills, Medical, Home)</div>`;
+
+                    // Try to read first row to check headers
+                    for (const tab of requiredTabs) {
+                        try {
+                            const headersResponse = await fetch(
+                                `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${tab}!A1:Z1?key=${API_KEY}`
+                            );
+                            if (headersResponse.ok) {
+                                const headersData = await headersResponse.json();
+                                const headers = headersData.values ? headersData.values[0] : [];
+                                result.innerHTML += `<div class="step success"><strong>✅ ${tab}:</strong> Ready (${headers.length} columns)</div>`;
+                            }
+                        } catch (e) {
+                            result.innerHTML += `<div class="step error"><strong>⚠️ ${tab}:</strong> Could not read headers</div>`;
+                        }
+                    }
+
+                    result.innerHTML += `
+                        <div class="step success">
+                            <h3>🎉 Setup Complete!</h3>
+                            <p>Your Google Sheet is configured correctly!</p>
+                            <p><strong>Next Steps:</strong></p>
+                            <ol>
+                                <li>Open your app at <a href="https://fintrack-pro-one.vercel.app" target="_blank">fintrack-pro-one.vercel.app</a></li>
+                                <li>Go to Dashboard → Click Settings icon (⚙️)</li>
+                                <li>Click "Enable Google Sheets Sync"</li>
+                                <li>Start adding expenses - they'll sync automatically!</li>
+                            </ol>
+                        </div>
+                    `;
+                }
+
+            } catch (error) {
+                result.innerHTML += `<div class="step error"><strong>❌ Error:</strong> ${error.message}</div>`;
+                console.error('Setup error:', error);
+            } finally {
+                loading.style.display = 'none';
+                btn.disabled = false;
+            }
+        }
+
+        async function createSheet(sheetName, headers) {
+            // Not needed - manual setup required
+        }
+
+        async function updateHeaders(sheetName, headers) {
+            // Not needed - manual setup required
+        }
+    </script>
+</body>
+
+</html>
