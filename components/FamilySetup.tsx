@@ -33,6 +33,10 @@ const FamilySetup: React.FC<FamilySetupProps> = ({ onComplete }) => {
             return 'Database schema is outdated. Run add_income_column.sql in Supabase and try again.';
         }
 
+        if (message.includes('row-level security') || message.includes('violates row-level security policy')) {
+            return 'Supabase RLS is blocking family creation. If you are joining, verify the exact Family ID. If you are creating a new family, add an INSERT policy for family_data in Supabase SQL Editor.';
+        }
+
         if (message.includes('invalid api key') || message.includes('jwt')) {
             return 'Supabase API key is invalid. Check VITE_SUPABASE_ANON_KEY in your .env file.';
         }
@@ -53,7 +57,7 @@ const FamilySetup: React.FC<FamilySetupProps> = ({ onComplete }) => {
     }, [onComplete]);
 
     const handleJoinFamily = async () => {
-        const cleanedFamilyId = familyId.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+        const cleanedFamilyId = familyId.trim();
 
         if (!cleanedFamilyId) {
             setError('Please enter a Family ID');
@@ -126,7 +130,7 @@ const FamilySetup: React.FC<FamilySetupProps> = ({ onComplete }) => {
                             id="family-id"
                             name="family-id"
                             value={familyId}
-                            onChange={(e) => setFamilyId(e.target.value.toUpperCase())}
+                            onChange={(e) => setFamilyId(e.target.value)}
                             placeholder="Enter or generate Family ID"
                             className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-base font-mono uppercase focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all outline-none"
                             maxLength={8}

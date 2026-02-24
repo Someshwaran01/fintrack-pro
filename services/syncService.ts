@@ -83,7 +83,13 @@ export class SyncService {
             .select('*')
             .single();
 
-        if (createError) throw createError;
+        if (createError) {
+            const message = String(createError.message || '').toLowerCase();
+            if (message.includes('row-level security') || message.includes('violates row-level security policy')) {
+                throw new Error('RLS_BLOCKED_FAMILY_CREATE: Insert policy is missing on family_data.');
+            }
+            throw createError;
+        }
 
         return {
             family_id: created.family_id,
