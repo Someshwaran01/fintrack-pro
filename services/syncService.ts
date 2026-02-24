@@ -433,6 +433,38 @@ export class SyncService {
             }));
         }
 
+        // Recovery fallback: if live table is empty/unavailable, try snapshot table
+        if (!bills || bills.length === 0) {
+            try {
+                const { data: snapshotBillsData, error: snapshotBillsError } = await supabase
+                    .from('cc_bills_snapshot_now')
+                    .select('*')
+                    .eq('family_id', familyId)
+                    .order('month', { ascending: false });
+
+                if (!snapshotBillsError && snapshotBillsData && snapshotBillsData.length > 0) {
+                    bills = snapshotBillsData.map((row: any, index: number) => ({
+                        id: row.id?.toString() || `${row.card_name || row.cardName || 'CARD'}-${row.month || 'MONTH'}-${index}`,
+                        month: row.month || '',
+                        cardName: row.card_name || row.cardName || '',
+                        category: row.category || '',
+                        dueDate: row.due_date || row.dueDate || '',
+                        isEmi: Boolean(row.is_emi ?? row.isEmi ?? false),
+                        monthlyAmount: Number(row.monthly_amount ?? row.monthlyAmount ?? 0),
+                        paidAmount: Number(row.paid_amount ?? row.paidAmount ?? 0),
+                        totalAmount: Number(row.total_amount ?? row.totalAmount ?? 0),
+                        payments: Array.isArray(row.payments) ? row.payments : [],
+                        lastPaymentDate: row.last_payment_date || row.lastPaymentDate || '',
+                    }));
+                    console.log(`Recovered ${bills.length} bills from cc_bills_snapshot_now`);
+                } else if (snapshotBillsError) {
+                    console.warn('Snapshot recovery table not available:', snapshotBillsError.message || snapshotBillsError);
+                }
+            } catch (snapshotError) {
+                console.warn('Snapshot recovery query failed:', snapshotError);
+            }
+        }
+
         // Get family_data row in a schema-safe way (supports extra/missing columns and duplicate rows)
         let familyData: any = null;
 
