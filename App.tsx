@@ -99,8 +99,23 @@ const App: React.FC = () => {
             setIncome(cloudData.income);
             setCCLimits(cloudData.cc_limits || []);
           } else {
-            // Cloud returned null - this means Supabase query failed or no family data exists
-            console.warn('No cloud data found - initializing empty state');
+            // Cloud returned null - fallback to local backup data instead of wiping state
+            console.warn('No cloud data found - falling back to local backup state');
+
+            const localBills = StorageService.getBills();
+            const localMedical = StorageService.getMedical();
+            const localHome = StorageService.getHome();
+            const localIncome = StorageService.getIncome();
+            const localCCLimits = StorageService.getCreditCardLimits();
+
+            const migratedMedical = localMedical.map(m => ({
+              ...m,
+              spender: m.spender || Spender.DEVI
+            }));
+            const migratedHome = localHome.map(h => ({
+              ...h,
+              spender: h.spender || Spender.DEVI
+            }));
 
             // CRITICAL: Mark cloud data as loaded even if empty
             cloudDataLoaded.current = true;
@@ -112,12 +127,11 @@ const App: React.FC = () => {
             incomeInitialized.current = true;
             ccLimitsInitialized.current = true;
 
-            // Initialize with empty arrays - DO NOT migrate to cloud
-            setBills([]);
-            setMedical([]);
-            setHome([]);
-            setIncome([]);
-            setCCLimits([]);
+            setBills(localBills);
+            setMedical(migratedMedical);
+            setHome(migratedHome);
+            setIncome(localIncome);
+            setCCLimits(localCCLimits);
           }
 
           // Subscribe to real-time updates
