@@ -47,7 +47,7 @@ export class SyncService {
     // Initialize or get family data
     static async initializeFamily(familyId: string): Promise<FamilyData> {
         if (!isSupabaseConfigured()) {
-            throw new Error('Supabase is not configured. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your .env file.');
+            throw new Error('Supabase is not configured. Add VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY in your .env file.');
         }
 
         const normalizedFamilyId = familyId.trim();
@@ -56,32 +56,37 @@ export class SyncService {
             .from('family_data')
             .select('*')
             .eq('family_id', normalizedFamilyId)
-            .maybeSingle();
+            .order('last_updated', { ascending: false })
+            .limit(1);
 
         if (error) throw error;
 
-        if (data) {
+        const exactData = data?.[0] || null;
+
+        if (exactData) {
             return {
-                family_id: data.family_id,
-                bills: data.bills || [],
-                medical: data.medical || [],
-                home: data.home || [],
-                income: data.income || [],
-                savings: data.savings || [],
-                cc_limits: data.cc_limits || [],
-                last_updated: data.last_updated || new Date().toISOString(),
+                family_id: exactData.family_id,
+                bills: exactData.bills || [],
+                medical: exactData.medical || [],
+                home: exactData.home || [],
+                income: exactData.income || [],
+                savings: exactData.savings || [],
+                cc_limits: exactData.cc_limits || [],
+                last_updated: exactData.last_updated || new Date().toISOString(),
             };
         }
 
         // Try case-insensitive lookup to support users entering existing IDs with different casing
-        const { data: caseInsensitiveData, error: caseInsensitiveError } = await supabase
+        const { data: caseInsensitiveRows, error: caseInsensitiveError } = await supabase
             .from('family_data')
             .select('*')
             .ilike('family_id', normalizedFamilyId)
-            .limit(1)
-            .maybeSingle();
+            .order('last_updated', { ascending: false })
+            .limit(1);
 
         if (caseInsensitiveError) throw caseInsensitiveError;
+
+        const caseInsensitiveData = caseInsensitiveRows?.[0] || null;
 
         if (caseInsensitiveData) {
             return {
@@ -428,34 +433,38 @@ export class SyncService {
             }));
         }
 
-        // Get medical/home/income/savings from family_data table with schema-safe fallback
+        // Get family_data row in a schema-safe way (supports extra/missing columns and duplicate rows)
         let familyData: any = null;
-        let familyError: any = null;
 
-        const primaryFamilyQuery = await supabase
+        const exactFamilyRows = await supabase
             .from('family_data')
-            .select('bills, medical, home, income, savings, last_updated')
+            .select('*')
             .eq('family_id', familyId)
-            .single();
+            .order('last_updated', { ascending: false })
+            .limit(1);
 
-        familyData = primaryFamilyQuery.data;
-        familyError = primaryFamilyQuery.error;
-
-        // If optional columns are missing (older schema), retry with minimal columns
-        if (familyError && (familyError.code === '42703' || String(familyError.message || '').toLowerCase().includes('column'))) {
-            const fallbackFamilyQuery = await supabase
-                .from('family_data')
-                .select('bills, medical, home, last_updated')
-                .eq('family_id', familyId)
-                .single();
-
-            familyData = fallbackFamilyQuery.data;
-            familyError = fallbackFamilyQuery.error;
+        if (exactFamilyRows.error) {
+            console.error('Failed to fetch family data:', exactFamilyRows.error);
+            throw exactFamilyRows.error;
         }
 
-        if (familyError && familyError.code !== 'PGRST116') {
-            console.error('Failed to fetch family data:', familyError);
-            throw familyError;
+        familyData = exactFamilyRows.data?.[0] || null;
+
+        // Case-insensitive fallback for family id mismatch
+        if (!familyData) {
+            const caseInsensitiveFamilyRows = await supabase
+                .from('family_data')
+                .select('*')
+                .ilike('family_id', familyId)
+                .order('last_updated', { ascending: false })
+                .limit(1);
+
+            if (caseInsensitiveFamilyRows.error) {
+                console.error('Failed to fetch family data (case-insensitive):', caseInsensitiveFamilyRows.error);
+                throw caseInsensitiveFamilyRows.error;
+            }
+
+            familyData = caseInsensitiveFamilyRows.data?.[0] || null;
         }
 
         // Backward compatibility: fallback to legacy bills in family_data
