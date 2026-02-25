@@ -5,7 +5,7 @@ const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/
 
 export class GeminiService {
     private static getApiKey() {
-        return (process.env.GEMINI_API_KEY as string) || '';
+        return (process.env.GEMINI_API_KEY as string) || (import.meta.env.VITE_GEMINI_API_KEY as string) || '';
     }
 
     static async analyzeFinances(data: {
