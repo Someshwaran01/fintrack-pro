@@ -472,51 +472,51 @@ const App: React.FC = () => {
         <FamilySetup onComplete={handleFamilySetupComplete} />
       ) : (
         <div className="max-w-md mx-auto min-h-screen relative flex flex-col">
-          {/* Primary Navigation Header - Creative Vibe */}
-          <nav className="bg-white sticky top-0 z-[60] border-b border-gray-50 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07)]">
-            <div className="px-5 py-4 flex justify-between items-center">
-              <div className="flex items-center space-x-4">
+          {/* Optimized Mobile Header */}
+          <nav className="bg-white sticky top-0 z-[60] border-b border-gray-50 shadow-sm">
+            <div className="px-4 py-3 flex justify-between items-center">
+              <div className="flex items-center space-x-3">
                 <div className="group relative">
-                  <div className="absolute -inset-1 bg-gradient-to-r from-[#111827] to-[#374151] rounded-2xl blur opacity-20"></div>
-                  <div className="relative w-11 h-11 bg-gradient-to-br from-[#1a1c2e] to-[#2d3142] rounded-2xl flex items-center justify-center shadow-lg border border-white/10 transition-all duration-300">
-                    <i className="fa-solid fa-shield-halved text-white text-xl"></i>
+                  <div className="absolute -inset-0.5 bg-gradient-to-r from-[#111827] to-[#374151] rounded-xl blur opacity-15"></div>
+                  <div className="relative w-9 h-9 bg-gradient-to-br from-[#1a1c2e] to-[#2d3142] rounded-xl flex items-center justify-center shadow-md border border-white/10">
+                    <i className="fa-solid fa-shield-halved text-white text-base"></i>
                   </div>
                 </div>
                 <div>
-                  <h1 className="font-serif font-black text-[#1a1c2e] text-2xl tracking-tight leading-none mb-1.5">FinTrack</h1>
-                  <div className="flex items-center space-x-1.5">
-                    <span className="flex h-1.5 w-1.5">
-                      <span className="animate-ping absolute inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                  <h1 className="font-serif font-black text-[#1a1c2e] text-lg tracking-tight leading-none mb-1">FinTrack</h1>
+                  <div className="flex items-center space-x-1">
+                    <span className="flex h-1 w-1">
+                      <span className="animate-ping absolute inline-flex h-1 w-1 rounded-full bg-emerald-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-1 w-1 bg-emerald-500"></span>
                     </span>
-                    <span className="text-[8px] font-black text-gray-400 uppercase tracking-[0.2em] leading-none">Live Secure</span>
+                    <span className="text-[7.5px] font-black text-gray-400 uppercase tracking-[0.15em] leading-none">Live Secure</span>
                   </div>
                 </div>
               </div>
 
-              <div className="flex items-center space-x-2.5">
+              <div className="flex items-center space-x-1.5">
                 <button
                   id="global-ai-btn"
                   onClick={() => setShowAIChat(true)}
-                  className="w-11 h-11 bg-gradient-to-tr from-[#FFF4E0] to-[#FFDBA4] text-[#E67E22] rounded-2xl flex items-center justify-center hover:shadow-xl hover:shadow-orange-500/10 transition-all active:scale-95 border border-orange-100/30"
+                  className="w-9 h-9 bg-gradient-to-tr from-[#FFF4E0] to-[#FFDBA4] text-[#E67E22] rounded-xl flex items-center justify-center shadow-sm border border-orange-100/30 transition-all active:scale-95"
                   title="Advisor AI"
                 >
-                  <i className="fa-solid fa-wand-magic-sparkles text-lg"></i>
+                  <i className="fa-solid fa-wand-magic-sparkles text-base"></i>
                 </button>
                 <button
                   onClick={handleExport}
-                  className="w-11 h-11 bg-gradient-to-tr from-[#E0F7FF] to-[#A4EFFF] text-[#2980B9] rounded-2xl flex items-center justify-center hover:shadow-xl hover:shadow-blue-500/10 transition-all active:scale-95 border border-blue-100/30"
+                  className="w-9 h-9 bg-gradient-to-tr from-[#E0F7FF] to-[#A4EFFF] text-[#2980B9] rounded-xl flex items-center justify-center shadow-sm border border-blue-100/30 transition-all active:scale-95"
                   title="Export Data"
                 >
-                  <i className="fa-solid fa-cloud-arrow-down text-lg"></i>
+                  <i className="fa-solid fa-cloud-arrow-down text-base"></i>
                 </button>
                 {familyId && (
                   <button
                     onClick={() => setShowFamilyModal(true)}
-                    className="w-11 h-11 bg-gradient-to-tr from-[#F5E0FF] to-[#D6A4FF] text-[#8E44AD] rounded-2xl flex items-center justify-center hover:shadow-xl hover:shadow-purple-500/10 transition-all active:scale-95 border border-purple-100/30"
+                    className="w-9 h-9 bg-gradient-to-tr from-[#F5E0FF] to-[#D6A4FF] text-[#8E44AD] rounded-xl flex items-center justify-center shadow-sm border border-purple-100/30 transition-all active:scale-95"
                     title="Family Setup"
                   >
-                    <i className="fa-solid fa-network-wired text-lg"></i>
+                    <i className="fa-solid fa-network-wired text-base"></i>
                   </button>
                 )}
               </div>
