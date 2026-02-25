@@ -42,8 +42,8 @@ const ChatBot: React.FC<ChatBotProps> = ({ bills, medical, home, income }) => {
         try {
             const response = await GeminiService.analyzeFinances({ bills, medical, home, income }, userMsg);
             setMessages(prev => [...prev, { role: 'assistant', content: response }]);
-        } catch (error) {
-            setMessages(prev => [...prev, { role: 'assistant', content: "I'm sorry, I'm having trouble connecting to my brain right now. Please make sure your API key is configured correctly." }]);
+        } catch (error: any) {
+            setMessages(prev => [...prev, { role: 'assistant', content: `Error: ${error.message || "I'm having trouble connecting to my brain right now. Please check your config."}` }]);
         } finally {
             setIsTyping(false);
         }
@@ -70,8 +70,8 @@ const ChatBot: React.FC<ChatBotProps> = ({ bills, medical, home, income }) => {
                 {messages.map((msg, idx) => (
                     <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                         <div className={`max-w-[85%] p-3 rounded-2xl text-sm shadow-sm ${msg.role === 'user'
-                                ? 'bg-indigo-600 text-white rounded-tr-none'
-                                : 'bg-white text-gray-800 border border-gray-100 rounded-tl-none'
+                            ? 'bg-indigo-600 text-white rounded-tr-none'
+                            : 'bg-white text-gray-800 border border-gray-100 rounded-tl-none'
                             }`}>
                             {msg.content}
                         </div>
