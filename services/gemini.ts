@@ -1,24 +1,16 @@
 
-import { GoogleGenerativeAI } from '@google/genai';
+import { GoogleGenAI } from '@google/genai';
 import { CreditCardBill, MedicalExpense, HomeExpense, Income } from '../types';
 
 export class GeminiService {
     private static getApiKey() {
-        try {
-            // Priority 1: process.env (Vite static replacement)
-            // Priority 2: import.meta.env (Vite native)
-            const key = (process.env as any).GEMINI_API_KEY ||
-                (import.meta as any).env?.VITE_GEMINI_API_KEY ||
-                (import.meta as any).env?.GEMINI_API_KEY;
+        // Vite will replace this at build time
+        const key = import.meta.env.VITE_GEMINI_API_KEY;
 
-            // Clean the key (remove quotes if any, check for "undefined" string)
-            if (!key || key === "undefined" || key === "null") {
-                return '';
-            }
-            return key.toString().trim();
-        } catch (e) {
+        if (!key || key === "undefined" || key === "null") {
             return '';
         }
+        return key.toString().trim();
     }
 
     static async analyzeFinances(data: {
@@ -32,8 +24,7 @@ export class GeminiService {
             throw new Error('Gemini API Key is missing. If you just added it to Vercel/GitHub, please trigger a NEW build/deploy to apply the changes.');
         }
 
-        const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const client = new GoogleGenAI({ apiKey });
 
         const systemPrompt = `
       You are FinTrack AI, a professional financial advisor. 
@@ -56,9 +47,11 @@ export class GeminiService {
 
         try {
             const fullPrompt = `SYSTEM: ${systemPrompt}\n\nUSER: ${userMessage}`;
-            const result = await model.generateContent(fullPrompt);
-            const response = await result.response;
-            return response.text();
+            const response = await client.models.generateContent({
+                model: "gemini-1.5-flash",
+                contents: fullPrompt
+            });
+            return response.text || '';
         } catch (error: any) {
             console.error('Gemini SDK Error:', error);
             throw new Error(error.message || 'Failed to connect to Gemini AI');
