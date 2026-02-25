@@ -47,7 +47,7 @@ export class SyncService {
     // Initialize or get family data
     static async initializeFamily(familyId: string): Promise<FamilyData> {
         if (!isSupabaseConfigured()) {
-            throw new Error('Supabase is not configured. Add VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY in your .env file.');
+            throw new Error('Supabase is not configured. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY (or VITE_SUPABASE_PUBLISHABLE_KEY) in your environment variables.');
         }
 
         const normalizedFamilyId = familyId.trim();
