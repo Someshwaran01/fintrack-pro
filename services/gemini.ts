@@ -1,16 +1,9 @@
 
-import { GoogleGenAI } from '@google/genai';
 import { CreditCardBill, MedicalExpense, HomeExpense, Income } from '../types';
 
-export class GeminiService {
+export class AIService {
     private static getApiKey() {
-        // Vite will replace this at build time
-        const key = import.meta.env.VITE_GEMINI_API_KEY;
-
-        if (!key || key === "undefined" || key === "null") {
-            return '';
-        }
-        return key.toString().trim();
+        return import.meta.env.VITE_GROQ_API_KEY || '';
     }
 
     static async analyzeFinances(data: {
@@ -21,13 +14,8 @@ export class GeminiService {
     }, userMessage: string) {
         const apiKey = this.getApiKey();
         if (!apiKey) {
-            throw new Error('Gemini API Key is missing. If you just added it to Vercel/GitHub, please trigger a NEW build/deploy to apply the changes.');
+            throw new Error('Groq API Key (VITE_GROQ_API_KEY) is missing. Please add it to your .env file.');
         }
-
-        const client = new GoogleGenAI({
-            apiKey,
-            apiVersion: 'v1'
-        });
 
         const systemPrompt = `
       You are FinTrack AI, a professional financial advisor. 
@@ -49,15 +37,36 @@ export class GeminiService {
     `;
 
         try {
-            const fullPrompt = `SYSTEM: ${systemPrompt}\n\nUSER: ${userMessage}`;
-            const response = await client.models.generateContent({
-                model: "gemini-2.0-flash",
-                contents: fullPrompt
+            const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${apiKey}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    model: "llama-3.3-70b-versatile",
+                    messages: [
+                        { role: "system", content: systemPrompt },
+                        { role: "user", content: userMessage }
+                    ],
+                    temperature: 0.7,
+                    max_tokens: 2048
+                })
             });
-            return response.text || 'I apologize, but I couldn\'t generate a response at this time.';
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error?.message || 'Failed to connect to Groq AI');
+            }
+
+            const result = await response.json();
+            return result.choices[0]?.message?.content || 'I apologize, but I couldn\'t generate a response at this time.';
         } catch (error: any) {
-            console.error('Gemini SDK Error:', error);
-            throw new Error(error.message || 'Failed to connect to Gemini AI');
+            console.error('Groq API Error:', error);
+            throw new Error(error.message || 'Failed to connect to AI assistant');
         }
     }
 }
+
+// Keep the old name for backward compatibility if needed, or export it as GeminiService
+export const GeminiService = AIService;
