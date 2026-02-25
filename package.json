@@ -12,7 +12,9 @@
     "cap:add:android": "cap add android",
     "cap:sync": "cap sync",
     "cap:open:android": "cap open android",
-    "android:build": "npm run build && cap sync && cap copy"
+    "android:build": "npm run build && cap sync && cap copy",
+    "android:bundle": "npm run build && cap sync && cd android && ./gradlew bundleRelease",
+    "version:patch": "npm version patch && cap sync"
   },
   "dependencies": {
     "@capacitor/android": "^6.2.0",
