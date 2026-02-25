@@ -498,18 +498,22 @@ const CardTracker: React.FC<CardTrackerProps> = ({ bills, ccLimits: propsCCLimit
         </div>
       )}
 
-      {/* CC Bills Toggle */}
+      {/* CC Bills Toggle - Optimized */}
       <button
         onClick={() => setShowBills(!showBills)}
-        className="w-full bg-white py-4 px-5 rounded-xl flex items-center justify-between shadow-md hover:shadow-lg transition-all duration-300 border border-indigo-200"
+        className="w-full bg-white py-3 px-4 rounded-xl flex items-center justify-between shadow-sm border border-gray-100 transition-all hover:shadow-md"
       >
-        <div className="flex items-center space-x-2">
-          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center shadow-sm">
-            <i className="fa-solid fa-file-invoice-dollar text-white text-sm"></i>
+        <div className="flex items-center space-x-2.5">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-[#6366f1] to-[#8b5cf6] flex items-center justify-center shadow-md">
+            <i className="fa-solid fa-file-invoice-dollar text-white text-xs"></i>
           </div>
-          <span className="font-bold text-base text-gray-800">CC Bills ({filteredBills.length})</span>
+          <div className="text-left">
+            <span className="font-serif font-black text-[#1a1c2e] text-sm">Portfolio Dues ({filteredBills.length})</span>
+          </div>
         </div>
-        <i className={`fa-solid fa-chevron-${showBills ? 'up' : 'down'} text-lg text-indigo-600`}></i>
+        <div className={`w-7 h-7 rounded-full flex items-center justify-center transition-all ${showBills ? 'bg-[#1a1c2e] text-white rotate-180' : 'bg-gray-50 text-gray-400'}`}>
+          <i className="fa-solid fa-chevron-down text-[9px]"></i>
+        </div>
       </button>
 
       {showBills && (
@@ -807,16 +811,24 @@ const CardTracker: React.FC<CardTrackerProps> = ({ bills, ccLimits: propsCCLimit
       ) : null}
 
       {/* CC Limits Management Section */}
-      <div className="mt-6">
+      {/* CC Limits Management Section - Optimized Mobile */}
+      <div className="mt-4">
         <button
           onClick={() => setShowCCLimits(!showCCLimits)}
-          className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white py-3 px-4 rounded-xl flex items-center justify-between shadow-md"
+          className="w-full bg-white py-3 px-4 rounded-xl flex items-center justify-between shadow-sm border border-gray-100 transition-all hover:shadow-md"
         >
-          <div className="flex items-center space-x-2">
-            <i className="fa-solid fa-credit-card"></i>
-            <span className="font-bold">Credit Card Limits</span>
+          <div className="flex items-center space-x-2.5">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-[#8b5cf6] to-[#d946ef] flex items-center justify-center shadow-md">
+              <i className="fa-solid fa-credit-card text-white text-xs"></i>
+            </div>
+            <div className="text-left">
+              <span className="font-serif font-black text-[#1a1c2e] text-sm">Credit Matrix</span>
+              <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest leading-none mt-0.5">Limits Management</p>
+            </div>
           </div>
-          <i className={`fa-solid fa-chevron-${showCCLimits ? 'up' : 'down'}`}></i>
+          <div className={`w-7 h-7 rounded-full flex items-center justify-center transition-all ${showCCLimits ? 'bg-[#1a1c2e] text-white rotate-180' : 'bg-gray-100 text-gray-400'}`}>
+            <i className="fa-solid fa-chevron-down text-[9px]"></i>
+          </div>
         </button>
 
         {showCCLimits && (
