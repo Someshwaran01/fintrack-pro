@@ -66,7 +66,7 @@ const CardTracker: React.FC<CardTrackerProps> = ({ bills, ccLimits: propsCCLimit
   useEffect(() => {
     if (bills.length > 0 && propsCCLimits.length === 0) {
       // Get unique card names from bills
-      const uniqueCards = [...new Set(bills.map(b => b.cardName))];
+      const uniqueCards = [...new Set(bills.map(b => b.cardName))] as string[];
       const autoLimits: CreditCardLimit[] = uniqueCards.map((cardName, index) => ({
         id: `auto-${Date.now()}-${index}`,
         cardName,
@@ -333,40 +333,48 @@ const CardTracker: React.FC<CardTrackerProps> = ({ bills, ccLimits: propsCCLimit
 
   return (
     <div className="p-4 space-y-5 pb-24 animate-fadeIn max-w-7xl mx-auto">
-      <div className="bg-white p-5 rounded-xl shadow-md border border-gray-100">
+      <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
         <div className="flex justify-between items-center">
-          <div>
-            <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-600 to-blue-600 flex items-center justify-center shadow-md">
-                <i className="fa-solid fa-credit-card text-white text-base"></i>
+          <div className="flex items-center space-x-3">
+            <div className="w-11 h-11 bg-gradient-to-br from-[#1a1c2e] to-[#2d3142] rounded-2xl flex items-center justify-center shadow-lg transform -rotate-2">
+              <i className="fa-solid fa-shield-halved text-white text-lg"></i>
+            </div>
+            <div>
+              <h2 className="text-xl font-serif font-black text-[#1a1c2e]">Card Assets</h2>
+              <div className="flex items-center space-x-1.5">
+                <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Portfolio Tracking</span>
               </div>
-              CC Manager
-            </h2>
-            <p className="text-xs text-gray-500 mt-1 ml-12">Track your credit cards</p>
+            </div>
           </div>
-          <select
-            className="bg-white border-2 border-gray-200 rounded-lg px-4 py-2 text-sm font-medium outline-none shadow-sm hover:border-indigo-300 focus:border-indigo-500 transition-all cursor-pointer"
-            value={selectedMonth}
-            onChange={(e) => onMonthChange(e.target.value)}
-          >
-            {generateMonthOptions().map(opt => <option key={opt} value={opt} className="text-gray-900">{opt}</option>)}
-          </select>
+          <div className="relative">
+            <select
+              className="appearance-none bg-gray-50 border border-gray-100 rounded-xl px-5 py-2.5 pr-10 text-xs font-bold text-[#1a1c2e] outline-none shadow-sm hover:shadow-md transition-all cursor-pointer"
+              value={selectedMonth}
+              onChange={(e) => onMonthChange(e.target.value)}
+            >
+              {generateMonthOptions().map(opt => <option key={opt} value={opt}>{opt}</option>)}
+            </select>
+            <i className="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 pointer-events-none"></i>
+          </div>
         </div>
       </div>
 
-      {/* Summary Header */}
-      <div className={`bg-white p-5 rounded-xl shadow-md border-2 transition-all duration-300 animate-slideInUp ${status === 'Success' ? 'border-emerald-300' : 'border-amber-300'}`}>
-        <div className="flex justify-between items-center">
+      {/* Summary Header - Creative Status */}
+      <div className={`bg-gradient-to-br py-6 px-6 rounded-3xl shadow-lg transition-all duration-300 ${status === 'Success' ? 'from-[#10b981] to-[#059669]' : 'from-[#f59e0b] to-[#d97706]'} text-white`}>
+        <div className="flex justify-between items-end">
           <div>
-            <p className="text-xs uppercase font-semibold tracking-wide text-gray-500 mb-1">Month Summary</p>
-            <p className={`text-2xl font-bold mb-0.5 ${status === 'Success' ? 'text-emerald-600' : 'text-orange-600'}`}>
-              ₹{totalPaid.toLocaleString()} / ₹{totalDue.toLocaleString()}
+            <p className="text-[10px] uppercase font-black tracking-[0.2em] text-white/70 mb-2">Month Liquidity</p>
+            <p className="text-3xl font-serif font-black">
+              ₹{totalPaid.toLocaleString()}
             </p>
+            <p className="text-[10px] font-bold text-white/60 mt-1 italic">Target: ₹{totalDue.toLocaleString()}</p>
           </div>
-          <div className="text-right">
-            <p className={`text-sm font-bold mb-2 ${status === 'Success' ? 'text-emerald-600' : 'text-amber-600'}`}>{status}</p>
-            <div className="w-32 h-4 bg-gray-100 rounded-full overflow-hidden">
-              <div className={`h-full transition-all duration-700 ease-out ${status === 'Success' ? 'bg-gradient-to-r from-emerald-500 to-teal-500' : 'bg-gradient-to-r from-orange-500 to-amber-500'}`} style={{ width: `${Math.min((totalPaid / (totalDue || 1)) * 100, 100)}%` }}></div>
+          <div className="text-right flex flex-col items-end">
+            <div className="bg-white/20 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/30 mb-3">
+              <span className="text-[10px] font-black uppercase tracking-widest">{status}</span>
+            </div>
+            <div className="w-32 h-2.5 bg-black/10 rounded-full overflow-hidden border border-white/10">
+              <div className="h-full bg-white transition-all duration-1000 ease-out" style={{ width: `${Math.min((totalPaid / (totalDue || 1)) * 100, 100)}%` }}></div>
             </div>
           </div>
         </div>
@@ -377,18 +385,20 @@ const CardTracker: React.FC<CardTrackerProps> = ({ bills, ccLimits: propsCCLimit
         <div className="bg-white p-5 rounded-xl shadow-md border border-gray-100 animate-slideInUp" style={{ animationDelay: '0.2s' }}>
           <button
             onClick={() => setShowCreditUtil(!showCreditUtil)}
-            className="w-full flex items-center justify-between mb-4 cursor-pointer group"
+            className="w-full flex items-center justify-between mb-6 cursor-pointer group"
           >
-            <div className="flex items-center gap-2">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow">
-                <i className="fa-solid fa-chart-pie text-white text-base"></i>
+            <div className="flex items-center space-x-3">
+              <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-[#3b82f6] to-[#2563eb] flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
+                <i className="fa-solid fa-chart-line text-white text-lg"></i>
               </div>
               <div className="text-left">
-                <h3 className="text-lg font-bold text-gray-800">Credit Utilization</h3>
-                <p className="text-xs text-gray-500">Track your spending limits</p>
+                <h3 className="text-lg font-serif font-black text-[#1a1c2e]">Utilization Index</h3>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Asset Allocation</p>
               </div>
             </div>
-            <i className={`fa-solid fa-chevron-${showCreditUtil ? 'up' : 'down'} text-lg text-gray-600 transition-transform`}></i>
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${showCreditUtil ? 'bg-[#1a1c2e] text-white rotate-180' : 'bg-gray-100 text-gray-400'}`}>
+              <i className="fa-solid fa-chevron-down text-[10px]"></i>
+            </div>
           </button>
 
           {showCreditUtil && (
