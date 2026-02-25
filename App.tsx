@@ -24,6 +24,7 @@ const App: React.FC = () => {
   const [ccLimits, setCCLimits] = useState<CreditCardLimit[]>([]);
   const [selectedMonth, setSelectedMonth] = useState<string>(getCurrentMonth());
   const [showFamilyModal, setShowFamilyModal] = useState(false);
+  const [showAIChat, setShowAIChat] = useState(false);
 
   // Refs to track last synced data (prevents infinite loop)
   const lastSyncedBills = useRef<string>('');
@@ -471,41 +472,47 @@ const App: React.FC = () => {
         <FamilySetup onComplete={handleFamilySetupComplete} />
       ) : (
         <div className="max-w-md mx-auto min-h-screen relative flex flex-col">
-          {/* Top Header */}
-          {/* Top Header */}
-          <nav className="glass sticky top-0 z-30 shadow-lg backdrop-blur-md">
-            <div className="px-4 py-3 flex justify-between items-center">
+          {/* Primary Navigation Header */}
+          <nav className="bg-white sticky top-0 z-30 border-b border-gray-100 shadow-sm">
+            <div className="px-4 py-4 flex justify-between items-center">
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-xl flex items-center justify-center shadow-md hover-lift">
-                  <i className="fa-solid fa-wallet text-white text-lg"></i>
+                <div className="w-10 h-10 bg-[#1a1c2e] rounded-xl flex items-center justify-center shadow-md">
+                  <i className="fa-solid fa-chart-line text-white text-lg"></i>
                 </div>
                 <div>
-                  <span className="font-bold text-gray-800 block text-base">Somu Fin - Tracker</span>
-                  {familyId && (
-                    <span className="text-[10px] text-green-600 flex items-center animate-pulse">
-                      <i className="fa-solid fa-users mr-1"></i>
-                      Family: {familyId}
-                    </span>
-                  )}
+                  <h1 className="font-serif font-black text-[#1a1c2e] text-lg leading-tight">FinTrack</h1>
+                  <div className="flex items-center space-x-1">
+                    <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></div>
+                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest leading-none">Secured</span>
+                  </div>
                 </div>
               </div>
-              <div className="flex space-x-2">
+
+              <div className="flex items-center space-x-2">
+                <button
+                  id="global-ai-btn"
+                  onClick={() => setShowAIChat(true)}
+                  className="w-10 h-10 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center hover:bg-amber-100 transition-all active:scale-95"
+                  title="Consult Advisor"
+                >
+                  <i className="fa-solid fa-robot text-lg"></i>
+                </button>
+                <button
+                  onClick={handleExport}
+                  className="w-10 h-10 bg-gray-50 text-gray-600 rounded-xl flex items-center justify-center hover:bg-gray-100 transition-all active:scale-95"
+                  title="Export Data"
+                >
+                  <i className="fa-solid fa-file-export text-lg"></i>
+                </button>
                 {familyId && (
                   <button
                     onClick={() => setShowFamilyModal(true)}
-                    className="w-10 h-10 bg-gradient-to-br from-green-50 to-emerald-50 text-green-600 rounded-xl flex items-center justify-center hover:shadow-lg hover-lift active-scale transition-all"
+                    className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center hover:bg-indigo-100 transition-all active:scale-95"
                     title="Family Info"
                   >
-                    <i className="fa-solid fa-users"></i>
+                    <i className="fa-solid fa-users text-lg"></i>
                   </button>
                 )}
-                <button
-                  onClick={handleExport}
-                  className="w-10 h-10 bg-gradient-to-br from-gray-50 to-slate-50 text-gray-600 rounded-xl flex items-center justify-center hover:shadow-lg hover-lift active-scale transition-all"
-                  title="Export Data"
-                >
-                  <i className="fa-solid fa-download"></i>
-                </button>
               </div>
             </div>
           </nav>
@@ -615,15 +622,38 @@ const App: React.FC = () => {
               <i className={`fa-solid fa-vault text-lg ${activeTab === 'income' ? 'text-[#1a1c2e]' : ''}`}></i>
               <span className="text-[9px] font-black uppercase tracking-tighter">Inflows</span>
             </button>
-            <button
-              onClick={() => setActiveTab('ai')}
-              data-tab="ai"
-              className={`flex flex-col items-center space-y-1.5 transition-all duration-300 ${activeTab === 'ai' ? 'text-amber-500 transform -translate-y-1' : 'text-gray-300 hover:text-gray-500'}`}
-            >
-              <i className={`fa-solid fa-robot text-lg ${activeTab === 'ai' ? 'text-amber-500' : ''}`}></i>
-              <span className={`text-[9px] font-black uppercase tracking-tighter ${activeTab === 'ai' ? 'text-amber-600' : ''}`}>Advisor AI</span>
-            </button>
           </footer>
+
+          {/* Full Screen AI Advisor Modal */}
+          {showAIChat && (
+            <div className="fixed inset-0 z-[100] bg-white animate-slideInUp">
+              <div className="flex flex-col h-full">
+                <header className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-8 h-8 bg-amber-100 text-amber-600 rounded-lg flex items-center justify-center">
+                      <i className="fa-solid fa-robot"></i>
+                    </div>
+                    <h2 className="font-serif font-black text-[#1a1c2e]">Financial Advisor</h2>
+                  </div>
+                  <button
+                    onClick={() => setShowAIChat(false)}
+                    className="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-[#1a1c2e] transition-colors"
+                  >
+                    <i className="fa-solid fa-xmark text-xl"></i>
+                  </button>
+                </header>
+                <div className="flex-grow">
+                  <ChatBot
+                    bills={bills}
+                    medical={medical}
+                    home={home}
+                    income={income}
+                    isEmbedded={true}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </>
