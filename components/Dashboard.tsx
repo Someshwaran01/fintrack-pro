@@ -184,43 +184,80 @@ const Dashboard: React.FC<DashboardProps> = ({ bills, medical, home, income, sel
   };
 
   return (
-    <div className="p-4 space-y-6 pb-24">
+    <div className="p-4 space-y-6 pb-24 bg-[#fcfdff]">
       <header className="mb-4">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-bold text-gray-800">Financial Snapshot</h1>
-            <p className="text-gray-500 text-sm">{selectedMonth} - Real-time status</p>
+            <h1 className="text-3xl font-serif font-black text-[#1a1c2e] tracking-tight">Executive Summary</h1>
+            <p className="text-gray-400 text-[11px] uppercase font-bold tracking-widest mt-1 opacity-80">{selectedMonth} Portfolio Status</p>
           </div>
-          <select
-            className="bg-white border border-gray-200 rounded-lg px-4 py-2 text-sm font-semibold outline-none shadow-sm hover:border-indigo-400 transition-colors"
-            value={selectedMonth}
-            onChange={(e) => onMonthChange(e.target.value)}
-          >
-            {generateMonthOptions().map(month => (
-              <option key={month} value={month}>{month}</option>
-            ))}
-          </select>
+          <div className="relative">
+            <select
+              className="appearance-none bg-white border border-gray-100 rounded-xl px-5 py-2.5 pr-10 text-xs font-bold text-[#1a1c2e] outline-none shadow-sm hover:shadow-md transition-all cursor-pointer"
+              value={selectedMonth}
+              onChange={(e) => onMonthChange(e.target.value)}
+            >
+              {generateMonthOptions().map(month => (
+                <option key={month} value={month}>{month}</option>
+              ))}
+            </select>
+            <i className="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 pointer-events-none"></i>
+          </div>
         </div>
       </header>
 
-      <div className="grid grid-cols-3 gap-3">
+      {/* Featured AI Advisor Card - The "Elegance" factor */}
+      <div className="bg-gradient-to-tr from-[#1a1c2e] to-[#4a4e69] p-6 rounded-[2rem] shadow-2xl relative overflow-hidden group">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-amber-400/10 rounded-full -mr-16 -mt-16 blur-2xl"></div>
+        <div className="relative z-10 flex flex-col h-full">
+          <div className="flex justify-between items-start mb-4">
+            <div className="w-12 h-12 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20">
+              <i className="fa-solid fa-crown text-amber-400 text-xl"></i>
+            </div>
+            <span className="bg-amber-400/20 text-amber-100 text-[9px] font-black uppercase tracking-[0.2em] px-3 py-1 rounded-full border border-amber-400/30">
+              Premium Advisor
+            </span>
+          </div>
+          <h2 className="text-white font-serif text-xl font-bold mb-2">Welcome Back, Executive</h2>
+          <p className="text-indigo-100/80 text-xs leading-relaxed mb-6 font-medium">
+            Your portfolio utilization is at <span className="text-amber-400 font-bold">{stats.totalIncome > 0 ? ((stats.upiSpending / stats.totalIncome) * 100).toFixed(1) : '0'}%</span> of your capital. I have generated 3 new strategic optimizations for your current debt obligations.
+          </p>
+          <button
+            onClick={() => {
+              const aiTab = document.querySelector('[data-tab="ai"]') as HTMLButtonElement;
+              if (aiTab) aiTab.click();
+            }}
+            className="bg-white text-[#1a1c2e] font-black text-[11px] uppercase tracking-widest py-3.5 px-6 rounded-xl self-start hover:bg-amber-400 transition-colors shadow-lg active:scale-95 flex items-center"
+          >
+            Consult Strategy <i className="fa-solid fa-arrow-right ml-2 text-[10px]"></i>
+          </button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-3 gap-4">
         <div
           onClick={() => setShowPendingBills(true)}
-          className="bg-white p-3 rounded-2xl shadow-sm border border-gray-100 cursor-pointer hover:shadow-md transition-shadow"
+          className="bg-white p-4 rounded-2xl shadow-sm border border-gray-50 cursor-pointer hover:shadow-xl hover:-translate-y-1 transition-all group"
         >
-          <p className="text-[10px] text-gray-500 uppercase font-semibold">CC Due</p>
-          <p className="text-lg font-bold text-red-600">₹{stats.totalDue.toLocaleString()}</p>
-          <p className="text-[9px] text-gray-400 mt-1">{stats.pendingCount} Bills</p>
+          <div className="w-8 h-8 bg-red-50 rounded-lg flex items-center justify-center mb-3 group-hover:bg-red-500 transition-colors">
+            <i className="fa-solid fa-clock-rotate-left text-red-500 text-xs group-hover:text-white"></i>
+          </div>
+          <p className="text-[10px] text-gray-400 uppercase font-black tracking-tighter">Outstanding</p>
+          <p className="text-sm font-bold text-[#1a1c2e] mt-0.5">₹{stats.totalDue.toLocaleString()}</p>
         </div>
-        <div className="bg-white p-3 rounded-2xl shadow-sm border border-gray-100">
-          <p className="text-[10px] text-gray-500 uppercase font-semibold">Medical</p>
-          <p className="text-lg font-bold text-blue-600">₹{stats.totalMedical.toLocaleString()}</p>
-          <p className="text-[9px] text-gray-400 mt-1">Expenses</p>
+        <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-50 hover:shadow-xl hover:-translate-y-1 transition-all group">
+          <div className="w-8 h-8 bg-indigo-50 rounded-lg flex items-center justify-center mb-3 group-hover:bg-indigo-500 transition-colors">
+            <i className="fa-solid fa-hospital-user text-indigo-500 text-xs group-hover:text-white"></i>
+          </div>
+          <p className="text-[10px] text-gray-400 uppercase font-black tracking-tighter">Medical</p>
+          <p className="text-sm font-bold text-[#1a1c2e] mt-0.5">₹{stats.totalMedical.toLocaleString()}</p>
         </div>
-        <div className="bg-white p-3 rounded-2xl shadow-sm border border-gray-100">
-          <p className="text-[10px] text-gray-500 uppercase font-semibold">Home</p>
-          <p className="text-lg font-bold text-green-600">₹{stats.totalHome.toLocaleString()}</p>
-          <p className="text-[9px] text-gray-400 mt-1">Expenses</p>
+        <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-50 hover:shadow-xl hover:-translate-y-1 transition-all group">
+          <div className="w-8 h-8 bg-emerald-50 rounded-lg flex items-center justify-center mb-3 group-hover:bg-emerald-500 transition-colors">
+            <i className="fa-solid fa-house-chimney-window text-emerald-500 text-xs group-hover:text-white"></i>
+          </div>
+          <p className="text-[10px] text-gray-400 uppercase font-black tracking-tighter">Household</p>
+          <p className="text-sm font-bold text-[#1a1c2e] mt-0.5">₹{stats.totalHome.toLocaleString()}</p>
         </div>
       </div>
 

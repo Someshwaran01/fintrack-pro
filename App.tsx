@@ -582,51 +582,46 @@ const App: React.FC = () => {
           )}
 
           {/* Bottom Navigation */}
-          <footer className="fixed bottom-0 left-0 right-0 max-w-md mx-auto glass border-t border-gray-200 flex justify-around items-center py-3 px-6 pb-4 z-50 shadow-2xl">
+          <footer className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white/90 backdrop-blur-xl border-t border-gray-100 flex justify-around items-center py-4 px-6 pb-6 z-50 shadow-[0_-10px_40px_rgba(0,0,0,0.04)]">
             <button
               onClick={() => setActiveTab('dashboard')}
-              className={`flex flex-col items-center space-y-1 transition-all duration-300 ${activeTab === 'dashboard' ? 'text-indigo-600 transform scale-110' : 'text-gray-400 hover:text-gray-600'}`}
+              data-tab="dashboard"
+              className={`flex flex-col items-center space-y-1.5 transition-all duration-300 ${activeTab === 'dashboard' ? 'text-[#1a1c2e] transform -translate-y-1' : 'text-gray-300 hover:text-gray-500'}`}
             >
-              <div className={`${activeTab === 'dashboard' ? 'bg-gradient-to-br from-indigo-100 to-purple-100 shadow-md' : ''} p-2 rounded-xl transition-all`}>
-                <i className="fa-solid fa-chart-pie text-xl"></i>
-              </div>
-              <span className="text-[9px] font-bold">Home</span>
+              <i className={`fa-solid fa-house-chimney text-lg ${activeTab === 'dashboard' ? 'text-[#1a1c2e]' : ''}`}></i>
+              <span className="text-[9px] font-black uppercase tracking-tighter">Summary</span>
             </button>
             <button
               onClick={() => setActiveTab('bills')}
-              className={`flex flex-col items-center space-y-1 transition-all duration-300 ${activeTab === 'bills' ? 'text-blue-600 transform scale-110' : 'text-gray-400 hover:text-gray-600'}`}
+              data-tab="bills"
+              className={`flex flex-col items-center space-y-1.5 transition-all duration-300 ${activeTab === 'bills' ? 'text-[#1a1c2e] transform -translate-y-1' : 'text-gray-300 hover:text-gray-500'}`}
             >
-              <div className={`${activeTab === 'bills' ? 'bg-gradient-to-br from-blue-100 to-cyan-100 shadow-md' : ''} p-2 rounded-xl transition-all`}>
-                <i className="fa-solid fa-credit-card text-xl"></i>
-              </div>
-              <span className="text-[9px] font-bold">CC Manage</span>
+              <i className={`fa-solid fa-credit-card text-lg ${activeTab === 'bills' ? 'text-[#1a1c2e]' : ''}`}></i>
+              <span className="text-[9px] font-black uppercase tracking-tighter">Finance</span>
             </button>
             <button
               onClick={() => setActiveTab('expenses')}
-              className={`flex flex-col items-center space-y-1 transition-all duration-300 ${activeTab === 'expenses' ? 'text-emerald-600 transform scale-110' : 'text-gray-400 hover:text-gray-600'}`}
+              data-tab="expenses"
+              className={`flex flex-col items-center space-y-1.5 transition-all duration-300 ${activeTab === 'expenses' ? 'text-[#1a1c2e] transform -translate-y-1' : 'text-gray-300 hover:text-gray-500'}`}
             >
-              <div className={`${activeTab === 'expenses' ? 'bg-gradient-to-br from-emerald-100 to-green-100 shadow-md' : ''} p-2 rounded-xl transition-all`}>
-                <i className="fa-solid fa-receipt text-xl"></i>
-              </div>
-              <span className="text-[9px] font-bold">Expenses</span>
+              <i className={`fa-solid fa-receipt text-lg ${activeTab === 'expenses' ? 'text-[#1a1c2e]' : ''}`}></i>
+              <span className="text-[9px] font-black uppercase tracking-tighter">Outflows</span>
             </button>
             <button
               onClick={() => setActiveTab('income')}
-              className={`flex flex-col items-center space-y-1 transition-all duration-300 ${activeTab === 'income' ? 'text-amber-600 transform scale-110' : 'text-gray-400 hover:text-gray-600'}`}
+              data-tab="income"
+              className={`flex flex-col items-center space-y-1.5 transition-all duration-300 ${activeTab === 'income' ? 'text-[#1a1c2e] transform -translate-y-1' : 'text-gray-300 hover:text-gray-500'}`}
             >
-              <div className={`${activeTab === 'income' ? 'bg-gradient-to-br from-amber-100 to-orange-100 shadow-md' : ''} p-2 rounded-xl transition-all`}>
-                <i className="fa-solid fa-money-bill-wave text-xl"></i>
-              </div>
-              <span className="text-[9px] font-bold">Income</span>
+              <i className={`fa-solid fa-vault text-lg ${activeTab === 'income' ? 'text-[#1a1c2e]' : ''}`}></i>
+              <span className="text-[9px] font-black uppercase tracking-tighter">Inflows</span>
             </button>
             <button
               onClick={() => setActiveTab('ai')}
-              className={`flex flex-col items-center space-y-1 transition-all duration-300 ${activeTab === 'ai' ? 'text-purple-600 transform scale-110' : 'text-gray-400 hover:text-gray-600'}`}
+              data-tab="ai"
+              className={`flex flex-col items-center space-y-1.5 transition-all duration-300 ${activeTab === 'ai' ? 'text-amber-500 transform -translate-y-1' : 'text-gray-300 hover:text-gray-500'}`}
             >
-              <div className={`${activeTab === 'ai' ? 'bg-gradient-to-br from-purple-100 to-indigo-100 shadow-md' : ''} p-2 rounded-xl transition-all`}>
-                <i className="fa-solid fa-robot text-xl"></i>
-              </div>
-              <span className="text-[9px] font-bold">AI Assistant</span>
+              <i className={`fa-solid fa-robot text-lg ${activeTab === 'ai' ? 'text-amber-500' : ''}`}></i>
+              <span className={`text-[9px] font-black uppercase tracking-tighter ${activeTab === 'ai' ? 'text-amber-600' : ''}`}>Advisor AI</span>
             </button>
           </footer>
         </div>
