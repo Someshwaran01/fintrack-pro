@@ -188,8 +188,8 @@ const Dashboard: React.FC<DashboardProps> = ({ bills, medical, home, income, sel
       <header className="mb-4">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-serif font-black text-[#1a1c2e] tracking-tight">Executive Summary</h1>
-            <p className="text-gray-400 text-[11px] uppercase font-bold tracking-widest mt-1 opacity-80">{selectedMonth} Portfolio Status</p>
+            <h1 className="text-2xl font-serif font-black text-[#1a1c2e] tracking-tight">Executive Summary</h1>
+            <p className="text-gray-400 text-[9px] uppercase font-bold tracking-widest mt-1 opacity-80">{selectedMonth} Portfolio Status</p>
           </div>
           <div className="relative">
             <select

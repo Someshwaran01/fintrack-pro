@@ -477,19 +477,19 @@ const App: React.FC = () => {
             <div className="px-5 py-4 flex justify-between items-center">
               <div className="flex items-center space-x-4">
                 <div className="group relative">
-                  <div className="absolute -inset-1 bg-gradient-to-r from-[#111827] to-[#374151] rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
-                  <div className="relative w-11 h-11 bg-gradient-to-br from-[#1a1c2e] to-[#2d3142] rounded-2xl flex items-center justify-center shadow-lg transform -rotate-3 hover:rotate-0 transition-all duration-300 border border-white/10">
+                  <div className="absolute -inset-1 bg-gradient-to-r from-[#111827] to-[#374151] rounded-2xl blur opacity-20"></div>
+                  <div className="relative w-11 h-11 bg-gradient-to-br from-[#1a1c2e] to-[#2d3142] rounded-2xl flex items-center justify-center shadow-lg border border-white/10 transition-all duration-300">
                     <i className="fa-solid fa-shield-halved text-white text-xl"></i>
                   </div>
                 </div>
                 <div>
-                  <h1 className="font-serif font-black text-[#1a1c2e] text-xl tracking-tight leading-none mb-1">FinTrack</h1>
-                  <div className="flex items-center space-x-2">
-                    <span className="flex h-2 w-2">
-                      <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-emerald-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                  <h1 className="font-serif font-black text-[#1a1c2e] text-2xl tracking-tight leading-none mb-1.5">FinTrack</h1>
+                  <div className="flex items-center space-x-1.5">
+                    <span className="flex h-1.5 w-1.5">
+                      <span className="animate-ping absolute inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
                     </span>
-                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] leading-none">Live Secure</span>
+                    <span className="text-[8px] font-black text-gray-400 uppercase tracking-[0.2em] leading-none">Live Secure</span>
                   </div>
                 </div>
               </div>
