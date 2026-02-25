@@ -67,7 +67,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
                 <div className="absolute w-[400px] h-[400px] bg-rose-600/20 rounded-full blur-[100px] -bottom-24 -right-24"></div>
             </div>
 
-            <div className="relative glass-premium max-w-lg w-full p-8 rounded-[2.5rem] shadow-2xl animate-fadeIn border border-white/10 backdrop-blur-[60px] bg-white/[0.03]">
+            <div className="relative glass-premium max-w-lg w-full p-6 sm:p-8 rounded-[2.5rem] shadow-2xl animate-fadeIn border border-white/10 backdrop-blur-[60px] bg-white/[0.03]">
                 <div className="text-center mb-8">
                     <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
                         <i className={`fa-solid ${step === 1 ? 'fa-users' : step === 2 ? 'fa-credit-card' : 'fa-check'} text-white text-2xl`}></i>
@@ -86,18 +86,18 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
                             Add everyone who will be tracking expenses.
                         </p>
 
-                        <div className="flex gap-2">
+                        <div className="flex gap-3">
                             <input
                                 type="text"
                                 value={newMember}
                                 onChange={(e) => setNewMember(e.target.value)}
                                 onKeyPress={(e) => e.key === 'Enter' && addMember()}
-                                placeholder="Enter name (e.g., Devi)"
-                                className="flex-1 bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white font-bold outline-none focus:border-indigo-500 transition-all placeholder:text-white/20"
+                                placeholder="Enter name (e.g., Mom)"
+                                className="flex-1 bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white font-bold outline-none focus:border-indigo-500 transition-all placeholder:text-white/20 min-w-0"
                             />
                             <button
                                 onClick={addMember}
-                                className="bg-indigo-600 hover:bg-indigo-500 text-white w-14 rounded-2xl flex items-center justify-center transition-all active:scale-95"
+                                className="bg-indigo-600 hover:bg-indigo-500 text-white w-14 shrink-0 rounded-2xl flex items-center justify-center transition-all active:scale-95 shadow-lg shadow-indigo-500/20"
                             >
                                 <i className="fa-solid fa-plus text-lg"></i>
                             </button>

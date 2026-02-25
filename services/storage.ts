@@ -122,14 +122,23 @@ export const StorageService = {
       const familyData = await SyncService.getFamilyData();
       if (familyData) {
         // Update localStorage with cloud data
+        const localMembers = StorageService.getMembers();
+        const localOnboarding = StorageService.getOnboardingComplete();
+
+        const mergedMembers = familyData.members && familyData.members.length > 0
+          ? familyData.members
+          : localMembers;
+
+        const mergedOnboardingComplete = familyData.onboarding_complete || mergedMembers.length > 0 || localOnboarding;
+
         localStorage.setItem(BILLS_KEY, JSON.stringify(familyData.bills || []));
         localStorage.setItem(MEDICAL_KEY, JSON.stringify(familyData.medical || []));
         localStorage.setItem(HOME_KEY, JSON.stringify(familyData.home || []));
         localStorage.setItem(INCOME_KEY, JSON.stringify(familyData.income || []));
         localStorage.setItem(SAVINGS_KEY, JSON.stringify(familyData.savings || []));
         localStorage.setItem(CC_LIMITS_KEY, JSON.stringify(familyData.cc_limits || []));
-        localStorage.setItem(MEMBERS_KEY, JSON.stringify(familyData.members || []));
-        localStorage.setItem(ONBOARDING_KEY, (familyData.onboarding_complete || false).toString());
+        localStorage.setItem(MEMBERS_KEY, JSON.stringify(mergedMembers));
+        localStorage.setItem(ONBOARDING_KEY, mergedOnboardingComplete.toString());
 
         return {
           bills: familyData.bills || [],
@@ -138,8 +147,8 @@ export const StorageService = {
           income: familyData.income || [],
           savings: familyData.savings || [],
           cc_limits: familyData.cc_limits || [],
-          members: familyData.members || [],
-          onboarding_complete: familyData.onboarding_complete || false
+          members: mergedMembers,
+          onboarding_complete: mergedOnboardingComplete
         };
       }
     } catch (error) {

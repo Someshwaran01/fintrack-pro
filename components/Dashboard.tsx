@@ -12,9 +12,25 @@ interface DashboardProps {
   members: string[];
   selectedMonth: string;
   onMonthChange: (month: string) => void;
+  onAddMember: () => void;
+  onRemoveMember: (name: string) => void;
+  newMemberName: string;
+  onNewMemberNameChange: (name: string) => void;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ bills, medical, home, income, members, selectedMonth, onMonthChange }) => {
+const Dashboard: React.FC<DashboardProps> = ({
+  bills,
+  medical,
+  home,
+  income,
+  members,
+  selectedMonth,
+  onMonthChange,
+  onAddMember,
+  onRemoveMember,
+  newMemberName,
+  onNewMemberNameChange
+}) => {
   const [showPendingBills, setShowPendingBills] = useState(false);
   const [ccUtilizations, setCCUtilizations] = useState<CCUtilization[]>(() => {
     const saved = localStorage.getItem('fintrack_cc_utilization');
@@ -258,6 +274,67 @@ const Dashboard: React.FC<DashboardProps> = ({ bills, medical, home, income, mem
           <p className="text-[10px] text-gray-400 uppercase font-black tracking-tighter">Household</p>
           <p className="text-sm font-bold text-[#1a1c2e] mt-0.5">₹{stats.totalHome.toLocaleString()}</p>
         </div>
+      </div>
+
+      {/* Family Member Management Section */}
+      <div className="bg-white p-5 rounded-[2rem] shadow-sm border border-gray-100 animate-fadeIn">
+        <div className="flex items-center justify-between mb-4 px-1">
+          <div className="flex items-center space-x-2.5">
+            <div className="w-9 h-9 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-500 border border-indigo-100">
+              <i className="fa-solid fa-users text-sm"></i>
+            </div>
+            <div>
+              <h3 className="text-sm font-black text-[#1a1c2e] uppercase tracking-wider">Family Units</h3>
+              <p className="text-[10px] text-gray-400 font-bold tracking-tight">Active Spenders</p>
+            </div>
+          </div>
+          <p className="text-[10px] bg-slate-100 text-slate-500 px-2.5 py-1 rounded-full font-black uppercase tracking-widest">{members.length}/5</p>
+        </div>
+
+        <div className="flex flex-wrap gap-2 mb-4">
+          {members.map(member => (
+            <div key={member} className="flex items-center space-x-2 bg-[#f8fafc] px-3.5 py-2 rounded-xl border border-slate-100 group hover:border-indigo-200 transition-all">
+              <span className="text-xs font-bold text-slate-700 capitalize">{member}</span>
+              <button
+                onClick={() => onRemoveMember(member)}
+                className="text-slate-300 hover:text-red-500 transition-colors p-0.5"
+                title="Remove Member"
+              >
+                <i className="fa-solid fa-xmark text-[10px]"></i>
+              </button>
+            </div>
+          ))}
+          {members.length === 0 && (
+            <div className="w-full py-4 text-center border-2 border-dashed border-slate-50 rounded-3xl">
+              <p className="text-[10px] text-slate-300 font-bold uppercase tracking-[0.2em]">Deployment Required</p>
+            </div>
+          )}
+        </div>
+
+        {members.length < 5 && (
+          <div className="flex gap-2">
+            <div className="flex-1 relative group">
+              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-indigo-500 transition-colors">
+                <i className="fa-solid fa-user-plus text-[10px]"></i>
+              </div>
+              <input
+                type="text"
+                placeholder="Spender alias..."
+                value={newMemberName}
+                onChange={(e) => onNewMemberNameChange(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && onAddMember()}
+                className="w-full bg-[#f8fafc] border border-slate-100 rounded-2xl pl-11 pr-4 py-3.5 text-xs font-bold text-[#1a1c2e] outline-none focus:border-indigo-400 focus:bg-white transition-all placeholder:text-slate-300"
+              />
+            </div>
+            <button
+              onClick={onAddMember}
+              disabled={!newMemberName.trim()}
+              className="w-14 bg-[#1a1c2e] text-white rounded-2xl flex items-center justify-center shadow-lg active:scale-95 disabled:opacity-20 disabled:scale-100 transition-all"
+            >
+              <i className="fa-solid fa-plus text-sm"></i>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Income vs Spending Tracker */}

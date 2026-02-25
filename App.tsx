@@ -138,7 +138,15 @@ const App: React.FC = () => {
             setIncome(cloudData.income || []);
             setCCLimits(cloudData.cc_limits || []);
             setMembers(cloudData.members || []);
-            setOnboardingComplete(cloudData.onboarding_complete || false);
+
+            // Only update onboardingComplete if cloud has true, or if we are not yet complete
+            // This prevents reverting to onboarding on refresh if cloud data is lagging
+            if (cloudData.onboarding_complete === true) {
+              setOnboardingComplete(true);
+            } else if (!onboardingComplete && cloudData.onboarding_complete !== undefined) {
+              setOnboardingComplete(cloudData.onboarding_complete);
+            }
+
           } else {
             // Cloud returned null - fallback to local backup data instead of wiping state
             console.warn('No cloud data found - falling back to local backup state');
@@ -585,7 +593,7 @@ const App: React.FC = () => {
 
           {/* Main Content Area */}
           <main className="flex-grow">
-            {activeTab === 'dashboard' && <Dashboard bills={bills} medical={medical} home={home} income={income} members={members} selectedMonth={selectedMonth} onMonthChange={setSelectedMonth} />}
+            {activeTab === 'dashboard' && <Dashboard bills={bills} medical={medical} home={home} income={income} members={members} selectedMonth={selectedMonth} onMonthChange={setSelectedMonth} onAddMember={handleAddMember} onRemoveMember={handleRemoveMember} newMemberName={newMemberName} onNewMemberNameChange={setNewMemberName} />}
             {activeTab === 'bills' && <CardTracker bills={bills} ccLimits={ccLimits} onboardingComplete={onboardingComplete} onAdd={handleAddBill} onAddMultiple={handleAddBills} onUpdate={handleUpdateBill} onDelete={handleDeleteBill} onUpdateCCLimits={handleUpdateCCLimits} selectedMonth={selectedMonth} onMonthChange={setSelectedMonth} />}
             {activeTab === 'expenses' && <ExpenseTracker medicalExpenses={medical} homeExpenses={home} members={members} onAddMedical={handleAddMedical} onDeleteMedical={handleDeleteMedical} onAddHome={handleAddHome} onDeleteHome={handleDeleteHome} />}
             {activeTab === 'income' && <IncomeTracker incomes={income} bills={bills} medical={medical} home={home} members={members} onAddIncome={handleAddIncome} onDeleteIncome={handleDeleteIncome} selectedMonth={selectedMonth} onMonthChange={setSelectedMonth} />}
@@ -594,103 +602,71 @@ const App: React.FC = () => {
 
 
 
-          {/* Family Info Modal */}
+          {/* Family Info Modal - Redesigned for Mobile */}
           {showFamilyModal && familyId && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-              <div className="bg-white p-6 rounded-2xl shadow-xl max-w-md w-full">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="font-bold text-lg">Family Sync</h3>
-                  <button onClick={() => setShowFamilyModal(false)} className="text-gray-400 hover:text-gray-600">
-                    <i className="fa-solid fa-xmark"></i>
+            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center z-[100] p-0 sm:p-4 animate-fadeIn">
+              <div className="bg-white w-full max-w-md rounded-t-[2.5rem] sm:rounded-3xl shadow-2xl flex flex-col animate-slideInUp max-h-[90vh]">
+                <div className="flex justify-between items-center p-6 border-b border-gray-50">
+                  <div>
+                    <h3 className="font-serif font-black text-xl text-[#1a1c2e]">Family Sync</h3>
+                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Cloud Portfolio Configuration</p>
+                  </div>
+                  <button
+                    onClick={() => setShowFamilyModal(false)}
+                    className="w-10 h-10 flex items-center justify-center bg-gray-50 rounded-full text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    <i className="fa-solid fa-xmark text-lg"></i>
                   </button>
                 </div>
 
-                <div className="space-y-4">
-                  <div className="bg-green-50 p-4 rounded-xl">
-                    <p className="text-xs text-green-800 mb-2">
-                      <i className="fa-solid fa-circle-check mr-1"></i>
-                      Real-time sync is active!
+                <div className="p-6 space-y-5 overflow-y-auto">
+                  <div className="bg-emerald-50/50 p-5 rounded-3xl border border-emerald-100 flex items-start space-x-4">
+                    <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm border border-emerald-100 text-emerald-500 shrink-0">
+                      <i className="fa-solid fa-cloud-bolt text-xl"></i>
+                    </div>
+                    <div>
+                      <p className="text-xs font-black text-emerald-800 uppercase tracking-wider mb-1">Status: Active</p>
+                      <p className="text-[11px] text-emerald-700/70 leading-relaxed">Your device is heartbeat-synced with the family cloud. All changes reflect instantly.</p>
+                    </div>
+                  </div>
+
+                  <div className="bg-[#f8fafc] p-6 rounded-3xl border border-slate-100">
+                    <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.15em] mb-3 text-center">Your Family ID (Shared)</p>
+                    <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-center space-x-3 group active:scale-[0.98] transition-all cursor-pointer"
+                      onClick={() => {
+                        navigator.clipboard.writeText(familyId);
+                        alert('Family ID copied to clipboard!');
+                      }}>
+                      <p className="text-2xl font-mono font-black text-[#1a1c2e] tracking-[0.2em]">{familyId}</p>
+                      <i className="fa-solid fa-copy text-slate-300 group-hover:text-indigo-500 transition-colors"></i>
+                    </div>
+                    <p className="text-[10px] text-slate-400 text-center mt-4 leading-relaxed px-4 font-medium italic">
+                      "Max 5 active vaults per family ID"
                     </p>
-                    <div className="bg-white p-3 rounded-lg">
-                      <p className="text-xs text-gray-600 mb-1">Your Family ID:</p>
-                      <p className="text-lg font-mono font-bold text-gray-800 tracking-wider">{familyId}</p>
-                    </div>
-                    <p className="text-xs text-green-700 mt-3">
-                      Share this ID with family members (max 5 users)
-                    </p>
                   </div>
 
-                  <div className="bg-blue-50 p-4 rounded-xl">
-                    <h4 className="font-bold text-sm text-blue-900 mb-2">
-                      <i className="fa-solid fa-info-circle mr-1"></i>
-                      How it works:
-                    </h4>
-                    <ul className="text-xs text-blue-800 space-y-1">
-                      <li>• All changes sync instantly across devices</li>
-                      <li>• Up to 5 family members can use the same ID</li>
-                      <li>• Data is backed up locally on each device</li>
-                      <li>• Free forever with Supabase</li>
-                    </ul>
-                  </div>
-
-                  <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
-                    <h4 className="font-bold text-sm text-[#1a1c2e] mb-3 flex items-center">
-                      <i className="fa-solid fa-users-gear mr-2 text-indigo-500"></i>
-                      Family Members
-                    </h4>
-
-                    <div className="space-y-2 mb-3 max-h-32 overflow-y-auto pr-1 custom-scrollbar">
-                      {members.map(member => (
-                        <div key={member} className="flex items-center justify-between bg-white p-2.5 rounded-lg border border-gray-100 shadow-sm transition-all hover:border-indigo-100">
-                          <span className="text-xs font-bold text-[#1a1c2e] capitalize">{member}</span>
-                          <button
-                            onClick={() => handleRemoveMember(member)}
-                            className="text-gray-300 hover:text-red-500 transition-colors px-1"
-                            title="Remove member"
-                          >
-                            <i className="fa-solid fa-trash-can text-[10px]"></i>
-                          </button>
-                        </div>
-                      ))}
-                      {members.length === 0 && (
-                        <p className="text-[10px] text-gray-400 text-center py-2">No members added yet.</p>
-                      )}
+                  <div className="space-y-3">
+                    <h4 className="text-xs font-black text-[#1a1c2e] uppercase tracking-widest ml-1">Platform Guidance</h4>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="bg-blue-50/50 p-4 rounded-2xl border border-blue-100">
+                        <i className="fa-solid fa-bolt text-blue-500 mb-2 block"></i>
+                        <p className="text-[10px] text-blue-900 font-bold leading-tight">Instant Remote Updates</p>
+                      </div>
+                      <div className="bg-purple-50/50 p-4 rounded-2xl border border-purple-100">
+                        <i className="fa-solid fa-shield text-purple-500 mb-2 block"></i>
+                        <p className="text-[10px] text-purple-900 font-bold leading-tight">Encrypted Metadata</p>
+                      </div>
                     </div>
-
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        value={newMemberName}
-                        onChange={(e) => setNewMemberName(e.target.value)}
-                        onKeyPress={(e) => e.key === 'Enter' && handleAddMember()}
-                        placeholder="New member name..."
-                        className="flex-1 bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs font-semibold outline-none focus:border-indigo-500 transition-all"
-                      />
-                      <button
-                        onClick={handleAddMember}
-                        disabled={!newMemberName.trim() || members.length >= 5}
-                        className="bg-indigo-600 hover:bg-indigo-500 disabled:bg-gray-300 text-white px-3 rounded-lg flex items-center justify-center transition-all active:scale-95 shadow-md shadow-indigo-100"
-                        title="Add Member"
-                      >
-                        <i className="fa-solid fa-plus text-xs"></i>
-                      </button>
-                    </div>
-                    {members.length >= 5 && <p className="text-[9px] text-orange-600 mt-1 font-bold">Max 5 members reached.</p>}
                   </div>
+                </div>
 
+                <div className="p-6 bg-slate-50 mt-auto rounded-t-3xl sm:rounded-b-3xl">
                   <button
                     onClick={handleLogout}
-                    className="w-full bg-red-50 hover:bg-red-100 text-red-600 font-bold py-3 rounded-xl transition-colors"
+                    className="w-full bg-white text-red-500 border border-red-50 hover:bg-red-50 font-black py-4 rounded-2xl transition-all shadow-sm active:scale-[0.98] flex items-center justify-center space-x-3 uppercase text-[10px] tracking-[0.2em]"
                   >
-                    <i className="fa-solid fa-right-from-bracket mr-2"></i>
-                    Disconnect from Family
-                  </button>
-
-                  <button
-                    onClick={() => setShowFamilyModal(false)}
-                    className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-3 rounded-xl transition-colors"
-                  >
-                    Close
+                    <i className="fa-solid fa-power-off"></i>
+                    <span>Disconnect Vault</span>
                   </button>
                 </div>
               </div>

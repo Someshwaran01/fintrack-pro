@@ -585,7 +585,7 @@ export class SyncService {
                     source: row.source,
                     amount: Number(row.amount),
                     receivedDate: row.received_date,
-                    spender: row.spender || 'DEVI',
+                    spender: row.spender || '',
                     notes: row.notes || '',
                 }));
             }
@@ -605,7 +605,7 @@ export class SyncService {
                     category: row.category,
                     amount: Number(row.amount),
                     savedDate: row.saved_date,
-                    spender: row.spender || 'DEVI',
+                    spender: row.spender || '',
                     notes: row.notes || '',
                 }));
             }
@@ -634,10 +634,12 @@ export class SyncService {
             notes: row.notes || '',
         }));
 
+        const membersList = familyData?.members || [];
+
         return {
             family_id: familyId,
-            members: familyData?.members || ['DEVI', 'Somu'],
-            onboarding_complete: !!familyData?.onboarding_complete,
+            members: membersList,
+            onboarding_complete: !!familyData?.onboarding_complete || membersList.length > 0,
             bills,
             medical,
             home,
@@ -816,7 +818,19 @@ export class SyncService {
 
         if (error) {
             console.error('Failed to save onboarding data to Supabase:', error);
-            throw error;
+            // Fallback without onboarding_complete if column doesn't exist
+            const { error: fallbackError } = await supabase
+                .from('family_data')
+                .update({
+                    members,
+                    last_updated: new Date().toISOString(),
+                })
+                .eq('family_id', familyId);
+
+            if (fallbackError) {
+                console.error('Fallback save also failed:', fallbackError);
+                throw fallbackError;
+            }
         }
     }
 }
