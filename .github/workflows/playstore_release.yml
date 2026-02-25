@@ -70,10 +70,13 @@ jobs:
 
       - name: Create GitHub Release
         if: github.event_name == 'workflow_dispatch'
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           files: ${{ steps.sign_app.outputs.signedReleaseFile }}
-          tag_name: v${{ steps.sign_app.outputs.versionName }}
+          tag_name: release-${{ github.run_number }}
+          name: Release v${{ steps.sign_app.outputs.versionName }} (Build ${{ github.run_number }})
           generate_release_notes: true
+          draft: false
+          prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
