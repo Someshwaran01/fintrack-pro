@@ -24,7 +24,10 @@ export class GeminiService {
             throw new Error('Gemini API Key is missing. If you just added it to Vercel/GitHub, please trigger a NEW build/deploy to apply the changes.');
         }
 
-        const client = new GoogleGenAI({ apiKey });
+        const client = new GoogleGenAI({
+            apiKey,
+            apiVersion: 'v1'
+        });
 
         const systemPrompt = `
       You are FinTrack AI, a professional financial advisor. 
@@ -48,10 +51,10 @@ export class GeminiService {
         try {
             const fullPrompt = `SYSTEM: ${systemPrompt}\n\nUSER: ${userMessage}`;
             const response = await client.models.generateContent({
-                model: "gemini-1.5-flash",
+                model: "gemini-2.0-flash",
                 contents: fullPrompt
             });
-            return response.text || '';
+            return response.text || 'I apologize, but I couldn\'t generate a response at this time.';
         } catch (error: any) {
             console.error('Gemini SDK Error:', error);
             throw new Error(error.message || 'Failed to connect to Gemini AI');
