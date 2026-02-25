@@ -37,9 +37,11 @@ To make the automated build work, go to **GitHub > Settings > Secrets and variab
 ## 4. 📲 Upload to Play Console
 1. Go to your [Google Play Console](https://play.google.com/console).
 2. Create/Select your App.
-3. Go to **Production** > **Create new release**.
-4. Upload the `.aab` file downloaded from GitHub.
-5. Submit for review!
+3. **Fill Store Listing:** Use the content I generated in `STORE_LISTING.md`.
+4. **Privacy Policy:** Upload `PRIVACY_POLICY.md` to a public URL (like GitHub Pages) and link it in the console.
+5. Go to **Production** > **Create new release**.
+6. Upload the `.aab` file downloaded from GitHub.
+7. Submit for review!
 
 ---
 *Maintained by Antigravity DevOps*
