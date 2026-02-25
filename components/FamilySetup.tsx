@@ -96,112 +96,111 @@ const FamilySetup: React.FC<FamilySetupProps> = ({ onComplete }) => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center p-5 relative overflow-hidden" style={{
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-        }}>
-            {/* Animated background circles */}
-            <div className="absolute inset-0 overflow-hidden opacity-20">
-                <div className="absolute w-96 h-96 bg-white rounded-full -top-20 -left-20 animate-pulse"></div>
-                <div className="absolute w-80 h-80 bg-white rounded-full -bottom-20 -right-20" style={{ animation: 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite' }}></div>
-                <div className="absolute w-64 h-64 bg-white rounded-full top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" style={{ animation: 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite' }}></div>
-            </div>
+        <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center p-6 relative overflow-hidden font-sans">
+            {/* Soft mesh background */}
+            <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-100/50 rounded-full blur-[120px]"></div>
+            <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-100/50 rounded-full blur-[120px]"></div>
 
-            <div className="relative glass rounded-3xl p-10 max-w-md w-full shadow-2xl animate-fadeIn" style={{ animation: 'fadeIn 0.8s ease-out' }}>
-                <div className="text-center mb-8">
-                    <div className="w-20 h-20 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl">
-                        <i className="fa-solid fa-wallet text-white text-3xl"></i>
+            <div className="relative w-full max-w-md bg-white rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.05)] border border-gray-50 p-10 animate-fadeIn overflow-hidden">
+                {/* Texture accent */}
+                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-indigo-50/50 to-transparent rounded-bl-[100px]"></div>
+
+                <div className="text-center mb-10">
+                    <div className="w-16 h-16 bg-gradient-to-br from-[#1a1c2e] to-[#2d3142] rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-indigo-200">
+                        <i className="fa-solid fa-shield-halved text-white text-2xl"></i>
                     </div>
-                    <h1 className="text-3xl font-bold text-gray-800 mb-2 gradient-text">
-                        FinTrack Pro Family
+                    <h1 className="text-3xl font-serif font-black text-[#1a1c2e] tracking-tight mb-2">
+                        FinTrack Family
                     </h1>
-                    <p className="text-gray-600 text-sm">
-                        Sync your expenses with up to 5 family members
-                    </p>
+                    <div className="flex items-center justify-center space-x-2">
+                        <span className="h-1.5 w-1.5 bg-emerald-500 rounded-full"></span>
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">
+                            Unified Portfolio Sync
+                        </p>
+                    </div>
                 </div>
 
-                <div className="space-y-5">
-                    <div>
-                        <label className="block text-sm font-bold text-gray-700 mb-2">
-                            <i className="fa-solid fa-key mr-2 text-indigo-600"></i>
-                            Family ID
+                <div className="space-y-6">
+                    <div className="relative">
+                        <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-2 block">
+                            Portfolio Access Key
                         </label>
-                        <input
-                            type="text"
-                            id="family-id"
-                            name="family-id"
-                            value={familyId}
-                            onChange={(e) => setFamilyId(e.target.value)}
-                            placeholder="Enter or generate Family ID"
-                            className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-base font-mono uppercase focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all outline-none"
-                            maxLength={8}
-                        />
+                        <div className="relative group">
+                            <i className="fa-solid fa-key absolute left-4 top-1/2 -translate-y-1/2 text-indigo-400 text-sm transition-colors group-focus-within:text-indigo-600"></i>
+                            <input
+                                type="text"
+                                id="family-id"
+                                name="family-id"
+                                value={familyId}
+                                onChange={(e) => setFamilyId(e.target.value)}
+                                placeholder="ENTER ACCESS ID"
+                                className="w-full pl-11 pr-4 py-4 bg-gray-50 border border-transparent rounded-2xl text-base font-mono font-bold tracking-[0.1em] placeholder:text-gray-300 focus:bg-white focus:border-indigo-100 focus:ring-4 focus:ring-indigo-500/5 transition-all outline-none text-[#1a1c2e]"
+                                maxLength={8}
+                            />
+                        </div>
                     </div>
 
                     {error && (
-                        <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-lg animate-slideInUp">
-                            <div className="flex items-center">
-                                <i className="fa-solid fa-exclamation-circle mr-2"></i>
-                                <span className="text-sm">{error}</span>
-                            </div>
+                        <div className="bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-2xl text-xs font-bold animate-slideInUp flex items-center shadow-sm">
+                            <i className="fa-solid fa-circle-exclamation mr-2 text-sm"></i>
+                            <span>{error}</span>
                         </div>
                     )}
 
-                    <button
-                        onClick={handleJoinFamily}
-                        disabled={isLoading}
-                        className={`w-full py-4 rounded-xl font-bold text-white text-base shadow-lg transition-all transform ${isLoading
-                            ? 'bg-gray-400 cursor-not-allowed'
-                            : 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:shadow-2xl hover:-translate-y-0.5 active:translate-y-0'
-                            }`}
-                    >
-                        {isLoading ? (
-                            <span className="flex items-center justify-center">
-                                <i className="fa-solid fa-spinner fa-spin mr-2"></i>
-                                Joining...
-                            </span>
-                        ) : (
-                            <span className="flex items-center justify-center">
-                                <i className="fa-solid fa-arrow-right-to-bracket mr-2"></i>
-                                Join Family
-                            </span>
-                        )}
-                    </button>
+                    <div className="flex flex-col space-y-3">
+                        <button
+                            onClick={handleJoinFamily}
+                            disabled={isLoading}
+                            className={`w-full py-4 rounded-2xl font-black text-[12px] uppercase tracking-[0.2em] text-white shadow-xl shadow-indigo-200 transition-all active:scale-[0.98] ${isLoading
+                                ? 'bg-indigo-300'
+                                : 'bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800'
+                                }`}
+                        >
+                            {isLoading ? (
+                                <span className="flex items-center justify-center">
+                                    <i className="fa-solid fa-circle-notch fa-spin mr-2"></i>
+                                    Syncing...
+                                </span>
+                            ) : (
+                                <span className="flex items-center justify-center">
+                                    <i className="fa-solid fa-link mr-2"></i>
+                                    Connect Portfolio
+                                </span>
+                            )}
+                        </button>
 
-                    <button
-                        onClick={generateFamilyId}
-                        disabled={isLoading}
-                        className={`w-full py-4 bg-white border-2 border-indigo-600 text-indigo-600 rounded-xl font-bold text-base transition-all transform ${isLoading
-                            ? 'opacity-50 cursor-not-allowed'
-                            : 'hover:bg-indigo-50 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0'
-                            }`}
-                    >
-                        <i className="fa-solid fa-sparkles mr-2"></i>
-                        Generate New Family ID
-                    </button>
+                        <button
+                            onClick={generateFamilyId}
+                            disabled={isLoading}
+                            className={`w-full py-4 bg-white border-2 border-indigo-50 text-indigo-600 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] transition-all hover:bg-gray-50 active:scale-[0.98] ${isLoading ? 'opacity-50' : ''}`}
+                        >
+                            <i className="fa-solid fa-wand-magic-sparkles mr-2 text-xs"></i>
+                            Generate New ID
+                        </button>
+                    </div>
 
-                    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-5 rounded-2xl border border-indigo-100">
-                        <h3 className="text-sm font-bold text-gray-800 mb-3 flex items-center">
-                            <i className="fa-solid fa-circle-info text-indigo-600 mr-2"></i>
-                            How it works:
-                        </h3>
-                        <ul className="text-xs text-gray-700 space-y-2">
-                            <li className="flex items-start">
-                                <i className="fa-solid fa-check text-green-500 mr-2 mt-0.5"></i>
-                                <span>Generate a new Family ID or use an existing one</span>
-                            </li>
-                            <li className="flex items-start">
-                                <i className="fa-solid fa-check text-green-500 mr-2 mt-0.5"></i>
-                                <span>Share the Family ID with up to 5 family members</span>
-                            </li>
-                            <li className="flex items-start">
-                                <i className="fa-solid fa-check text-green-500 mr-2 mt-0.5"></i>
-                                <span>Everyone with the same Family ID shares the same data</span>
-                            </li>
-                            <li className="flex items-start">
-                                <i className="fa-solid fa-check text-green-500 mr-2 mt-0.5"></i>
-                                <span>Changes sync in real-time across all devices</span>
-                            </li>
-                        </ul>
+                    <div className="pt-6 border-t border-gray-50">
+                        <div className="bg-[#fcfdff] p-5 rounded-2xl border border-gray-100 shadow-sm relative overflow-hidden group">
+                            <div className="absolute top-0 right-0 w-2 h-full bg-indigo-500 group-hover:w-3 transition-all"></div>
+                            <h3 className="text-[10px] font-black text-[#1a1c2e] uppercase tracking-[0.2em] mb-4 flex items-center">
+                                <i className="fa-solid fa-network-wired text-indigo-600 mr-2 text-xs"></i>
+                                Architecture
+                            </h3>
+                            <ul className="space-y-3">
+                                {[
+                                    { icon: 'fa-shield-check', text: 'Encrypted multi-node synchronization' },
+                                    { icon: 'fa-users-viewfinder', text: 'Support for up to 5 concurrent accounts' },
+                                    { icon: 'fa-bolt-lightning', text: 'Real-time asset state updates' }
+                                ].map((item, idx) => (
+                                    <li key={idx} className="flex items-center text-[10px] font-bold text-gray-500">
+                                        <div className="w-5 h-5 rounded-md bg-indigo-50 flex items-center justify-center mr-3 text-indigo-500">
+                                            <i className={`fa-solid ${item.icon} text-[8px]`}></i>
+                                        </div>
+                                        {item.text}
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
