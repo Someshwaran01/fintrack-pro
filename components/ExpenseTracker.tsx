@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { MedicalExpense, HomeExpense, PaymentMethod, Spender } from '../types';
-import { PAYMENT_METHODS, HOME_EXPENSE_CATEGORIES, SPENDERS } from '../constants';
+import { MedicalExpense, HomeExpense, PaymentMethod } from '../types';
+import { PAYMENT_METHODS, HOME_EXPENSE_CATEGORIES } from '../constants';
 import { generateId } from '../utils/helpers';
 
 interface ExpenseTrackerProps {
     medicalExpenses: MedicalExpense[];
     homeExpenses: HomeExpense[];
+    members: string[];
     onAddMedical: (expense: MedicalExpense) => void;
     onDeleteMedical: (id: string) => void;
     onAddHome: (expense: HomeExpense) => void;
@@ -17,6 +18,7 @@ type ExpenseType = 'medical' | 'home';
 const ExpenseTracker: React.FC<ExpenseTrackerProps> = ({
     medicalExpenses,
     homeExpenses,
+    members,
     onAddMedical,
     onDeleteMedical,
     onAddHome,
@@ -34,7 +36,7 @@ const ExpenseTracker: React.FC<ExpenseTrackerProps> = ({
         amount: 0,
         paymentMethod: PaymentMethod.UPI,
         description: '',
-        spender: Spender.DEVI
+        spender: members[0] || 'DEVI'
     });
 
     const [newHomeExpense, setNewHomeExpense] = useState<Partial<HomeExpense>>({
@@ -43,7 +45,7 @@ const ExpenseTracker: React.FC<ExpenseTrackerProps> = ({
         paymentMethod: PaymentMethod.UPI,
         category: 'Groceries',
         description: '',
-        spender: Spender.DEVI
+        spender: members[0] || 'DEVI'
     });
 
     const filteredMedicalExpenses = medicalExpenses.filter(e =>
@@ -83,7 +85,7 @@ const ExpenseTracker: React.FC<ExpenseTrackerProps> = ({
             amount: Number(newMedicalExpense.amount) || 0,
             paymentMethod: newMedicalExpense.paymentMethod || PaymentMethod.CASH,
             description: newMedicalExpense.description || '',
-            spender: newMedicalExpense.spender || Spender.DEVI
+            spender: newMedicalExpense.spender || members[0] || 'DEVI'
         };
         onAddMedical(expense);
         setIsAdding(false);
@@ -92,7 +94,7 @@ const ExpenseTracker: React.FC<ExpenseTrackerProps> = ({
             amount: 0,
             paymentMethod: PaymentMethod.UPI,
             description: '',
-            spender: Spender.DEVI
+            spender: members[0] || 'DEVI'
         });
     };
 
@@ -105,7 +107,7 @@ const ExpenseTracker: React.FC<ExpenseTrackerProps> = ({
             paymentMethod: newHomeExpense.paymentMethod || PaymentMethod.UPI,
             category: newHomeExpense.category || 'Other',
             description: newHomeExpense.description || '',
-            spender: newHomeExpense.spender || Spender.DEVI
+            spender: newHomeExpense.spender || members[0] || 'DEVI'
         };
         onAddHome(expense);
         setIsAdding(false);
@@ -115,7 +117,7 @@ const ExpenseTracker: React.FC<ExpenseTrackerProps> = ({
             paymentMethod: PaymentMethod.UPI,
             category: 'Groceries',
             description: '',
-            spender: Spender.DEVI
+            spender: members[0] || 'DEVI'
         });
     };
 
@@ -187,7 +189,7 @@ const ExpenseTracker: React.FC<ExpenseTrackerProps> = ({
                         onChange={(e) => setFilterSpender(e.target.value)}
                     >
                         <option value="All">👥 All Spenders</option>
-                        {SPENDERS.map(s => <option key={s} value={s}>{s}</option>)}
+                        {members.map(s => <option key={s} value={s}>{s}</option>)}
                     </select>
                     {activeExpenseTab === 'medical' ? (
                         <select
@@ -227,7 +229,7 @@ const ExpenseTracker: React.FC<ExpenseTrackerProps> = ({
                     <div className="mt-3 pt-3 border-t border-white/20">
                         <p className="text-xs font-bold mb-2">By Spender:</p>
                         <div className="flex flex-wrap gap-2">
-                            {Object.entries(spenderTotals).map(([spender, amt]) => (
+                            {(Object.entries(spenderTotals) as [string, number][]).map(([spender, amt]) => (
                                 <span key={spender} className="text-xs bg-white/20 px-3 py-1 rounded-full font-semibold">
                                     {spender}: ₹{amt.toLocaleString()}
                                 </span>
@@ -240,7 +242,7 @@ const ExpenseTracker: React.FC<ExpenseTrackerProps> = ({
                     <div className="mt-3 pt-3 border-t border-white/20">
                         <p className="text-xs font-bold mb-2">By Category:</p>
                         <div className="flex flex-wrap gap-2">
-                            {Object.entries(categoryTotals)
+                            {(Object.entries(categoryTotals) as [string, number][])
                                 .sort((a, b) => b[1] - a[1])
                                 .slice(0, 5)
                                 .map(([cat, amt]) => (
@@ -393,10 +395,10 @@ const ExpenseTracker: React.FC<ExpenseTrackerProps> = ({
                                 <label className="block text-sm font-bold text-gray-700 mb-2">👤 Spender</label>
                                 <select
                                     value={newMedicalExpense.spender}
-                                    onChange={(e) => setNewMedicalExpense({ ...newMedicalExpense, spender: e.target.value as Spender })}
+                                    onChange={(e) => setNewMedicalExpense({ ...newMedicalExpense, spender: e.target.value })}
                                     className="w-full p-3 border-2 border-gray-200 rounded-xl text-sm focus:border-blue-400 outline-none transition-all"
                                 >
-                                    {SPENDERS.map(s => <option key={s} value={s}>{s}</option>)}
+                                    {members.map(s => <option key={s} value={s}>{s}</option>)}
                                 </select>
                             </div>
 
@@ -494,10 +496,10 @@ const ExpenseTracker: React.FC<ExpenseTrackerProps> = ({
                                 <label className="block text-sm font-bold text-gray-700 mb-2">👤 Spender</label>
                                 <select
                                     value={newHomeExpense.spender}
-                                    onChange={(e) => setNewHomeExpense({ ...newHomeExpense, spender: e.target.value as Spender })}
+                                    onChange={(e) => setNewHomeExpense({ ...newHomeExpense, spender: e.target.value })}
                                     className="w-full p-3 border-2 border-gray-200 rounded-xl text-sm focus:border-green-400 outline-none transition-all"
                                 >
-                                    {SPENDERS.map(s => <option key={s} value={s}>{s}</option>)}
+                                    {members.map(s => <option key={s} value={s}>{s}</option>)}
                                 </select>
                             </div>
 

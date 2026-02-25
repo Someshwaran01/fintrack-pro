@@ -1,14 +1,10 @@
-
 export enum PaymentMethod {
   CARD = 'Card',
   CASH = 'Cash',
   UPI = 'UPI'
 }
 
-export enum Spender {
-  DEVI = 'DEVI',
-  SOMU = 'Somu'
-}
+export type SpenderName = string;
 
 export interface Payment {
   id: string;
@@ -39,7 +35,7 @@ export interface MedicalExpense {
   amount: number;
   paymentMethod: PaymentMethod;
   description: string;
-  spender?: Spender;
+  spender?: SpenderName;
 }
 
 export interface HomeExpense {
@@ -49,7 +45,7 @@ export interface HomeExpense {
   paymentMethod: PaymentMethod;
   category: string;
   description: string;
-  spender?: Spender;
+  spender?: SpenderName;
 }
 
 export interface Income {
@@ -58,7 +54,7 @@ export interface Income {
   source: string; // e.g., "Salary", "Bonus", "Freelance"
   amount: number;
   receivedDate: string;
-  spender: Spender; // Who received this income
+  spender: SpenderName; // Who received this income
   notes?: string;
 }
 
@@ -68,7 +64,7 @@ export interface Savings {
   category: string; // e.g., "Emergency Fund", "Investment", "FD", "Gold"
   amount: number;
   savedDate: string;
-  spender: Spender; // Who saved this amount
+  spender: SpenderName; // Who saved this amount
   notes?: string;
 }
 
@@ -76,6 +72,8 @@ export interface CreditCardLimit {
   id: string;
   cardName: string;
   creditLimit: number;
+  billDate: number; // Day of month (1-31)
+  dueDate: number; // Day of month (1-31)
   updatedDate: string;
   notes?: string;
 }

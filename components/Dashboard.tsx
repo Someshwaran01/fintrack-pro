@@ -9,11 +9,12 @@ interface DashboardProps {
   medical: MedicalExpense[];
   home: HomeExpense[];
   income: Income[];
+  members: string[];
   selectedMonth: string;
   onMonthChange: (month: string) => void;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ bills, medical, home, income, selectedMonth, onMonthChange }) => {
+const Dashboard: React.FC<DashboardProps> = ({ bills, medical, home, income, members, selectedMonth, onMonthChange }) => {
   const [showPendingBills, setShowPendingBills] = useState(false);
   const [ccUtilizations, setCCUtilizations] = useState<CCUtilization[]>(() => {
     const saved = localStorage.getItem('fintrack_cc_utilization');
@@ -116,7 +117,7 @@ const Dashboard: React.FC<DashboardProps> = ({ bills, medical, home, income, sel
     stats.monthBills.forEach(bill => {
       cardTotals[bill.cardName] = (cardTotals[bill.cardName] || 0) + bill.monthlyAmount;
     });
-    return Object.entries(cardTotals).map(([name, value]) => ({ name, value }));
+    return (Object.entries(cardTotals) as [string, number][]).map(([name, value]) => ({ name, value }));
   }, [stats.monthBills]);
 
   const COLORS = ['#ef4444', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6', '#ec4899', '#14b8a6'];
@@ -147,18 +148,19 @@ const Dashboard: React.FC<DashboardProps> = ({ bills, medical, home, income, sel
   }, [bills, selectedMonth]);
 
   const ccUsedForOthers = ccUtilizations.reduce((sum, cc) => sum + cc.amount, 0);
-  const someshPortion = totalCCUsageThisMonth - ccUsedForOthers;
+  const mainSpenderName = members[0] || 'DEVI';
+  const mainSpenderPortion = totalCCUsageThisMonth - ccUsedForOthers;
 
   const ccComparisonData = useMemo(() => {
     const data = [];
     ccUtilizations.forEach(cc => {
       data.push({ name: cc.name, value: cc.amount });
     });
-    if (someshPortion > 0) {
-      data.push({ name: 'Somesh', value: someshPortion });
+    if (mainSpenderPortion > 0) {
+      data.push({ name: mainSpenderName, value: mainSpenderPortion });
     }
     return data;
-  }, [ccUtilizations, someshPortion]);
+  }, [ccUtilizations, mainSpenderPortion, mainSpenderName]);
 
   const CC_COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
@@ -487,8 +489,8 @@ const Dashboard: React.FC<DashboardProps> = ({ bills, medical, home, income, sel
           {/* Summary */}
           <div className="mt-4 pt-4 border-t border-gray-100 space-y-2">
             <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">Somesh's Portion:</span>
-              <span className="text-sm font-bold text-blue-600">₹{someshPortion.toLocaleString()}</span>
+              <span className="text-sm text-gray-600">{mainSpenderName}'s Portion:</span>
+              <span className="text-sm font-bold text-blue-600">₹{mainSpenderPortion.toLocaleString()}</span>
             </div>
             {ccUsedForOthers > 0 && (
               <div className="flex justify-between items-center">

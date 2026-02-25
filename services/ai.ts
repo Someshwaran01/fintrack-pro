@@ -16,13 +16,19 @@ export class AIService {
         medical: MedicalExpense[];
         home: HomeExpense[];
         income: Income[];
-    }) {
+    }, members: string[]) {
+        const getMemberId = (spender?: string) => {
+            if (!spender) return 'Unknown';
+            const index = members.indexOf(spender);
+            return index !== -1 ? `Member ${index + 1}` : 'Other';
+        };
+
         return {
             income: data.income.map(i => ({
                 month: i.month,
                 amount: i.amount,
-                category: i.source, // Masking specific source as general category
-                owner: i.spender === 'DEVI' ? 'Member 1' : 'Member 2'
+                category: i.source,
+                owner: getMemberId(i.spender)
             })),
             bills: data.bills.map(b => ({
                 month: b.month,
@@ -40,7 +46,7 @@ export class AIService {
                 month: new Date(h.date).toLocaleString('default', { month: 'short', year: '2-digit' }),
                 amount: h.amount,
                 category: h.category,
-                owner: h.spender === 'DEVI' ? 'Member 1' : 'Member 2'
+                owner: getMemberId(h.spender)
             }))
         };
     }
@@ -50,14 +56,14 @@ export class AIService {
         medical: MedicalExpense[];
         home: HomeExpense[];
         income: Income[];
-    }, userMessage: string) {
+    }, userMessage: string, members: string[]) {
         const apiKey = this.getApiKey();
         if (!apiKey) {
             throw new Error('Groq API Key (VITE_GROQ_API_KEY) is missing. Please add it to your environment variables.');
         }
 
         // Apply Data Security Masking
-        const secureData = this.scrubData(data);
+        const secureData = this.scrubData(data, members);
 
         const systemPrompt = `
       You are FinTrack AI, a professional financial advisor. 

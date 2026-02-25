@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { AppTab, CreditCardBill, MedicalExpense, HomeExpense, Spender, Income, CreditCardLimit } from './types';
+import { AppTab, CreditCardBill, MedicalExpense, HomeExpense, SpenderName, Income, CreditCardLimit } from './types';
 import { StorageService } from './services/storage';
 import { SyncService } from './services/syncService';
 import { getCurrentMonth } from './utils/helpers';
@@ -10,6 +10,7 @@ import CardTracker from './components/CardTracker';
 import ExpenseTracker from './components/ExpenseTracker';
 import IncomeTracker from './components/IncomeTracker';
 import FamilySetup from './components/FamilySetup';
+import Onboarding from './components/Onboarding';
 import ChatBot from './components/ChatBot';
 
 // v1.1.0 - Multi-user Sync with Supabase
@@ -22,6 +23,8 @@ const App: React.FC = () => {
   const [home, setHome] = useState<HomeExpense[]>([]);
   const [income, setIncome] = useState<Income[]>([]);
   const [ccLimits, setCCLimits] = useState<CreditCardLimit[]>([]);
+  const [members, setMembers] = useState<string[]>(StorageService.getMembers());
+  const [onboardingComplete, setOnboardingComplete] = useState<boolean>(StorageService.getOnboardingComplete());
   const [selectedMonth, setSelectedMonth] = useState<string>(getCurrentMonth());
   const [showFamilyModal, setShowFamilyModal] = useState(false);
   const [showAIChat, setShowAIChat] = useState(false);
@@ -53,6 +56,21 @@ const App: React.FC = () => {
     }
   }, []);
 
+  const handleOnboardingComplete = async (newMembers: string[], newCCLimits: CreditCardLimit[]) => {
+    setMembers(newMembers);
+    setCCLimits(newCCLimits);
+    setOnboardingComplete(true);
+
+    // Save locally
+    await StorageService.saveOnboardingData(newMembers, true);
+    await StorageService.saveCreditCardLimits(newCCLimits);
+
+    // Trigger a sync to cloud if familyId exists
+    if (familyId) {
+      // This will be handled by the update trigger in storage/sync service
+    }
+  };
+
   // Load initial data and set up real-time sync
   useEffect(() => {
     const loadData = async () => {
@@ -74,14 +92,14 @@ const App: React.FC = () => {
           if (cloudData) {
             logger.log('Cloud data received:', cloudData.bills.length, 'bills,', cloudData.medical.length, 'medical,', cloudData.home.length, 'home,', cloudData.income.length, 'income', cloudData.savings?.length || 0, 'savings', cloudData.cc_limits?.length || 0, 'cc_limits');
 
-            // Migrate old data: add default spender if missing
+            const defaultSpender = (cloudData.members && cloudData.members[0]) || 'DEVI';
             const migratedMedical = cloudData.medical.map(m => ({
               ...m,
-              spender: m.spender || Spender.DEVI
+              spender: m.spender || defaultSpender
             }));
             const migratedHome = cloudData.home.map(h => ({
               ...h,
-              spender: h.spender || Spender.DEVI
+              spender: h.spender || defaultSpender
             }));
 
             // CRITICAL: Mark cloud data as loaded FIRST, before setting state
@@ -100,6 +118,8 @@ const App: React.FC = () => {
             setHome(migratedHome);
             setIncome(cloudData.income);
             setCCLimits(cloudData.cc_limits || []);
+            setMembers(cloudData.members || ['DEVI', 'Somu']);
+            setOnboardingComplete(cloudData.onboarding_complete || false);
           } else {
             // Cloud returned null - fallback to local backup data instead of wiping state
             console.warn('No cloud data found - falling back to local backup state');
@@ -110,13 +130,14 @@ const App: React.FC = () => {
             const localIncome = StorageService.getIncome();
             const localCCLimits = StorageService.getCreditCardLimits();
 
+            const defaultSpender = (members && members[0]) || 'DEVI';
             const migratedMedical = localMedical.map(m => ({
               ...m,
-              spender: m.spender || Spender.DEVI
+              spender: m.spender || defaultSpender
             }));
             const migratedHome = localHome.map(h => ({
               ...h,
-              spender: h.spender || Spender.DEVI
+              spender: h.spender || defaultSpender
             }));
 
             // CRITICAL: Mark cloud data as loaded even if empty
@@ -134,6 +155,8 @@ const App: React.FC = () => {
             setHome(migratedHome);
             setIncome(localIncome);
             setCCLimits(localCCLimits);
+            setMembers(StorageService.getMembers());
+            setOnboardingComplete(StorageService.getOnboardingComplete());
           }
 
           // Subscribe to real-time updates
@@ -208,14 +231,14 @@ const App: React.FC = () => {
           const localIncome = StorageService.getIncome();
           const localCCLimits = StorageService.getCreditCardLimits();
 
-          // Migrate old data: add default spender if missing
+          const defaultSpender = (members && members[0]) || 'DEVI';
           const migratedMedical = localMedical.map(m => ({
             ...m,
-            spender: m.spender || Spender.DEVI
+            spender: m.spender || defaultSpender
           }));
           const migratedHome = localHome.map(h => ({
             ...h,
-            spender: h.spender || Spender.DEVI
+            spender: h.spender || defaultSpender
           }));
 
           // Mark as initialized BEFORE setting state to prevent saves
@@ -246,11 +269,11 @@ const App: React.FC = () => {
         // Migrate old data: add default spender if missing
         const migratedMedical = localMedical.map(m => ({
           ...m,
-          spender: m.spender || Spender.DEVI
+          spender: m.spender || 'DEVI'
         }));
         const migratedHome = localHome.map(h => ({
           ...h,
-          spender: h.spender || Spender.DEVI
+          spender: h.spender || 'DEVI'
         }));
 
         // Mark as initialized BEFORE setting state to prevent saves
@@ -470,6 +493,8 @@ const App: React.FC = () => {
     <>
       {!familyId ? (
         <FamilySetup onComplete={handleFamilySetupComplete} />
+      ) : !onboardingComplete ? (
+        <Onboarding onComplete={handleOnboardingComplete} />
       ) : (
         <div className="max-w-md mx-auto min-h-screen relative flex flex-col">
           {/* Optimized Mobile Header */}
@@ -527,11 +552,11 @@ const App: React.FC = () => {
 
           {/* Main Content Area */}
           <main className="flex-grow">
-            {activeTab === 'dashboard' && <Dashboard bills={bills} medical={medical} home={home} income={income} selectedMonth={selectedMonth} onMonthChange={setSelectedMonth} />}
+            {activeTab === 'dashboard' && <Dashboard bills={bills} medical={medical} home={home} income={income} members={members} selectedMonth={selectedMonth} onMonthChange={setSelectedMonth} />}
             {activeTab === 'bills' && <CardTracker bills={bills} ccLimits={ccLimits} onAdd={handleAddBill} onAddMultiple={handleAddBills} onUpdate={handleUpdateBill} onDelete={handleDeleteBill} onUpdateCCLimits={handleUpdateCCLimits} selectedMonth={selectedMonth} onMonthChange={setSelectedMonth} />}
-            {activeTab === 'expenses' && <ExpenseTracker medicalExpenses={medical} homeExpenses={home} onAddMedical={handleAddMedical} onDeleteMedical={handleDeleteMedical} onAddHome={handleAddHome} onDeleteHome={handleDeleteHome} />}
-            {activeTab === 'income' && <IncomeTracker incomes={income} bills={bills} medical={medical} home={home} onAddIncome={handleAddIncome} onDeleteIncome={handleDeleteIncome} selectedMonth={selectedMonth} onMonthChange={setSelectedMonth} />}
-            {activeTab === 'ai' && <ChatBot bills={bills} medical={medical} home={home} income={income} />}
+            {activeTab === 'expenses' && <ExpenseTracker medicalExpenses={medical} homeExpenses={home} members={members} onAddMedical={handleAddMedical} onDeleteMedical={handleDeleteMedical} onAddHome={handleAddHome} onDeleteHome={handleDeleteHome} />}
+            {activeTab === 'income' && <IncomeTracker incomes={income} bills={bills} medical={medical} home={home} members={members} onAddIncome={handleAddIncome} onDeleteIncome={handleDeleteIncome} selectedMonth={selectedMonth} onMonthChange={setSelectedMonth} />}
+            {activeTab === 'ai' && <ChatBot bills={bills} medical={medical} home={home} income={income} members={members} />}
           </main>
 
 

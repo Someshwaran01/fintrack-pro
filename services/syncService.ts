@@ -7,6 +7,8 @@ const supabase = createClient(supabaseConfig.url, supabaseConfig.anonKey);
 
 export interface FamilyData {
     family_id: string;
+    members: string[];
+    onboarding_complete: boolean;
     bills: CreditCardBill[];
     medical: MedicalExpense[];
     home: HomeExpense[];
@@ -66,6 +68,8 @@ export class SyncService {
         if (exactData) {
             return {
                 family_id: exactData.family_id,
+                members: exactData.members || ['DEVI', 'Somu'],
+                onboarding_complete: !!exactData.onboarding_complete,
                 bills: exactData.bills || [],
                 medical: exactData.medical || [],
                 home: exactData.home || [],
@@ -91,6 +95,8 @@ export class SyncService {
         if (caseInsensitiveData) {
             return {
                 family_id: caseInsensitiveData.family_id,
+                members: caseInsensitiveData.members || ['DEVI', 'Somu'],
+                onboarding_complete: !!caseInsensitiveData.onboarding_complete,
                 bills: caseInsensitiveData.bills || [],
                 medical: caseInsensitiveData.medical || [],
                 home: caseInsensitiveData.home || [],
@@ -123,6 +129,8 @@ export class SyncService {
 
         return {
             family_id: created.family_id,
+            members: created.members || [],
+            onboarding_complete: !!created.onboarding_complete,
             bills: created.bills || [],
             medical: created.medical || [],
             home: created.home || [],
@@ -618,12 +626,16 @@ export class SyncService {
             id: row.id.toString(),
             cardName: row.card_name,
             creditLimit: Number(row.credit_limit),
+            billDate: Number(row.bill_date || 1),
+            dueDate: Number(row.due_date || 1),
             updatedDate: row.updated_date,
             notes: row.notes || '',
         }));
 
         return {
             family_id: familyId,
+            members: familyData?.members || ['DEVI', 'Somu'],
+            onboarding_complete: !!familyData?.onboarding_complete,
             bills,
             medical,
             home,
@@ -736,6 +748,8 @@ export class SyncService {
                                     id: row.id.toString(),
                                     cardName: row.card_name,
                                     creditLimit: Number(row.credit_limit),
+                                    billDate: Number(row.bill_date || 1),
+                                    dueDate: Number(row.due_date || 1),
                                     updatedDate: row.updated_date,
                                     notes: row.notes || '',
                                 }));
@@ -782,5 +796,25 @@ export class SyncService {
             .eq('family_id', familyId);
 
         if (error) throw error;
+    }
+
+    // Save members and onboarding status to Supabase
+    static async saveOnboardingData(members: string[], onboardingComplete: boolean): Promise<void> {
+        const familyId = this.getFamilyId();
+        if (!familyId) return;
+
+        const { error } = await supabase
+            .from('family_data')
+            .update({
+                members,
+                onboarding_complete: onboardingComplete,
+                last_updated: new Date().toISOString(),
+            })
+            .eq('family_id', familyId);
+
+        if (error) {
+            console.error('Failed to save onboarding data to Supabase:', error);
+            throw error;
+        }
     }
 }

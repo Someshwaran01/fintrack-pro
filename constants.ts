@@ -1,5 +1,4 @@
-
-import { PaymentMethod, Spender } from './types';
+import { PaymentMethod } from './types';
 
 export const MONTHS = [
   'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
@@ -15,8 +14,8 @@ export const PAYMENT_METHODS = [
 ];
 
 export const SPENDERS = [
-  Spender.DEVI,
-  Spender.SOMU
+  'DEVI',
+  'Somu'
 ];
 
 export const BILL_CATEGORIES = [

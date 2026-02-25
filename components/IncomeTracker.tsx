@@ -1,7 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
-import { Income, Spender, CreditCardBill, MedicalExpense, HomeExpense } from '../types';
-import { SPENDERS } from '../constants';
+import { Income, CreditCardBill, MedicalExpense, HomeExpense } from '../types';
 import { dateToMonth, generateId } from '../utils/helpers';
 
 interface IncomeTrackerProps {
@@ -9,6 +8,7 @@ interface IncomeTrackerProps {
   bills: CreditCardBill[];
   medical: MedicalExpense[];
   home: HomeExpense[];
+  members: string[];
   onAddIncome: (income: Income) => void;
   onDeleteIncome: (id: string) => void;
   selectedMonth: string;
@@ -20,6 +20,7 @@ const IncomeTracker: React.FC<IncomeTrackerProps> = ({
   bills,
   medical,
   home,
+  members,
   onAddIncome,
   onDeleteIncome,
   selectedMonth,
@@ -33,7 +34,7 @@ const IncomeTracker: React.FC<IncomeTrackerProps> = ({
     source: '',
     amount: 0,
     receivedDate: new Date().toISOString().split('T')[0],
-    spender: Spender.SOMU,
+    spender: members[0] || 'DEVI',
     notes: ''
   });
 
@@ -88,13 +89,13 @@ const IncomeTracker: React.FC<IncomeTrackerProps> = ({
   // Calculate available balance for each spender
   const spenderBalances = useMemo(() => {
     const balances = {} as Record<string, number>;
-    SPENDERS.forEach(spender => {
+    members.forEach(spender => {
       const income = spenderTotals[spender] || 0;
       const expenses = spenderExpenses[spender] || 0;
       balances[spender] = income - expenses;
     });
     return balances;
-  }, [spenderTotals, spenderExpenses]);
+  }, [spenderTotals, spenderExpenses, members]);
 
   const handleSave = () => {
     if (!newIncome.source || !newIncome.amount) {
@@ -108,7 +109,7 @@ const IncomeTracker: React.FC<IncomeTrackerProps> = ({
       source: newIncome.source || '',
       amount: Number(newIncome.amount) || 0,
       receivedDate: newIncome.receivedDate || '',
-      spender: newIncome.spender || Spender.SOMU,
+      spender: newIncome.spender || members[0] || 'DEVI',
       notes: newIncome.notes || ''
     };
 
@@ -119,7 +120,7 @@ const IncomeTracker: React.FC<IncomeTrackerProps> = ({
       source: '',
       amount: 0,
       receivedDate: new Date().toISOString().split('T')[0],
-      spender: Spender.SOMU,
+      spender: members[0] || 'DEVI',
       notes: ''
     });
   };
@@ -171,7 +172,7 @@ const IncomeTracker: React.FC<IncomeTrackerProps> = ({
             Available Balance
           </h3>
           <div className="space-y-3">
-            {Object.entries(spenderBalances).map(([spender, balance]) => (
+            {(Object.entries(spenderBalances) as [string, number][]).map(([spender, balance]) => (
               <div key={spender} className={`p-3 rounded-lg ${balance >= 0 ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
                 <div className="flex justify-between items-center">
                   <div className="flex items-center gap-2">
@@ -325,10 +326,10 @@ const IncomeTracker: React.FC<IncomeTrackerProps> = ({
                 <label className="block text-xs font-bold text-gray-700 mb-2">Person</label>
                 <select
                   value={newIncome.spender}
-                  onChange={(e) => setNewIncome({ ...newIncome, spender: e.target.value as Spender })}
+                  onChange={(e) => setNewIncome({ ...newIncome, spender: e.target.value })}
                   className="w-full p-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
                 >
-                  {SPENDERS.map(s => (
+                  {members.map(s => (
                     <option key={s} value={s}>{s}</option>
                   ))}
                 </select>

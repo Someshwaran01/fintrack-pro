@@ -13,10 +13,11 @@ interface ChatBotProps {
     medical: MedicalExpense[];
     home: HomeExpense[];
     income: Income[];
+    members: string[];
     isEmbedded?: boolean;
 }
 
-const ChatBot: React.FC<ChatBotProps> = ({ bills, medical, home, income, isEmbedded = false }) => {
+const ChatBot: React.FC<ChatBotProps> = ({ bills, medical, home, income, members, isEmbedded = false }) => {
     const [messages, setMessages] = useState<Message[]>([
         { role: 'assistant', content: "Welcome to your Premium Financial Suite. I've analyzed your current portfolios. How can I assist with your capital management today?" }
     ]);
@@ -41,7 +42,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ bills, medical, home, income, isEmbed
         setIsTyping(true);
 
         try {
-            const response = await AIService.analyzeFinances({ bills, medical, home, income }, userMsg);
+            const response = await AIService.analyzeFinances({ bills, medical, home, income }, userMsg, members);
             setMessages(prev => [...prev, { role: 'assistant', content: response }]);
         } catch (error: any) {
             setMessages(prev => [...prev, { role: 'assistant', content: `Protocol Error: ${error.message || "Connection interrupted. Please verify your credentials."}` }]);
