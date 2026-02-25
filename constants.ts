@@ -13,10 +13,7 @@ export const PAYMENT_METHODS = [
   PaymentMethod.UPI
 ];
 
-export const SPENDERS = [
-  'DEVI',
-  'Somu'
-];
+export const SPENDERS = [];
 
 export const BILL_CATEGORIES = [
   'Groceries',

@@ -36,7 +36,7 @@ const ExpenseTracker: React.FC<ExpenseTrackerProps> = ({
         amount: 0,
         paymentMethod: PaymentMethod.UPI,
         description: '',
-        spender: members[0] || 'DEVI'
+        spender: members[0] || 'Owner'
     });
 
     const [newHomeExpense, setNewHomeExpense] = useState<Partial<HomeExpense>>({
@@ -45,7 +45,7 @@ const ExpenseTracker: React.FC<ExpenseTrackerProps> = ({
         paymentMethod: PaymentMethod.UPI,
         category: 'Groceries',
         description: '',
-        spender: members[0] || 'DEVI'
+        spender: members[0] || 'Owner'
     });
 
     const filteredMedicalExpenses = medicalExpenses.filter(e =>
@@ -85,7 +85,7 @@ const ExpenseTracker: React.FC<ExpenseTrackerProps> = ({
             amount: Number(newMedicalExpense.amount) || 0,
             paymentMethod: newMedicalExpense.paymentMethod || PaymentMethod.CASH,
             description: newMedicalExpense.description || '',
-            spender: newMedicalExpense.spender || members[0] || 'DEVI'
+            spender: newMedicalExpense.spender || members[0] || 'Owner'
         };
         onAddMedical(expense);
         setIsAdding(false);
@@ -94,7 +94,7 @@ const ExpenseTracker: React.FC<ExpenseTrackerProps> = ({
             amount: 0,
             paymentMethod: PaymentMethod.UPI,
             description: '',
-            spender: members[0] || 'DEVI'
+            spender: members[0] || 'Owner'
         });
     };
 

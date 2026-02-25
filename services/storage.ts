@@ -20,7 +20,7 @@ export const StorageService = {
 
   getMembers: (): string[] => {
     const data = localStorage.getItem(MEMBERS_KEY);
-    return data ? JSON.parse(data) : ['DEVI', 'Somu'];
+    return data ? JSON.parse(data) : [];
   },
 
   getOnboardingComplete: (): boolean => {
@@ -128,7 +128,7 @@ export const StorageService = {
         localStorage.setItem(INCOME_KEY, JSON.stringify(familyData.income || []));
         localStorage.setItem(SAVINGS_KEY, JSON.stringify(familyData.savings || []));
         localStorage.setItem(CC_LIMITS_KEY, JSON.stringify(familyData.cc_limits || []));
-        localStorage.setItem(MEMBERS_KEY, JSON.stringify(familyData.members || ['DEVI', 'Somu']));
+        localStorage.setItem(MEMBERS_KEY, JSON.stringify(familyData.members || []));
         localStorage.setItem(ONBOARDING_KEY, (familyData.onboarding_complete || false).toString());
 
         return {
@@ -138,7 +138,7 @@ export const StorageService = {
           income: familyData.income || [],
           savings: familyData.savings || [],
           cc_limits: familyData.cc_limits || [],
-          members: familyData.members || ['DEVI', 'Somu'],
+          members: familyData.members || [],
           onboarding_complete: familyData.onboarding_complete || false
         };
       }

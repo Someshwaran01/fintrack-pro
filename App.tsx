@@ -28,6 +28,24 @@ const App: React.FC = () => {
   const [selectedMonth, setSelectedMonth] = useState<string>(getCurrentMonth());
   const [showFamilyModal, setShowFamilyModal] = useState(false);
   const [showAIChat, setShowAIChat] = useState(false);
+  const [newMemberName, setNewMemberName] = useState('');
+
+  const handleAddMember = async () => {
+    if (newMemberName.trim() && !members.includes(newMemberName.trim())) {
+      const updatedMembers = [...members, newMemberName.trim()];
+      setMembers(updatedMembers);
+      setNewMemberName('');
+      await StorageService.saveOnboardingData(updatedMembers, onboardingComplete);
+    }
+  };
+
+  const handleRemoveMember = async (name: string) => {
+    if (confirm(`Remove ${name} from your family? This will not delete their historical data but they won't show in new selections.`)) {
+      const updatedMembers = members.filter(m => m !== name);
+      setMembers(updatedMembers);
+      await StorageService.saveOnboardingData(updatedMembers, onboardingComplete);
+    }
+  };
 
   // Refs to track last synced data (prevents infinite loop)
   const lastSyncedBills = useRef<string>('');
@@ -61,14 +79,15 @@ const App: React.FC = () => {
     setCCLimits(newCCLimits);
     setOnboardingComplete(true);
 
+    // If no credit cards selected, clear any existing/ghost bills
+    if (newCCLimits.length === 0) {
+      setBills([]);
+      await StorageService.saveBills([]);
+    }
+
     // Save locally
     await StorageService.saveOnboardingData(newMembers, true);
     await StorageService.saveCreditCardLimits(newCCLimits);
-
-    // Trigger a sync to cloud if familyId exists
-    if (familyId) {
-      // This will be handled by the update trigger in storage/sync service
-    }
   };
 
   // Load initial data and set up real-time sync
@@ -92,7 +111,7 @@ const App: React.FC = () => {
           if (cloudData) {
             logger.log('Cloud data received:', cloudData.bills.length, 'bills,', cloudData.medical.length, 'medical,', cloudData.home.length, 'home,', cloudData.income.length, 'income', cloudData.savings?.length || 0, 'savings', cloudData.cc_limits?.length || 0, 'cc_limits');
 
-            const defaultSpender = (cloudData.members && cloudData.members[0]) || 'DEVI';
+            const defaultSpender = (cloudData.members && cloudData.members[0]) || 'Owner';
             const migratedMedical = cloudData.medical.map(m => ({
               ...m,
               spender: m.spender || defaultSpender
@@ -113,12 +132,12 @@ const App: React.FC = () => {
             ccLimitsInitialized.current = true;
 
             logger.log('Setting state with cloud data...');
-            setBills(cloudData.bills);
+            setBills(cloudData.bills || []);
             setMedical(migratedMedical);
             setHome(migratedHome);
-            setIncome(cloudData.income);
+            setIncome(cloudData.income || []);
             setCCLimits(cloudData.cc_limits || []);
-            setMembers(cloudData.members || ['DEVI', 'Somu']);
+            setMembers(cloudData.members || []);
             setOnboardingComplete(cloudData.onboarding_complete || false);
           } else {
             // Cloud returned null - fallback to local backup data instead of wiping state
@@ -130,7 +149,7 @@ const App: React.FC = () => {
             const localIncome = StorageService.getIncome();
             const localCCLimits = StorageService.getCreditCardLimits();
 
-            const defaultSpender = (members && members[0]) || 'DEVI';
+            const defaultSpender = (members && members[0]) || 'Owner';
             const migratedMedical = localMedical.map(m => ({
               ...m,
               spender: m.spender || defaultSpender
@@ -231,7 +250,7 @@ const App: React.FC = () => {
           const localIncome = StorageService.getIncome();
           const localCCLimits = StorageService.getCreditCardLimits();
 
-          const defaultSpender = (members && members[0]) || 'DEVI';
+          const defaultSpender = (members && members[0]) || 'Owner';
           const migratedMedical = localMedical.map(m => ({
             ...m,
             spender: m.spender || defaultSpender
@@ -269,11 +288,11 @@ const App: React.FC = () => {
         // Migrate old data: add default spender if missing
         const migratedMedical = localMedical.map(m => ({
           ...m,
-          spender: m.spender || 'DEVI'
+          spender: m.spender || 'Owner'
         }));
         const migratedHome = localHome.map(h => ({
           ...h,
-          spender: h.spender || 'DEVI'
+          spender: h.spender || 'Owner'
         }));
 
         // Mark as initialized BEFORE setting state to prevent saves
@@ -455,6 +474,20 @@ const App: React.FC = () => {
     if (confirm('Are you sure you want to disconnect from family sync? Your data will remain saved locally.')) {
       SyncService.clearFamilyId();
       setFamilyId(null);
+      // Reset state to avoid contamination
+      setBills([]);
+      setMedical([]);
+      setHome([]);
+      setIncome([]);
+      setCCLimits([]);
+      setMembers([]);
+      setOnboardingComplete(false);
+      cloudDataLoaded.current = false;
+      billsInitialized.current = false;
+      medicalInitialized.current = false;
+      homeInitialized.current = false;
+      incomeInitialized.current = false;
+      ccLimitsInitialized.current = false;
     }
   };
 
@@ -598,6 +631,51 @@ const App: React.FC = () => {
                       <li>• Data is backed up locally on each device</li>
                       <li>• Free forever with Supabase</li>
                     </ul>
+                  </div>
+
+                  <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                    <h4 className="font-bold text-sm text-[#1a1c2e] mb-3 flex items-center">
+                      <i className="fa-solid fa-users-gear mr-2 text-indigo-500"></i>
+                      Family Members
+                    </h4>
+
+                    <div className="space-y-2 mb-3 max-h-32 overflow-y-auto pr-1 custom-scrollbar">
+                      {members.map(member => (
+                        <div key={member} className="flex items-center justify-between bg-white p-2.5 rounded-lg border border-gray-100 shadow-sm transition-all hover:border-indigo-100">
+                          <span className="text-xs font-bold text-[#1a1c2e] capitalize">{member}</span>
+                          <button
+                            onClick={() => handleRemoveMember(member)}
+                            className="text-gray-300 hover:text-red-500 transition-colors px-1"
+                            title="Remove member"
+                          >
+                            <i className="fa-solid fa-trash-can text-[10px]"></i>
+                          </button>
+                        </div>
+                      ))}
+                      {members.length === 0 && (
+                        <p className="text-[10px] text-gray-400 text-center py-2">No members added yet.</p>
+                      )}
+                    </div>
+
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={newMemberName}
+                        onChange={(e) => setNewMemberName(e.target.value)}
+                        onKeyPress={(e) => e.key === 'Enter' && handleAddMember()}
+                        placeholder="New member name..."
+                        className="flex-1 bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs font-semibold outline-none focus:border-indigo-500 transition-all"
+                      />
+                      <button
+                        onClick={handleAddMember}
+                        disabled={!newMemberName.trim() || members.length >= 5}
+                        className="bg-indigo-600 hover:bg-indigo-500 disabled:bg-gray-300 text-white px-3 rounded-lg flex items-center justify-center transition-all active:scale-95 shadow-md shadow-indigo-100"
+                        title="Add Member"
+                      >
+                        <i className="fa-solid fa-plus text-xs"></i>
+                      </button>
+                    </div>
+                    {members.length >= 5 && <p className="text-[9px] text-orange-600 mt-1 font-bold">Max 5 members reached.</p>}
                   </div>
 
                   <button

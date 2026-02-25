@@ -8,7 +8,7 @@ interface OnboardingProps {
 
 const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
     const [step, setStep] = useState(1);
-    const [members, setMembers] = useState<string[]>(['DEVI', 'Somu']);
+    const [members, setMembers] = useState<string[]>([]);
     const [newMember, setNewMember] = useState('');
     const [hasCreditCards, setHasCreditCards] = useState<boolean | null>(null);
     const [ccLimits, setCCLimits] = useState<CreditCardLimit[]>([]);

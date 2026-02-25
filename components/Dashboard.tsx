@@ -148,7 +148,7 @@ const Dashboard: React.FC<DashboardProps> = ({ bills, medical, home, income, mem
   }, [bills, selectedMonth]);
 
   const ccUsedForOthers = ccUtilizations.reduce((sum, cc) => sum + cc.amount, 0);
-  const mainSpenderName = members[0] || 'DEVI';
+  const mainSpenderName = members[0] || 'Owner';
   const mainSpenderPortion = totalCCUsageThisMonth - ccUsedForOthers;
 
   const ccComparisonData = useMemo(() => {

@@ -68,7 +68,7 @@ export class SyncService {
         if (exactData) {
             return {
                 family_id: exactData.family_id,
-                members: exactData.members || ['DEVI', 'Somu'],
+                members: exactData.members || [],
                 onboarding_complete: !!exactData.onboarding_complete,
                 bills: exactData.bills || [],
                 medical: exactData.medical || [],
@@ -95,7 +95,7 @@ export class SyncService {
         if (caseInsensitiveData) {
             return {
                 family_id: caseInsensitiveData.family_id,
-                members: caseInsensitiveData.members || ['DEVI', 'Somu'],
+                members: caseInsensitiveData.members || [],
                 onboarding_complete: !!caseInsensitiveData.onboarding_complete,
                 bills: caseInsensitiveData.bills || [],
                 medical: caseInsensitiveData.medical || [],

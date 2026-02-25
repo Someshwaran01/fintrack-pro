@@ -34,7 +34,7 @@ const IncomeTracker: React.FC<IncomeTrackerProps> = ({
     source: '',
     amount: 0,
     receivedDate: new Date().toISOString().split('T')[0],
-    spender: members[0] || 'DEVI',
+    spender: members[0] || 'Owner',
     notes: ''
   });
 
@@ -109,7 +109,7 @@ const IncomeTracker: React.FC<IncomeTrackerProps> = ({
       source: newIncome.source || '',
       amount: Number(newIncome.amount) || 0,
       receivedDate: newIncome.receivedDate || '',
-      spender: newIncome.spender || members[0] || 'DEVI',
+      spender: newIncome.spender || members[0] || 'Owner',
       notes: newIncome.notes || ''
     };
 
@@ -120,7 +120,7 @@ const IncomeTracker: React.FC<IncomeTrackerProps> = ({
       source: '',
       amount: 0,
       receivedDate: new Date().toISOString().split('T')[0],
-      spender: members[0] || 'DEVI',
+      spender: members[0] || 'Owner',
       notes: ''
     });
   };
