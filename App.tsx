@@ -472,45 +472,51 @@ const App: React.FC = () => {
         <FamilySetup onComplete={handleFamilySetupComplete} />
       ) : (
         <div className="max-w-md mx-auto min-h-screen relative flex flex-col">
-          {/* Primary Navigation Header */}
-          <nav className="bg-white sticky top-0 z-30 border-b border-gray-100 shadow-sm">
-            <div className="px-4 py-4 flex justify-between items-center">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-[#1a1c2e] rounded-xl flex items-center justify-center shadow-md">
-                  <i className="fa-solid fa-chart-line text-white text-lg"></i>
+          {/* Primary Navigation Header - Creative Vibe */}
+          <nav className="bg-white sticky top-0 z-[60] border-b border-gray-50 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07)]">
+            <div className="px-5 py-4 flex justify-between items-center">
+              <div className="flex items-center space-x-4">
+                <div className="group relative">
+                  <div className="absolute -inset-1 bg-gradient-to-r from-[#111827] to-[#374151] rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+                  <div className="relative w-11 h-11 bg-gradient-to-br from-[#1a1c2e] to-[#2d3142] rounded-2xl flex items-center justify-center shadow-lg transform -rotate-3 hover:rotate-0 transition-all duration-300 border border-white/10">
+                    <i className="fa-solid fa-shield-halved text-white text-xl"></i>
+                  </div>
                 </div>
                 <div>
-                  <h1 className="font-serif font-black text-[#1a1c2e] text-lg leading-tight">FinTrack</h1>
-                  <div className="flex items-center space-x-1">
-                    <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></div>
-                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest leading-none">Secured</span>
+                  <h1 className="font-serif font-black text-[#1a1c2e] text-xl tracking-tight leading-none mb-1">FinTrack</h1>
+                  <div className="flex items-center space-x-2">
+                    <span className="flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-emerald-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] leading-none">Live Secure</span>
                   </div>
                 </div>
               </div>
 
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2.5">
                 <button
                   id="global-ai-btn"
                   onClick={() => setShowAIChat(true)}
-                  className="w-10 h-10 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center hover:bg-amber-100 transition-all active:scale-95"
-                  title="Consult Advisor"
+                  className="w-11 h-11 bg-gradient-to-tr from-[#FFF4E0] to-[#FFDBA4] text-[#E67E22] rounded-2xl flex items-center justify-center hover:shadow-xl hover:shadow-orange-500/10 transition-all active:scale-95 border border-orange-100/30"
+                  title="Advisor AI"
                 >
-                  <i className="fa-solid fa-robot text-lg"></i>
+                  <i className="fa-solid fa-wand-magic-sparkles text-lg"></i>
                 </button>
                 <button
                   onClick={handleExport}
-                  className="w-10 h-10 bg-gray-50 text-gray-600 rounded-xl flex items-center justify-center hover:bg-gray-100 transition-all active:scale-95"
+                  className="w-11 h-11 bg-gradient-to-tr from-[#E0F7FF] to-[#A4EFFF] text-[#2980B9] rounded-2xl flex items-center justify-center hover:shadow-xl hover:shadow-blue-500/10 transition-all active:scale-95 border border-blue-100/30"
                   title="Export Data"
                 >
-                  <i className="fa-solid fa-file-export text-lg"></i>
+                  <i className="fa-solid fa-cloud-arrow-down text-lg"></i>
                 </button>
                 {familyId && (
                   <button
                     onClick={() => setShowFamilyModal(true)}
-                    className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center hover:bg-indigo-100 transition-all active:scale-95"
-                    title="Family Info"
+                    className="w-11 h-11 bg-gradient-to-tr from-[#F5E0FF] to-[#D6A4FF] text-[#8E44AD] rounded-2xl flex items-center justify-center hover:shadow-xl hover:shadow-purple-500/10 transition-all active:scale-95 border border-purple-100/30"
+                    title="Family Setup"
                   >
-                    <i className="fa-solid fa-users text-lg"></i>
+                    <i className="fa-solid fa-network-wired text-lg"></i>
                   </button>
                 )}
               </div>
@@ -593,33 +599,33 @@ const App: React.FC = () => {
             <button
               onClick={() => setActiveTab('dashboard')}
               data-tab="dashboard"
-              className={`flex flex-col items-center space-y-1.5 transition-all duration-300 ${activeTab === 'dashboard' ? 'text-[#1a1c2e] transform -translate-y-1' : 'text-gray-300 hover:text-gray-500'}`}
+              className={`flex flex-col items-center space-y-1.5 transition-all duration-300 ${activeTab === 'dashboard' ? 'text-[#1a1c2e] transform -translate-y-1' : 'text-gray-300 hover:text-gray-400'}`}
             >
-              <i className={`fa-solid fa-house-chimney text-lg ${activeTab === 'dashboard' ? 'text-[#1a1c2e]' : ''}`}></i>
+              <i className={`fa-solid fa-layer-group text-lg ${activeTab === 'dashboard' ? 'text-[#1a1c2e]' : ''}`}></i>
               <span className="text-[9px] font-black uppercase tracking-tighter">Summary</span>
             </button>
             <button
               onClick={() => setActiveTab('bills')}
               data-tab="bills"
-              className={`flex flex-col items-center space-y-1.5 transition-all duration-300 ${activeTab === 'bills' ? 'text-[#1a1c2e] transform -translate-y-1' : 'text-gray-300 hover:text-gray-500'}`}
+              className={`flex flex-col items-center space-y-1.5 transition-all duration-300 ${activeTab === 'bills' ? 'text-[#1a1c2e] transform -translate-y-1' : 'text-gray-300 hover:text-gray-400'}`}
             >
-              <i className={`fa-solid fa-credit-card text-lg ${activeTab === 'bills' ? 'text-[#1a1c2e]' : ''}`}></i>
+              <i className={`fa-solid fa-money-check-dollar text-lg ${activeTab === 'bills' ? 'text-[#1a1c2e]' : ''}`}></i>
               <span className="text-[9px] font-black uppercase tracking-tighter">Finance</span>
             </button>
             <button
               onClick={() => setActiveTab('expenses')}
               data-tab="expenses"
-              className={`flex flex-col items-center space-y-1.5 transition-all duration-300 ${activeTab === 'expenses' ? 'text-[#1a1c2e] transform -translate-y-1' : 'text-gray-300 hover:text-gray-500'}`}
+              className={`flex flex-col items-center space-y-1.5 transition-all duration-300 ${activeTab === 'expenses' ? 'text-[#1a1c2e] transform -translate-y-1' : 'text-gray-300 hover:text-gray-400'}`}
             >
-              <i className={`fa-solid fa-receipt text-lg ${activeTab === 'expenses' ? 'text-[#1a1c2e]' : ''}`}></i>
+              <i className={`fa-solid fa-hand-holding-dollar text-lg ${activeTab === 'expenses' ? 'text-[#1a1c2e]' : ''}`}></i>
               <span className="text-[9px] font-black uppercase tracking-tighter">Outflows</span>
             </button>
             <button
               onClick={() => setActiveTab('income')}
               data-tab="income"
-              className={`flex flex-col items-center space-y-1.5 transition-all duration-300 ${activeTab === 'income' ? 'text-[#1a1c2e] transform -translate-y-1' : 'text-gray-300 hover:text-gray-500'}`}
+              className={`flex flex-col items-center space-y-1.5 transition-all duration-300 ${activeTab === 'income' ? 'text-[#1a1c2e] transform -translate-y-1' : 'text-gray-300 hover:text-gray-400'}`}
             >
-              <i className={`fa-solid fa-vault text-lg ${activeTab === 'income' ? 'text-[#1a1c2e]' : ''}`}></i>
+              <i className={`fa-solid fa-piggy-bank text-lg ${activeTab === 'income' ? 'text-[#1a1c2e]' : ''}`}></i>
               <span className="text-[9px] font-black uppercase tracking-tighter">Inflows</span>
             </button>
           </footer>

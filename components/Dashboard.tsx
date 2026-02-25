@@ -206,22 +206,27 @@ const Dashboard: React.FC<DashboardProps> = ({ bills, medical, home, income, sel
         </div>
       </header>
 
-      {/* Refined AI Advisor Card */}
-      <div className="bg-gradient-to-tr from-[#1a1c2e] to-[#2d3142] p-5 rounded-[1.5rem] shadow-xl relative overflow-hidden">
-        <div className="relative z-10 flex flex-col h-full">
-          <h2 className="text-white font-serif text-lg font-bold mb-1">Portfolio Strategy</h2>
-          <p className="text-gray-300 text-[11px] leading-relaxed mb-4 font-medium opacity-90">
-            Utilization is at <span className="text-amber-400 font-bold">{stats.totalIncome > 0 ? ((stats.upiSpending / stats.totalIncome) * 100).toFixed(1) : '0'}%</span>. I have generated new optimizations for your debt obligations.
+      {/* Creative Portfolio Strategy Card */}
+      <div className="bg-gradient-to-tr from-[#0f172a] to-[#1e293b] p-6 rounded-[2rem] shadow-2xl relative overflow-hidden group border border-white/5">
+        <div className="absolute -right-10 -top-10 w-40 h-40 bg-orange-500/10 rounded-full blur-3xl group-hover:bg-orange-500/20 transition-all duration-700"></div>
+        <div className="relative z-10">
+          <div className="flex items-center space-x-3 mb-4">
+            <div className="w-10 h-10 bg-orange-500/20 rounded-xl flex items-center justify-center border border-orange-500/30 shadow-[0_0_15px_rgba(249,115,22,0.2)]">
+              <i className="fa-solid fa-wand-magic-sparkles text-orange-400"></i>
+            </div>
+            <h2 className="text-white font-serif text-lg font-bold tracking-tight">Portfolio Intelligence</h2>
+          </div>
+          <p className="text-slate-300 text-xs leading-relaxed mb-6 font-medium">
+            Your current utilization is <span className="text-orange-400 font-bold">{stats.totalIncome > 0 ? ((stats.upiSpending / stats.totalIncome) * 100).toFixed(1) : '0'}%</span> of total capital. I have analyzed <span className="text-white font-bold">{stats.monthBills.length} portfolios</span> for potential debt-to-income optimization.
           </p>
           <button
             onClick={() => {
-              // Trigger global AI open (will be handled by App.tsx)
               const aiBtn = document.getElementById('global-ai-btn');
               if (aiBtn) aiBtn.click();
             }}
-            className="bg-white text-[#1a1c2e] font-black text-[10px] uppercase tracking-widest py-2.5 px-5 rounded-lg self-start hover:bg-amber-400 transition-colors shadow-lg active:scale-95 flex items-center"
+            className="bg-white text-[#0f172a] font-black text-[10px] uppercase tracking-[0.2em] py-3.5 px-6 rounded-xl hover:bg-orange-400 hover:text-white transition-all shadow-xl active:scale-95 flex items-center"
           >
-            Consult Advisor <i className="fa-solid fa-chevron-right ml-2 text-[8px]"></i>
+            Launch Advisor <i className="fa-solid fa-bolt-lightning ml-2 text-[10px]"></i>
           </button>
         </div>
       </div>
