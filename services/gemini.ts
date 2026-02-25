@@ -5,7 +5,16 @@ const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/
 
 export class GeminiService {
     private static getApiKey() {
-        return (process.env.GEMINI_API_KEY as string) || (import.meta.env.VITE_GEMINI_API_KEY as string) || '';
+        // Check both process.env (Vite define) and import.meta.env (Vite default)
+        // We use a try-catch or type check to handle environments where these might be undefined
+        try {
+            const key = (process.env as any).GEMINI_API_KEY ||
+                (import.meta as any).env?.VITE_GEMINI_API_KEY ||
+                (import.meta as any).env?.GEMINI_API_KEY;
+            return key || '';
+        } catch (e) {
+            return '';
+        }
     }
 
     static async analyzeFinances(data: {
