@@ -87,4 +87,4 @@ export interface CCUtilization {
   date: string;
 }
 
-export type AppTab = 'dashboard' | 'bills' | 'expenses' | 'income';
+export type AppTab = 'dashboard' | 'bills' | 'expenses' | 'income' | 'ai';

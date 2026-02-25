@@ -10,6 +10,7 @@ import CardTracker from './components/CardTracker';
 import ExpenseTracker from './components/ExpenseTracker';
 import IncomeTracker from './components/IncomeTracker';
 import FamilySetup from './components/FamilySetup';
+import ChatBot from './components/ChatBot';
 
 // v1.1.0 - Multi-user Sync with Supabase
 const App: React.FC = () => {
@@ -517,6 +518,7 @@ const App: React.FC = () => {
             {activeTab === 'bills' && <CardTracker bills={bills} ccLimits={ccLimits} onAdd={handleAddBill} onAddMultiple={handleAddBills} onUpdate={handleUpdateBill} onDelete={handleDeleteBill} onUpdateCCLimits={handleUpdateCCLimits} selectedMonth={selectedMonth} onMonthChange={setSelectedMonth} />}
             {activeTab === 'expenses' && <ExpenseTracker medicalExpenses={medical} homeExpenses={home} onAddMedical={handleAddMedical} onDeleteMedical={handleDeleteMedical} onAddHome={handleAddHome} onDeleteHome={handleDeleteHome} />}
             {activeTab === 'income' && <IncomeTracker incomes={income} bills={bills} medical={medical} home={home} onAddIncome={handleAddIncome} onDeleteIncome={handleDeleteIncome} selectedMonth={selectedMonth} onMonthChange={setSelectedMonth} />}
+            {activeTab === 'ai' && <ChatBot bills={bills} medical={medical} home={home} income={income} />}
           </main>
 
 
@@ -616,6 +618,15 @@ const App: React.FC = () => {
                 <i className="fa-solid fa-money-bill-wave text-xl"></i>
               </div>
               <span className="text-[9px] font-bold">Income</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('ai')}
+              className={`flex flex-col items-center space-y-1 transition-all duration-300 ${activeTab === 'ai' ? 'text-purple-600 transform scale-110' : 'text-gray-400 hover:text-gray-600'}`}
+            >
+              <div className={`${activeTab === 'ai' ? 'bg-gradient-to-br from-purple-100 to-indigo-100 shadow-md' : ''} p-2 rounded-xl transition-all`}>
+                <i className="fa-solid fa-robot text-xl"></i>
+              </div>
+              <span className="text-[9px] font-bold">AI Assistant</span>
             </button>
           </footer>
         </div>
