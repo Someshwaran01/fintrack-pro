@@ -349,6 +349,8 @@ export class SyncService {
                 family_id: familyId,
                 card_name: limit.cardName,
                 credit_limit: limit.creditLimit,
+                bill_date: limit.billDate,
+                due_date: limit.dueDate,
                 updated_date: limit.updatedDate,
                 notes: limit.notes || '',
             };
