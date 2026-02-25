@@ -14,7 +14,7 @@ export class AIService {
     }, userMessage: string) {
         const apiKey = this.getApiKey();
         if (!apiKey) {
-            throw new Error('Groq API Key (VITE_GROQ_API_KEY) is missing. Please add it to your .env file.');
+            throw new Error('Groq API Key (VITE_GROQ_API_KEY) is missing. Please add it to your environment variables.');
         }
 
         const systemPrompt = `
@@ -33,7 +33,6 @@ export class AIService {
       4. Answer specific questions about their budget.
       
       Keep responses professional, concise, and helpful. Use markdown formatting for readability.
-      If the user asks something unrelated to finance, politely redirect them to financial topics.
     `;
 
         try {
@@ -67,6 +66,3 @@ export class AIService {
         }
     }
 }
-
-// Keep the old name for backward compatibility if needed, or export it as GeminiService
-export const GeminiService = AIService;

@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { CreditCardBill, MedicalExpense, HomeExpense, Income } from '../types';
-import { GeminiService } from '../services/gemini';
+import { AIService } from '../services/ai';
 
 interface Message {
     role: 'user' | 'assistant';
@@ -40,7 +40,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ bills, medical, home, income }) => {
         setIsTyping(true);
 
         try {
-            const response = await GeminiService.analyzeFinances({ bills, medical, home, income }, userMsg);
+            const response = await AIService.analyzeFinances({ bills, medical, home, income }, userMsg);
             setMessages(prev => [...prev, { role: 'assistant', content: response }]);
         } catch (error: any) {
             setMessages(prev => [...prev, { role: 'assistant', content: `Error: ${error.message || "I'm having trouble connecting to my brain right now. Please check your config."}` }]);
