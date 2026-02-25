@@ -489,7 +489,7 @@ const App: React.FC = () => {
                       <span className="animate-ping absolute inline-flex h-1 w-1 rounded-full bg-emerald-400 opacity-75"></span>
                       <span className="relative inline-flex rounded-full h-1 w-1 bg-emerald-500"></span>
                     </span>
-                    <span className="text-[7.5px] font-black text-gray-400 uppercase tracking-[0.15em] leading-none">Live Secure</span>
+                    <span className="text-[7px] font-black text-gray-400 uppercase tracking-[0.1em] leading-none">Unified Portfolio Sync</span>
                   </div>
                 </div>
               </div>

@@ -115,7 +115,7 @@ const FamilySetup: React.FC<FamilySetupProps> = ({ onComplete }) => {
                     </div>
 
                     <h1 className="text-5xl font-serif font-black text-white tracking-tight mb-4 drop-shadow-[0_10px_10px_rgba(0,0,0,0.5)]">
-                        FinTrack<span className="text-indigo-400">.</span>
+                        FinTrack
                     </h1>
 
                     <div className="inline-flex items-center space-x-2.5 px-5 py-2 bg-white/[0.03] backdrop-blur-2xl rounded-full border border-white/[0.05] shadow-xl">
@@ -124,7 +124,7 @@ const FamilySetup: React.FC<FamilySetupProps> = ({ onComplete }) => {
                             <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                         </span>
                         <p className="text-[10px] font-black uppercase tracking-[0.4em] text-indigo-300">
-                            Secure Link Protocol
+                            Unified Portfolio Sync
                         </p>
                     </div>
                 </div>
