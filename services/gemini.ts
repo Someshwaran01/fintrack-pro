@@ -5,13 +5,18 @@ const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/
 
 export class GeminiService {
     private static getApiKey() {
-        // Check both process.env (Vite define) and import.meta.env (Vite default)
-        // We use a try-catch or type check to handle environments where these might be undefined
         try {
+            // Priority 1: process.env (Vite static replacement)
+            // Priority 2: import.meta.env (Vite native)
             const key = (process.env as any).GEMINI_API_KEY ||
                 (import.meta as any).env?.VITE_GEMINI_API_KEY ||
                 (import.meta as any).env?.GEMINI_API_KEY;
-            return key || '';
+
+            // Clean the key (remove quotes if any, check for "undefined" string)
+            if (!key || key === "undefined" || key === "null") {
+                return '';
+            }
+            return key.toString().trim();
         } catch (e) {
             return '';
         }
@@ -25,7 +30,7 @@ export class GeminiService {
     }, userMessage: string) {
         const apiKey = this.getApiKey();
         if (!apiKey) {
-            throw new Error('Gemini API Key is missing. Please add VITE_GEMINI_API_KEY to your .env file.');
+            throw new Error('Gemini API Key is missing. If you just added it to Vercel/GitHub, please trigger a NEW build/deploy to apply the changes.');
         }
 
         const systemPrompt = `
