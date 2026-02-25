@@ -16,17 +16,6 @@ interface CardTrackerProps {
   onboardingComplete?: boolean;
 }
 
-// Default bank cards with bill generation dates (bills show in current month for next month's due date)
-// For example: ICICI due on 16th of next month, bill generated on 28th of current month
-const DEFAULT_CARDS = [
-  { cardName: 'HSBC', dueDate: '31', billGenerationDate: '11' },  // Due 31st next month, bill on 11th current month
-  { cardName: 'RBL', dueDate: '9', billGenerationDate: '19' },     // Due 9th next month, bill on 19th current month
-  { cardName: 'AXIS', dueDate: '2', billGenerationDate: '12' },    // Due 2nd next month, bill on 12th current month
-  { cardName: 'ICICI', dueDate: '16', billGenerationDate: '28' },  // Due 16th next month, bill on 28th current month
-  { cardName: 'SBI', dueDate: '21', billGenerationDate: '1' },     // Due 21st next month, bill on 1st current month
-  { cardName: 'AU', dueDate: '15', billGenerationDate: '26' }      // Due 15th next month, bill on 26th current month
-];
-
 const CardTracker: React.FC<CardTrackerProps> = ({ bills, ccLimits: propsCCLimits, onboardingComplete, onAdd, onAddMultiple, onUpdate, onDelete, onUpdateCCLimits, selectedMonth, onMonthChange }) => {
   const [isAdding, setIsAdding] = useState(false);
   const [addingPaymentFor, setAddingPaymentFor] = useState<string | null>(null);
@@ -64,26 +53,6 @@ const CardTracker: React.FC<CardTrackerProps> = ({ bills, ccLimits: propsCCLimit
     setCCLimits(propsCCLimits);
   }, [propsCCLimits]);
 
-  // Auto-populate CC limits from existing bills
-  useEffect(() => {
-    if (bills.length > 0 && propsCCLimits.length === 0) {
-      // Get unique card names from bills
-      const uniqueCards = [...new Set(bills.map(b => b.cardName))] as string[];
-      const autoLimits: CreditCardLimit[] = uniqueCards.map((cardName, index) => ({
-        id: `auto-${Date.now()}-${index}`,
-        cardName,
-        creditLimit: 0, // Default to 0, user needs to update
-        billDate: 1,
-        dueDate: 15,
-        updatedDate: new Date().toISOString().split('T')[0],
-        notes: 'Auto-generated from existing bills - please update limit'
-      }));
-      if (autoLimits.length > 0) {
-        onUpdateCCLimits(autoLimits);
-      }
-    }
-  }, [bills, propsCCLimits, onUpdateCCLimits]);
-
   // Use ref to track if default cards have been initialized for current month
   const initializedMonths = useRef<Set<string>>(new Set());
 
@@ -111,10 +80,10 @@ const CardTracker: React.FC<CardTrackerProps> = ({ bills, ccLimits: propsCCLimit
     return bill.paidAmount || 0; // Fallback to old field for backward compatibility
   };
 
-  // Initialize default cards for the selected month if they don't exist
+  // Initialize cards for the selected month if they don't exist
   useEffect(() => {
-    // Skip if already initialized for this month
-    if (initializedMonths.current.has(selectedMonth)) {
+    // Skip if onboarding is not complete or already initialized for this month
+    if (!onboardingComplete || initializedMonths.current.has(selectedMonth)) {
       return;
     }
 
@@ -143,25 +112,6 @@ const CardTracker: React.FC<CardTrackerProps> = ({ bills, ccLimits: propsCCLimit
             cardName: limit.cardName,
             category: 'Banking',
             dueDate: `${limit.dueDate} ${nextMonth}`,
-            month: selectedMonth,
-            isEmi: false,
-            totalAmount: 0,
-            monthlyAmount: 0,
-            paidAmount: 0,
-            payments: [],
-            lastPaymentDate: ''
-          });
-        }
-      });
-    } else {
-      // Legacy behavior: use default cards if onboarding not complete
-      DEFAULT_CARDS.forEach(defaultCard => {
-        if (!existingCardNames.includes(defaultCard.cardName)) {
-          cardsToAdd.push({
-            id: `${defaultCard.cardName}-${selectedMonth}`,
-            cardName: defaultCard.cardName,
-            category: 'Banking',
-            dueDate: `${defaultCard.dueDate} ${nextMonth}`,
             month: selectedMonth,
             isEmi: false,
             totalAmount: 0,
