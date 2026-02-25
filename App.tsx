@@ -553,7 +553,7 @@ const App: React.FC = () => {
           {/* Main Content Area */}
           <main className="flex-grow">
             {activeTab === 'dashboard' && <Dashboard bills={bills} medical={medical} home={home} income={income} members={members} selectedMonth={selectedMonth} onMonthChange={setSelectedMonth} />}
-            {activeTab === 'bills' && <CardTracker bills={bills} ccLimits={ccLimits} onAdd={handleAddBill} onAddMultiple={handleAddBills} onUpdate={handleUpdateBill} onDelete={handleDeleteBill} onUpdateCCLimits={handleUpdateCCLimits} selectedMonth={selectedMonth} onMonthChange={setSelectedMonth} />}
+            {activeTab === 'bills' && <CardTracker bills={bills} ccLimits={ccLimits} onboardingComplete={onboardingComplete} onAdd={handleAddBill} onAddMultiple={handleAddBills} onUpdate={handleUpdateBill} onDelete={handleDeleteBill} onUpdateCCLimits={handleUpdateCCLimits} selectedMonth={selectedMonth} onMonthChange={setSelectedMonth} />}
             {activeTab === 'expenses' && <ExpenseTracker medicalExpenses={medical} homeExpenses={home} members={members} onAddMedical={handleAddMedical} onDeleteMedical={handleDeleteMedical} onAddHome={handleAddHome} onDeleteHome={handleDeleteHome} />}
             {activeTab === 'income' && <IncomeTracker incomes={income} bills={bills} medical={medical} home={home} members={members} onAddIncome={handleAddIncome} onDeleteIncome={handleDeleteIncome} selectedMonth={selectedMonth} onMonthChange={setSelectedMonth} />}
             {activeTab === 'ai' && <ChatBot bills={bills} medical={medical} home={home} income={income} members={members} />}

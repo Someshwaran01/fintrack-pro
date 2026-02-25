@@ -13,6 +13,7 @@ interface CardTrackerProps {
   onUpdateCCLimits: (limits: CreditCardLimit[]) => void;
   selectedMonth: string;
   onMonthChange: (month: string) => void;
+  onboardingComplete?: boolean;
 }
 
 // Default bank cards with bill generation dates (bills show in current month for next month's due date)
@@ -26,7 +27,7 @@ const DEFAULT_CARDS = [
   { cardName: 'AU', dueDate: '15', billGenerationDate: '26' }      // Due 15th next month, bill on 26th current month
 ];
 
-const CardTracker: React.FC<CardTrackerProps> = ({ bills, ccLimits: propsCCLimits, onAdd, onAddMultiple, onUpdate, onDelete, onUpdateCCLimits, selectedMonth, onMonthChange }) => {
+const CardTracker: React.FC<CardTrackerProps> = ({ bills, ccLimits: propsCCLimits, onboardingComplete, onAdd, onAddMultiple, onUpdate, onDelete, onUpdateCCLimits, selectedMonth, onMonthChange }) => {
   const [isAdding, setIsAdding] = useState(false);
   const [addingPaymentFor, setAddingPaymentFor] = useState<string | null>(null);
   const [newPayment, setNewPayment] = useState({ amount: 0, date: new Date().toISOString().split('T')[0], note: '' });
@@ -36,12 +37,13 @@ const CardTracker: React.FC<CardTrackerProps> = ({ bills, ccLimits: propsCCLimit
   const [isAddingCCLimit, setIsAddingCCLimit] = useState(false);
   const [editingCCLimit, setEditingCCLimit] = useState<CreditCardLimit | null>(null);
   const [ccLimits, setCCLimits] = useState<CreditCardLimit[]>(propsCCLimits);
-  const [newCCLimit, setNewCCLimit] = useState<Partial<CreditCardLimit & { category?: string; dueDate?: string; monthlyAmount?: number }>>({
+  const [newCCLimit, setNewCCLimit] = useState<Partial<CreditCardLimit & { category?: string; formDueDate?: string; monthlyAmount?: number }>>({
     cardName: '',
     creditLimit: 0,
     notes: '',
     category: BILL_CATEGORIES[0],
-    dueDate: '',
+    formDueDate: '',
+    billDate: 1,
     monthlyAmount: 0
   });
   const [newBill, setNewBill] = useState<Partial<CreditCardBill>>({
@@ -71,6 +73,8 @@ const CardTracker: React.FC<CardTrackerProps> = ({ bills, ccLimits: propsCCLimit
         id: `auto-${Date.now()}-${index}`,
         cardName,
         creditLimit: 0, // Default to 0, user needs to update
+        billDate: 1,
+        dueDate: 15,
         updatedDate: new Date().toISOString().split('T')[0],
         notes: 'Auto-generated from existing bills - please update limit'
       }));
@@ -129,38 +133,55 @@ const CardTracker: React.FC<CardTrackerProps> = ({ bills, ccLimits: propsCCLimit
 
     // Only add cards that don't exist
     const cardsToAdd: CreditCardBill[] = [];
-    DEFAULT_CARDS.forEach(defaultCard => {
-      if (!existingCardNames.includes(defaultCard.cardName)) {
-        cardsToAdd.push({
-          id: `${defaultCard.cardName}-${selectedMonth}`,
-          cardName: defaultCard.cardName,
-          category: 'Banking',
-          dueDate: `${defaultCard.dueDate} ${nextMonth}`,  // Show due date in next month
-          month: selectedMonth,  // Bill generated in current month
-          isEmi: false,
-          totalAmount: 0,
-          monthlyAmount: 0,
-          paidAmount: 0,
-          payments: [],
-          lastPaymentDate: ''
-        });
-      }
-    });
 
-    // Add all cards at once using batch operation
+    if (onboardingComplete) {
+      // Use configured limits if onboarding is complete
+      ccLimits.forEach(limit => {
+        if (!existingCardNames.includes(limit.cardName)) {
+          cardsToAdd.push({
+            id: `${limit.cardName}-${selectedMonth}`,
+            cardName: limit.cardName,
+            category: 'Banking',
+            dueDate: `${limit.dueDate} ${nextMonth}`,
+            month: selectedMonth,
+            isEmi: false,
+            totalAmount: 0,
+            monthlyAmount: 0,
+            paidAmount: 0,
+            payments: [],
+            lastPaymentDate: ''
+          });
+        }
+      });
+    } else {
+      // Legacy behavior: use default cards if onboarding not complete
+      DEFAULT_CARDS.forEach(defaultCard => {
+        if (!existingCardNames.includes(defaultCard.cardName)) {
+          cardsToAdd.push({
+            id: `${defaultCard.cardName}-${selectedMonth}`,
+            cardName: defaultCard.cardName,
+            category: 'Banking',
+            dueDate: `${defaultCard.dueDate} ${nextMonth}`,
+            month: selectedMonth,
+            isEmi: false,
+            totalAmount: 0,
+            monthlyAmount: 0,
+            paidAmount: 0,
+            payments: [],
+            lastPaymentDate: ''
+          });
+        }
+      });
+    }
+
     if (cardsToAdd.length > 0) {
-      console.log('Adding', cardsToAdd.length, 'default cards for', selectedMonth);
+      console.log('Adding', cardsToAdd.length, 'cards for', selectedMonth);
       onAddMultiple(cardsToAdd);
       initializedMonths.current.add(selectedMonth);
-    } else if (existingCardNames.length >= DEFAULT_CARDS.length) {
-      // Mark as initialized only if ALL default cards exist
-      console.log('All', DEFAULT_CARDS.length, 'default cards exist for', selectedMonth, '- marking as initialized');
-      initializedMonths.current.add(selectedMonth);
     } else {
-      // Some cards exist but not all - might be waiting for data to load or migration incomplete
-      console.log('Only', existingCardNames.length, 'of', DEFAULT_CARDS.length, 'cards found for', selectedMonth, '- waiting for complete data');
+      initializedMonths.current.add(selectedMonth);
     }
-  }, [selectedMonth, bills, onAddMultiple]); // Use full bills array, not just length
+  }, [selectedMonth, bills, onAddMultiple, onboardingComplete, ccLimits]); // Use full bills array, not just length
 
   // Filter bills by selected month
   const filteredBills = bills.filter(b => b.month === selectedMonth);
@@ -257,7 +278,7 @@ const CardTracker: React.FC<CardTrackerProps> = ({ bills, ccLimits: propsCCLimit
       setEditingCCLimit(null);
     } else {
       // Add new card: create both limit and bill
-      if (!newCCLimit.monthlyAmount || !newCCLimit.dueDate) {
+      if (!newCCLimit.monthlyAmount || !newCCLimit.formDueDate) {
         alert('Please fill in monthly amount and due date');
         return;
       }
@@ -267,6 +288,8 @@ const CardTracker: React.FC<CardTrackerProps> = ({ bills, ccLimits: propsCCLimit
         id: Date.now().toString(),
         cardName: newCCLimit.cardName || '',
         creditLimit: Number(newCCLimit.creditLimit) || 0,
+        billDate: Number(newCCLimit.billDate) || 1,
+        dueDate: Number(newCCLimit.formDueDate) || 15,
         updatedDate: new Date().toISOString().split('T')[0],
         notes: newCCLimit.notes || ''
       };
@@ -274,11 +297,12 @@ const CardTracker: React.FC<CardTrackerProps> = ({ bills, ccLimits: propsCCLimit
       onUpdateCCLimits(updatedLimits);
 
       // Create Bill for current month
+      const nextMonth = getNextMonth(selectedMonth);
       const bill: CreditCardBill = {
         id: (Date.now() + 1).toString(),
         cardName: newCCLimit.cardName || '',
         category: newCCLimit.category || BILL_CATEGORIES[0],
-        dueDate: newCCLimit.dueDate || '',
+        dueDate: `${newCCLimit.formDueDate} ${nextMonth}`,
         month: selectedMonth,
         isEmi: false,
         totalAmount: Number(newCCLimit.monthlyAmount) || 0,
@@ -296,7 +320,8 @@ const CardTracker: React.FC<CardTrackerProps> = ({ bills, ccLimits: propsCCLimit
       creditLimit: 0,
       notes: '',
       category: BILL_CATEGORIES[0],
-      dueDate: '',
+      formDueDate: '',
+      billDate: 1,
       monthlyAmount: 0
     });
   };
@@ -943,13 +968,29 @@ const CardTracker: React.FC<CardTrackerProps> = ({ bills, ccLimits: propsCCLimit
                     </div>
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-1">
+                        Statement Date (Day of Month) <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="31"
+                        placeholder="e.g., 1"
+                        value={newCCLimit.billDate}
+                        onChange={(e) => setNewCCLimit({ ...newCCLimit, billDate: Number(e.target.value) })}
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-purple-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1">
                         Due Date (Day of Month) <span className="text-red-500">*</span>
                       </label>
                       <input
-                        type="text"
+                        type="number"
+                        min="1"
+                        max="31"
                         placeholder="e.g., 15"
-                        value={newCCLimit.dueDate}
-                        onChange={(e) => setNewCCLimit({ ...newCCLimit, dueDate: e.target.value })}
+                        value={newCCLimit.formDueDate}
+                        onChange={(e) => setNewCCLimit({ ...newCCLimit, formDueDate: e.target.value })}
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-purple-500"
                       />
                     </div>
