@@ -96,111 +96,114 @@ const FamilySetup: React.FC<FamilySetupProps> = ({ onComplete }) => {
     };
 
     return (
-        <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center p-6 relative overflow-hidden font-sans">
-            {/* Soft mesh background */}
-            <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-100/50 rounded-full blur-[120px]"></div>
-            <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-100/50 rounded-full blur-[120px]"></div>
+        <div className="min-h-screen bg-[#020617] flex items-center justify-center p-6 relative overflow-hidden font-sans">
+            {/* Ultra-Premium Cosmic Depth */}
+            <div className="absolute top-[-20%] left-[-15%] w-[70%] h-[70%] bg-indigo-600/20 rounded-full blur-[160px] animate-pulse"></div>
+            <div className="absolute bottom-[-20%] right-[-15%] w-[70%] h-[70%] bg-[#d946ef]/10 rounded-full blur-[160px] animate-pulse" style={{ animationDelay: '3s' }}></div>
+            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10 pointer-events-none"></div>
 
-            <div className="relative w-full max-w-md bg-white rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.05)] border border-gray-50 p-10 animate-fadeIn overflow-hidden">
-                {/* Texture accent */}
-                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-indigo-50/50 to-transparent rounded-bl-[100px]"></div>
+            <div className="relative w-full max-w-md bg-white/[0.03] backdrop-blur-[60px] rounded-[3.5rem] shadow-[0_40px_100px_rgba(0,0,0,0.8)] border border-white/[0.08] p-10 animate-fadeIn overflow-hidden">
+                {/* Neon Top Bar */}
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-indigo-500/50 to-transparent"></div>
 
-                <div className="text-center mb-10">
-                    <div className="w-16 h-16 bg-gradient-to-br from-[#1a1c2e] to-[#2d3142] rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-indigo-200">
-                        <i className="fa-solid fa-shield-halved text-white text-2xl"></i>
+                <div className="text-center mb-14 relative z-10">
+                    <div className="group relative mx-auto w-24 h-24 mb-8">
+                        <div className="absolute -inset-2 bg-gradient-to-r from-indigo-500 to-[#d946ef] rounded-[2.2rem] blur opacity-40 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-pulse"></div>
+                        <div className="relative w-24 h-24 bg-gradient-to-br from-[#0f172a] to-[#1e293b] rounded-[2rem] flex items-center justify-center shadow-2xl border border-white/10">
+                            <i className="fa-solid fa-shield-halved text-white text-4xl"></i>
+                        </div>
                     </div>
-                    <h1 className="text-3xl font-serif font-black text-[#1a1c2e] tracking-tight mb-2">
-                        FinTrack Family
+
+                    <h1 className="text-5xl font-serif font-black text-white tracking-tight mb-4 drop-shadow-[0_10px_10px_rgba(0,0,0,0.5)]">
+                        FinTrack<span className="text-indigo-400">.</span>
                     </h1>
-                    <div className="flex items-center justify-center space-x-2">
-                        <span className="h-1.5 w-1.5 bg-emerald-500 rounded-full"></span>
-                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">
-                            Unified Portfolio Sync
+
+                    <div className="inline-flex items-center space-x-2.5 px-5 py-2 bg-white/[0.03] backdrop-blur-2xl rounded-full border border-white/[0.05] shadow-xl">
+                        <span className="flex h-2 w-2 relative">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                        </span>
+                        <p className="text-[10px] font-black uppercase tracking-[0.4em] text-indigo-300">
+                            Secure Link Protocol
                         </p>
                     </div>
                 </div>
 
-                <div className="space-y-6">
-                    <div className="relative">
-                        <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-2 block">
-                            Portfolio Access Key
-                        </label>
-                        <div className="relative group">
-                            <i className="fa-solid fa-key absolute left-4 top-1/2 -translate-y-1/2 text-indigo-400 text-sm transition-colors group-focus-within:text-indigo-600"></i>
+                <div className="space-y-9 relative z-10">
+                    <div className="relative group">
+                        <div className="flex justify-between items-center mb-3.5 px-1">
+                            <label className="text-[11px] font-black text-white/40 uppercase tracking-[0.25em]">
+                                Access Identifier
+                            </label>
+                            <div className="flex items-center space-x-1.5">
+                                <i className="fa-solid fa-lock text-[10px] text-indigo-400"></i>
+                                <span className="text-[9px] font-bold text-indigo-400/50 uppercase tracking-widest leading-none">AES-256</span>
+                            </div>
+                        </div>
+                        <div className="relative">
+                            <i className="fa-solid fa-microchip absolute left-5 top-1/2 -translate-y-1/2 text-white/10 text-xl transition-colors group-focus-within:text-indigo-500"></i>
                             <input
                                 type="text"
                                 id="family-id"
                                 name="family-id"
                                 value={familyId}
                                 onChange={(e) => setFamilyId(e.target.value)}
-                                placeholder="ENTER ACCESS ID"
-                                className="w-full pl-11 pr-4 py-4 bg-gray-50 border border-transparent rounded-2xl text-base font-mono font-bold tracking-[0.1em] placeholder:text-gray-300 focus:bg-white focus:border-indigo-100 focus:ring-4 focus:ring-indigo-500/5 transition-all outline-none text-[#1a1c2e]"
+                                placeholder="8-DIGIT ACCESS ID"
+                                className="w-full pl-16 pr-6 py-6 bg-black/40 border border-white/[0.05] rounded-3xl text-2xl font-mono font-black tracking-[0.25em] placeholder:text-white/5 focus:bg-black/60 focus:border-indigo-500/50 transition-all outline-none text-white shadow-inner text-center"
                                 maxLength={8}
                             />
                         </div>
                     </div>
 
                     {error && (
-                        <div className="bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-2xl text-xs font-bold animate-slideInUp flex items-center shadow-sm">
-                            <i className="fa-solid fa-circle-exclamation mr-2 text-sm"></i>
+                        <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-6 py-5 rounded-[2rem] text-[11px] font-bold animate-shake flex items-center shadow-2xl">
+                            <i className="fa-solid fa-shield-virus mr-4 text-xl"></i>
                             <span>{error}</span>
                         </div>
                     )}
 
-                    <div className="flex flex-col space-y-3">
+                    <div className="flex flex-col space-y-5">
                         <button
                             onClick={handleJoinFamily}
                             disabled={isLoading}
-                            className={`w-full py-4 rounded-2xl font-black text-[12px] uppercase tracking-[0.2em] text-white shadow-xl shadow-indigo-200 transition-all active:scale-[0.98] ${isLoading
-                                ? 'bg-indigo-300'
-                                : 'bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800'
-                                }`}
+                            className={`group relative w-full py-6 rounded-3xl font-black text-[14px] uppercase tracking-[0.4em] text-white overflow-hidden transition-all active:scale-[0.96] shadow-[0_20px_50px_rgba(79,70,229,0.4)] ${isLoading ? 'opacity-80' : ''}`}
                         >
-                            {isLoading ? (
-                                <span className="flex items-center justify-center">
-                                    <i className="fa-solid fa-circle-notch fa-spin mr-2"></i>
-                                    Syncing...
-                                </span>
-                            ) : (
-                                <span className="flex items-center justify-center">
-                                    <i className="fa-solid fa-link mr-2"></i>
-                                    Connect Portfolio
-                                </span>
-                            )}
+                            <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 via-[#d946ef] to-indigo-600 bg-[length:200%_100%] animate-gradient-x"></div>
+                            <span className="relative flex items-center justify-center drop-shadow-lg">
+                                {isLoading ? (
+                                    <><i className="fa-solid fa-spinner fa-spin mr-3"></i>Establishing Sync...</>
+                                ) : (
+                                    <><i className="fa-solid fa-fingerprint mr-3 group-hover:scale-110 transition-transform"></i>Connect Account</>
+                                )}
+                            </span>
                         </button>
 
                         <button
                             onClick={generateFamilyId}
                             disabled={isLoading}
-                            className={`w-full py-4 bg-white border-2 border-indigo-50 text-indigo-600 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] transition-all hover:bg-gray-50 active:scale-[0.98] ${isLoading ? 'opacity-50' : ''}`}
+                            className="w-full py-5 bg-white/[0.03] border border-white/[0.05] text-white/70 rounded-3xl font-black text-[11px] uppercase tracking-[0.3em] transition-all hover:bg-white/[0.08] hover:text-white hover:border-indigo-400/20 active:scale-[0.96] flex items-center justify-center group"
                         >
-                            <i className="fa-solid fa-wand-magic-sparkles mr-2 text-xs"></i>
-                            Generate New ID
+                            <i className="fa-solid fa-wand-magic-sparkles mr-3 text-indigo-400 group-hover:rotate-12 transition-transform"></i>
+                            Secure Generate
                         </button>
                     </div>
 
-                    <div className="pt-6 border-t border-gray-50">
-                        <div className="bg-[#fcfdff] p-5 rounded-2xl border border-gray-100 shadow-sm relative overflow-hidden group">
-                            <div className="absolute top-0 right-0 w-2 h-full bg-indigo-500 group-hover:w-3 transition-all"></div>
-                            <h3 className="text-[10px] font-black text-[#1a1c2e] uppercase tracking-[0.2em] mb-4 flex items-center">
-                                <i className="fa-solid fa-network-wired text-indigo-600 mr-2 text-xs"></i>
-                                Architecture
-                            </h3>
-                            <ul className="space-y-3">
-                                {[
-                                    { icon: 'fa-shield-check', text: 'Encrypted multi-node synchronization' },
-                                    { icon: 'fa-users-viewfinder', text: 'Support for up to 5 concurrent accounts' },
-                                    { icon: 'fa-bolt-lightning', text: 'Real-time asset state updates' }
-                                ].map((item, idx) => (
-                                    <li key={idx} className="flex items-center text-[10px] font-bold text-gray-500">
-                                        <div className="w-5 h-5 rounded-md bg-indigo-50 flex items-center justify-center mr-3 text-indigo-500">
-                                            <i className={`fa-solid ${item.icon} text-[8px]`}></i>
-                                        </div>
-                                        {item.text}
-                                    </li>
-                                ))}
-                            </ul>
+                    <div className="pt-10 mt-6 border-t border-white/[0.05]">
+                        <div className="grid grid-cols-3 gap-5">
+                            {[
+                                { icon: 'fa-shield-halved', label: 'E2E Link', color: 'text-emerald-400' },
+                                { icon: 'fa-bolt-lightning', label: '0ms Delay', color: 'text-amber-400' },
+                                { icon: 'fa-network-wired', label: 'Multi-Node', color: 'text-indigo-400' }
+                            ].map((item, idx) => (
+                                <div key={idx} className="flex flex-col items-center p-4 rounded-3xl bg-white/[0.02] border border-white/[0.03] group hover:bg-white/[0.05] transition-all cursor-default">
+                                    <i className={`fa-solid ${item.icon} ${item.color} text-xl mb-3 group-hover:scale-110 transition-transform`}></i>
+                                    <span className="text-[7.5px] font-black text-white/30 uppercase tracking-[0.2em]">{item.label}</span>
+                                </div>
+                            ))}
                         </div>
+                        <p className="text-center text-[9px] font-bold text-white/30 uppercase tracking-[0.3em] mt-8">
+                            Verified Financial Protocol v2.5
+                        </p>
                     </div>
                 </div>
             </div>
