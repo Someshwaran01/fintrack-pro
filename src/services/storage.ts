@@ -171,29 +171,39 @@ export const StorageService = {
   exportToCSV: (data: any[], filename: string) => {
     let headers = '';
     let rows = '';
-    if (data.length > 0) {
+    if (data && data.length > 0) {
       headers = Object.keys(data[0]).join(',');
-      rows = data.map(obj => Object.values(obj).join(',')).join('\n');
+      rows = data.map(obj => {
+        return Object.values(obj).map(val => {
+          const strVal = typeof val === 'object' ? JSON.stringify(val) : String(val || '');
+          // Escape quotes for CSV
+          return `"${strVal.replace(/"/g, '""')}"`;
+        }).join(',');
+      }).join('\n');
     }
-    const csvContent = "data:text/csv;charset=utf-8," + headers + (rows ? "\n" + rows : "");
-    const encodedUri = encodeURI(csvContent);
+    const csvContent = headers + (rows ? "\n" + rows : "");
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
+    link.href = url;
     link.setAttribute("download", `${filename}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   },
 
   exportToJSON: (data: any[], filename: string) => {
-    // We allow downloading even if the data is empty to prevent silent failures on click
-    const jsonContent = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
+    const jsonContent = JSON.stringify(data, null, 2);
+    const blob = new Blob([jsonContent], { type: 'application/json;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
-    link.setAttribute("href", jsonContent);
+    link.href = url;
     link.setAttribute("download", `${filename}.json`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   },
 
   importFromJSON: (file: File): Promise<any[]> => {

@@ -505,31 +505,24 @@ const App: React.FC = () => {
     if (activeTab === 'bills') {
       StorageService.exportToCSV(bills, 'cc_bills');
       StorageService.exportToJSON(bills, 'cc_bills');
-    }
-    if (activeTab === 'expenses') {
+    } else if (activeTab === 'expenses') {
       StorageService.exportToCSV(medical, 'medical_expenses');
-      StorageService.exportToJSON(medical, 'medical_expenses');
       StorageService.exportToCSV(home, 'home_expenses');
-      StorageService.exportToJSON(home, 'home_expenses');
-    }
-    if (activeTab === 'income') {
+      StorageService.exportToJSON([...medical, ...home], 'all_expenses');
+    } else if (activeTab === 'income') {
       StorageService.exportToCSV(income, 'income');
       StorageService.exportToJSON(income, 'income');
-    }
-    if (activeTab === 'dashboard') {
-      StorageService.exportToCSV(bills, 'all_cc_bills');
-      StorageService.exportToJSON(bills, 'all_cc_bills');
-      StorageService.exportToCSV(medical, 'all_medical_expenses');
-      StorageService.exportToJSON(medical, 'all_medical_expenses');
-      StorageService.exportToCSV(home, 'all_home_expenses');
-      StorageService.exportToJSON(home, 'all_home_expenses');
-      StorageService.exportToCSV(income, 'all_income');
-      StorageService.exportToJSON(income, 'all_income');
-    }
-    // Fallback: export all data if tab unrecognized
-    if (!['bills', 'expenses', 'income', 'dashboard'].includes(activeTab)) {
-      StorageService.exportToCSV(bills, 'all_cc_bills');
-      StorageService.exportToJSON(bills, 'all_cc_bills');
+    } else {
+      // dashboard or fallback
+      const fullBackup = {
+        bills,
+        medical,
+        home,
+        income,
+        ccLimits,
+        members
+      };
+      StorageService.exportToJSON([fullBackup], 'fintrack_full_backup');
     }
   };
 
