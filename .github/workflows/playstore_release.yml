@@ -85,6 +85,13 @@ jobs:
             sed -i 's/compileSdkVersion = 34/compileSdkVersion = 35/g' android/variables.gradle
           fi
 
+      - name: Update Version Code & Name
+        run: |
+          if [ -f "android/app/build.gradle" ]; then
+            sed -i 's/versionCode 1/versionCode ${{ github.run_number }}/g' android/app/build.gradle
+            sed -i 's/versionName "1.0"/versionName "${{ steps.release_version.outputs.version }}"/g' android/app/build.gradle
+          fi
+
       - name: Build Android Bundle (AAB)
         run: |
           cd android
