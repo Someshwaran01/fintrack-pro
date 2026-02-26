@@ -526,9 +526,12 @@ const App: React.FC = () => {
       StorageService.exportToCSV(income, 'all_income');
       StorageService.exportToJSON(income, 'all_income');
     }
+    // Fallback: export all data if tab unrecognized
+    if (!['bills', 'expenses', 'income', 'dashboard'].includes(activeTab)) {
+      StorageService.exportToCSV(bills, 'all_cc_bills');
+      StorageService.exportToJSON(bills, 'all_cc_bills');
+    }
   };
-
-
 
   return (
     <>
