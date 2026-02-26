@@ -11,7 +11,7 @@ const CC_LIMITS_KEY = 'fintrack_cc_limits';
 const MEMBERS_KEY = 'fintrack_members';
 const ONBOARDING_KEY = 'fintrack_onboarding_complete';
 
-// Hybrid storage: Use Supabase if family ID is set, otherwise use localStorage
+// Hybrid storage: Use Firebase if family ID is set, otherwise use localStorage
 export const StorageService = {
   // Check if using cloud sync
   isCloudSyncEnabled: () => {

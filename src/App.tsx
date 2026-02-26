@@ -13,7 +13,7 @@ import FamilySetup from './components/FamilySetup';
 import Onboarding from './components/Onboarding';
 import ChatBot from './components/ChatBot';
 
-// v1.1.0 - Multi-user Sync with Supabase
+// v1.1.0 - Multi-user Sync with Firebase
 const App: React.FC = () => {
   const [familyId, setFamilyId] = useState<string | null>(null);
   const [isLoadingSync, setIsLoadingSync] = useState(false);

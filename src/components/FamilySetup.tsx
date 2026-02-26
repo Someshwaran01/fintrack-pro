@@ -21,28 +21,20 @@ const FamilySetup: React.FC<FamilySetupProps> = ({ onComplete }) => {
 
         const message = rawMessage.toLowerCase();
 
-        if (message.includes('supabase is not configured')) {
-            return 'Supabase is not configured. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your .env file.';
+        if (message.includes('firebase is not configured')) {
+            return 'Firebase is not configured. Add your Firebase variables in your .env file.';
         }
 
-        if (message.includes('relation') && message.includes('family_data') && message.includes('does not exist')) {
-            return 'Database table family_data is missing. Run the Supabase setup SQL script and try again.';
+        if (message.includes('permission-denied') || message.includes('missing or insufficient permissions')) {
+            return 'Firebase Firestore rules are blocking access. Verify your Firestore rules allow read/write.';
         }
 
-        if (message.includes('column') && message.includes('income') && message.includes('does not exist')) {
-            return 'Database schema is outdated. Run add_income_column.sql in Supabase and try again.';
+        if (message.includes('invalid-api-key')) {
+            return 'Firebase API key is invalid. Check VITE_FIREBASE_API_KEY in your .env file.';
         }
 
-        if (message.includes('row-level security') || message.includes('violates row-level security policy')) {
-            return 'Supabase RLS is blocking family creation. If you are joining, verify the exact Family ID. If you are creating a new family, add an INSERT policy for family_data in Supabase SQL Editor.';
-        }
-
-        if (message.includes('invalid api key') || message.includes('jwt')) {
-            return 'Supabase API key is invalid. Check VITE_SUPABASE_ANON_KEY in your .env file.';
-        }
-
-        if (message.includes('fetch') || message.includes('network')) {
-            return 'Network error while connecting to Supabase. Check your internet connection and try again.';
+        if (message.includes('fetch') || message.includes('network') || message.includes('offline')) {
+            return 'Network error while connecting to Firebase. Check your internet connection and try again.';
         }
 
         return rawMessage || defaultMessage;
