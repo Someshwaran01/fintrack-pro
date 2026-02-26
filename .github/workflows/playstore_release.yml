@@ -78,6 +78,13 @@ jobs:
           fi
           npx cap sync android
 
+      - name: Update Target SDK to 35
+        run: |
+          if [ -f "android/variables.gradle" ]; then
+            sed -i 's/targetSdkVersion = 34/targetSdkVersion = 35/g' android/variables.gradle
+            sed -i 's/compileSdkVersion = 34/compileSdkVersion = 35/g' android/variables.gradle
+          fi
+
       - name: Build Android Bundle (AAB)
         run: |
           cd android
