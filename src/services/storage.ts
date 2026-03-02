@@ -1,6 +1,9 @@
 
 import { CreditCardBill, MedicalExpense, HomeExpense, Income, CreditCardLimit, Savings } from '../types';
 import { SyncService } from './syncService';
+import { Capacitor } from '@capacitor/core';
+import { Share } from '@capacitor/share';
+import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
 
 const BILLS_KEY = 'fintrack_bills';
 const MEDICAL_KEY = 'fintrack_medical';
@@ -170,6 +173,26 @@ export const StorageService = {
 
   _downloadOrShare: async (content: string, filename: string, mimeType: string, extension: string) => {
     try {
+      if (Capacitor.isNativePlatform()) {
+        const fullFileName = `${filename}.${extension}`;
+        // Write the file to Cache directory
+        const result = await Filesystem.writeFile({
+          path: fullFileName,
+          data: content,
+          directory: Directory.Cache,
+          encoding: Encoding.UTF8,
+        });
+
+        // Share via native intent
+        await Share.share({
+          title: filename,
+          url: result.uri,
+          dialogTitle: 'Export Data',
+        });
+        return;
+      }
+
+      // Web fallback
       if (navigator.share && navigator.canShare) {
         const file = new File([content], `${filename}.${extension}`, { type: mimeType });
         if (navigator.canShare({ files: [file] })) {
@@ -183,7 +206,7 @@ export const StorageService = {
     } catch (e) {
       console.log('Share API not supported or failed', e);
     }
-    // Fallback
+    // Final generic web download fallback
     const blob = new Blob([content], { type: mimeType });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");

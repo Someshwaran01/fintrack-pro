@@ -270,8 +270,8 @@ const IncomeTracker: React.FC<IncomeTrackerProps> = ({
 
       {/* Add Income Modal */}
       {isAdding && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white p-6 rounded-2xl shadow-xl max-w-md w-full max-h-[90vh] flex flex-col">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 pb-12">
+          <div className="bg-white p-6 rounded-2xl shadow-xl max-w-md w-full max-h-[85vh] flex flex-col min-h-0">
             <div className="flex justify-between items-center mb-4 shrink-0">
               <h3 className="font-bold text-lg">Add Income</h3>
               <button onClick={() => setIsAdding(false)} className="text-gray-400 hover:text-gray-600">
@@ -367,8 +367,8 @@ const IncomeTracker: React.FC<IncomeTrackerProps> = ({
 
       {/* Income Breakdown Modal */}
       {showIncomeBreakdown && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white p-6 rounded-2xl shadow-xl max-w-md w-full">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 pb-12">
+          <div className="bg-white p-6 rounded-2xl shadow-xl max-w-md w-full max-h-[85vh] flex flex-col min-h-0">
             <div className="flex justify-between items-center mb-4">
               <h3 className="font-bold text-lg flex items-center">
                 <i className="fa-solid fa-chart-pie mr-2 text-green-600"></i>

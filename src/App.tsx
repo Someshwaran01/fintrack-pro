@@ -535,7 +535,7 @@ const App: React.FC = () => {
       ) : (
         <div className="max-w-md mx-auto min-h-screen relative flex flex-col">
           {/* Optimized Mobile Header */}
-          <nav className="bg-white sticky top-0 z-[60] border-b border-gray-50 shadow-sm" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+          <nav className="bg-white sticky top-0 z-[60] border-b border-gray-50 shadow-sm" style={{ paddingTop: 'max(env(safe-area-inset-top), 1.25rem)' }}>
             <div className="px-4 py-3 flex justify-between items-center">
               <div className="flex items-center space-x-3">
                 <div className="group relative">

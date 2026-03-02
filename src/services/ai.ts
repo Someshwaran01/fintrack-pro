@@ -19,7 +19,7 @@ export class AIService {
     }, members: string[]) {
         const getMemberId = (spender?: string) => {
             if (!spender) return 'Unknown';
-            const index = members.indexOf(spender);
+            const index = (members || []).indexOf(spender);
             return index !== -1 ? `Member ${index + 1}` : 'Other';
         };
 
