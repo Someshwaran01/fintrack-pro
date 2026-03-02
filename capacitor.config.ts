@@ -2,7 +2,7 @@ import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
     appId: 'com.fintrack.pro',
-    appName: 'Somu Fin - Tracker',
+    appName: 'Fin - Tracker',
     webDir: 'dist',
     server: {
         androidScheme: 'https'

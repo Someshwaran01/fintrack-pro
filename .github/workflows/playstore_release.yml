@@ -64,6 +64,8 @@ jobs:
         run: npm run build
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          VITE_GEMINI_API_KEY: ${{ secrets.VITE_GEMINI_API_KEY }}
+          VITE_GROQ_API_KEY: ${{ secrets.VITE_GROQ_API_KEY }}
           VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
           VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
           VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
@@ -77,6 +79,14 @@ jobs:
             npx cap add android
           fi
           npx cap sync android
+
+      - name: Generate App Icons
+        run: |
+          npm i -D @capacitor/assets
+          mkdir -p assets
+          cp playstore_assets/fintrack_app_icon_fixed.png assets/icon.png
+          cp playstore_assets/fintrack_app_icon_fixed.png assets/splash.png
+          npx @capacitor/assets generate --android
 
       - name: Update Target SDK to 35
         run: |

@@ -88,7 +88,7 @@ const FamilySetup: React.FC<FamilySetupProps> = ({ onComplete }) => {
     };
 
     return (
-        <div className="min-h-screen bg-[#020617] flex items-center justify-center p-6 relative overflow-hidden font-sans">
+        <div className="min-h-screen bg-[#020617] flex items-center justify-center p-6 relative overflow-hidden font-sans" style={{ paddingTop: 'max(env(safe-area-inset-top), 1.5rem)', paddingBottom: 'max(env(safe-area-inset-bottom), 1.5rem)' }}>
             {/* Ultra-Premium Cosmic Depth */}
             <div className="absolute top-[-20%] left-[-15%] w-[70%] h-[70%] bg-indigo-600/20 rounded-full blur-[160px] animate-pulse"></div>
             <div className="absolute bottom-[-20%] right-[-15%] w-[70%] h-[70%] bg-[#d946ef]/10 rounded-full blur-[160px] animate-pulse" style={{ animationDelay: '3s' }}></div>

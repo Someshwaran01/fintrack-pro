@@ -168,42 +168,49 @@ export const StorageService = {
     }
   },
 
-  exportToCSV: (data: any[], filename: string) => {
-    let headers = '';
-    let rows = '';
-    if (data && data.length > 0) {
-      headers = Object.keys(data[0]).join(',');
-      rows = data.map(obj => {
-        return Object.values(obj).map(val => {
-          const strVal = typeof val === 'object' ? JSON.stringify(val) : String(val || '');
-          // Escape quotes for CSV
-          return `"${strVal.replace(/"/g, '""')}"`;
-        }).join(',');
-      }).join('\n');
+  _downloadOrShare: async (content: string, filename: string, mimeType: string, extension: string) => {
+    try {
+      if (navigator.share && navigator.canShare) {
+        const file = new File([content], `${filename}.${extension}`, { type: mimeType });
+        if (navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            title: filename,
+            files: [file]
+          });
+          return; // Successfully shared!
+        }
+      }
+    } catch (e) {
+      console.log('Share API not supported or failed', e);
     }
-    const csvContent = headers + (rows ? "\n" + rows : "");
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    // Fallback
+    const blob = new Blob([content], { type: mimeType });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.setAttribute("download", `${filename}.csv`);
+    link.setAttribute("download", `${filename}.${extension}`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
   },
 
+  exportToCSV: (data: any[], filename: string) => {
+    let headers = '';
+    let rows = '';
+    if (data && data.length > 0) {
+      headers = Object.keys(data[0]).join(',');
+      rows = data.map(obj => {
+        return Object.values(obj).map(val => `"${String(val).replace(/"/g, '""')}"`).join(',');
+      }).join('\n');
+    }
+    const csvContent = headers + (rows ? "\n" + rows : "");
+    StorageService._downloadOrShare(csvContent, filename, 'text/csv;charset=utf-8;', 'csv');
+  },
+
   exportToJSON: (data: any[], filename: string) => {
     const jsonContent = JSON.stringify(data, null, 2);
-    const blob = new Blob([jsonContent], { type: 'application/json;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.setAttribute("download", `${filename}.json`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    StorageService._downloadOrShare(jsonContent, filename, 'application/json;charset=utf-8;', 'json');
   },
 
   importFromJSON: (file: File): Promise<any[]> => {

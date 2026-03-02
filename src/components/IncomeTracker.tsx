@@ -262,24 +262,24 @@ const IncomeTracker: React.FC<IncomeTrackerProps> = ({
       {/* Fixed Add Button */}
       <button
         onClick={() => setIsAdding(true)}
-        className="fixed bottom-20 right-6 bg-green-600 hover:bg-green-700 text-white p-4 rounded-full shadow-lg flex items-center justify-center transition-all hover:scale-110 z-40"
+        className="fixed bottom-24 right-6 bg-gradient-to-br from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white p-5 rounded-2xl shadow-2xl flex items-center justify-center transition-all hover:scale-110 active:scale-95 z-40 hover-lift"
         title="Add Income"
       >
-        <i className="fa-solid fa-plus text-xl"></i>
+        <i className="fa-solid fa-plus text-2xl"></i>
       </button>
 
       {/* Add Income Modal */}
       {isAdding && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white p-6 rounded-2xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-4">
+          <div className="bg-white p-6 rounded-2xl shadow-xl max-w-md w-full max-h-[90vh] flex flex-col">
+            <div className="flex justify-between items-center mb-4 shrink-0">
               <h3 className="font-bold text-lg">Add Income</h3>
               <button onClick={() => setIsAdding(false)} className="text-gray-400 hover:text-gray-600">
                 <i className="fa-solid fa-xmark"></i>
               </button>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-4 overflow-y-auto flex-grow pb-4 custom-scrollbar">
               <div>
                 <label className="block text-xs font-bold text-gray-700 mb-2">Month</label>
                 <input
@@ -347,7 +347,7 @@ const IncomeTracker: React.FC<IncomeTrackerProps> = ({
               </div>
             </div>
 
-            <div className="flex space-x-3 mt-6">
+            <div className="flex space-x-3 mt-4 shrink-0 pt-4 border-t border-gray-100">
               <button
                 onClick={() => setIsAdding(false)}
                 className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-3 rounded-xl transition-colors"

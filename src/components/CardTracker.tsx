@@ -199,6 +199,20 @@ const CardTracker: React.FC<CardTrackerProps> = ({ bills, ccLimits: propsCCLimit
       payments: [],
       lastPaymentDate: newBill.lastPaymentDate
     };
+
+    // Always persist card globally so it shows up next month
+    if (!ccLimits.some(limit => limit.cardName === newBill.cardName)) {
+      onUpdateCCLimits([...ccLimits, {
+        id: Date.now().toString() + '-limit',
+        cardName: newBill.cardName || '',
+        creditLimit: Number(newBill.totalAmount) || 0,
+        billDate: 1,
+        dueDate: 15, // Default fallback
+        updatedDate: new Date().toISOString().split('T')[0],
+        notes: 'Added from quick add'
+      }]);
+    }
+
     onAdd(bill);
     setIsAdding(false);
     setNewBill({ cardName: '', category: BILL_CATEGORIES[0], monthlyAmount: 0, paidAmount: 0, lastPaymentDate: '' });
@@ -870,11 +884,13 @@ const CardTracker: React.FC<CardTrackerProps> = ({ bills, ccLimits: propsCCLimit
       {
         isAddingCCLimit && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl max-h-[90vh] overflow-y-auto">
-              <h3 className="text-xl font-bold mb-4 text-gray-800">
-                {editingCCLimit ? 'Edit Credit Card Limit' : 'Add New Credit Card'}
-              </h3>
-              <div className="space-y-4">
+            <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl max-h-[90vh] flex flex-col">
+              <div className="flex justify-between items-center mb-4 shrink-0">
+                <h3 className="text-xl font-bold text-gray-800">
+                  {editingCCLimit ? 'Edit Credit Card Limit' : 'Add New Credit Card'}
+                </h3>
+              </div>
+              <div className="space-y-4 overflow-y-auto flex-grow pb-4 custom-scrollbar">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1">
                     Card Name <span className="text-red-500">*</span>
@@ -970,20 +986,20 @@ const CardTracker: React.FC<CardTrackerProps> = ({ bills, ccLimits: propsCCLimit
                     rows={3}
                   ></textarea>
                 </div>
-                <div className="flex space-x-3 pt-2">
-                  <button
-                    onClick={handleSaveCCLimit}
-                    className="flex-1 bg-purple-600 text-white py-2 rounded-lg font-bold hover:bg-purple-700"
-                  >
-                    {editingCCLimit ? 'Update Limit' : 'Save Card'}
-                  </button>
-                  <button
-                    onClick={handleCancelCCLimit}
-                    className="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg font-bold hover:bg-gray-300"
-                  >
-                    Cancel
-                  </button>
-                </div>
+              </div>
+              <div className="flex space-x-3 mt-4 shrink-0 pt-4 border-t border-gray-100">
+                <button
+                  onClick={handleSaveCCLimit}
+                  className="flex-1 bg-purple-600 text-white py-2 rounded-lg font-bold hover:bg-purple-700"
+                >
+                  {editingCCLimit ? 'Update Limit' : 'Save Card'}
+                </button>
+                <button
+                  onClick={handleCancelCCLimit}
+                  className="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg font-bold hover:bg-gray-300"
+                >
+                  Cancel
+                </button>
               </div>
             </div>
           </div>

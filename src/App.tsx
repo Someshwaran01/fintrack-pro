@@ -535,7 +535,7 @@ const App: React.FC = () => {
       ) : (
         <div className="max-w-md mx-auto min-h-screen relative flex flex-col">
           {/* Optimized Mobile Header */}
-          <nav className="bg-white sticky top-0 z-[60] border-b border-gray-50 shadow-sm">
+          <nav className="bg-white sticky top-0 z-[60] border-b border-gray-50 shadow-sm" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
             <div className="px-4 py-3 flex justify-between items-center">
               <div className="flex items-center space-x-3">
                 <div className="group relative">
@@ -670,7 +670,7 @@ const App: React.FC = () => {
           )}
 
           {/* Bottom Navigation */}
-          <footer className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white/90 backdrop-blur-xl border-t border-gray-100 flex justify-around items-center py-4 px-6 pb-6 z-50 shadow-[0_-10px_40px_rgba(0,0,0,0.04)]">
+          <footer className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white/90 backdrop-blur-xl border-t border-gray-100 flex justify-around items-center py-4 px-6 z-50 shadow-[0_-10px_40px_rgba(0,0,0,0.04)]" style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 1.5rem)' }}>
             <button
               onClick={() => setActiveTab('dashboard')}
               data-tab="dashboard"

@@ -3,7 +3,7 @@ import { CreditCardBill, MedicalExpense, HomeExpense, Income } from '../types';
 
 export class AIService {
     private static getApiKey() {
-        return import.meta.env.VITE_GROQ_API_KEY || '';
+        return import.meta.env.VITE_GROQ_API_KEY || import.meta.env.VITE_GEMINI_API_KEY || '';
     }
 
     /**
@@ -59,7 +59,7 @@ export class AIService {
     }, userMessage: string, members: string[]) {
         const apiKey = this.getApiKey();
         if (!apiKey) {
-            throw new Error('Groq API Key (VITE_GROQ_API_KEY) is missing. Please add it to your environment variables.');
+            throw new Error('AI API Key is missing. Please add it to your environment variables or GitHub Secrets.');
         }
 
         // Apply Data Security Masking
