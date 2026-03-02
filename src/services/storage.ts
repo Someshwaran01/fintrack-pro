@@ -161,11 +161,11 @@ export const StorageService = {
   },
 
   // Migrate local data to cloud
-  migrateToCloud: async (bills: CreditCardBill[], medical: MedicalExpense[], home: HomeExpense[], income: Income[], savings: Savings[]) => {
+  migrateToCloud: async (bills: CreditCardBill[], medical: MedicalExpense[], home: HomeExpense[], income: Income[], savings: Savings[], cc_limits: CreditCardLimit[]) => {
     if (!StorageService.isCloudSyncEnabled()) return;
 
     try {
-      await SyncService.migrateLocalData(bills, medical, home, income, savings);
+      await SyncService.migrateLocalData(bills, medical, home, income, savings, cc_limits);
     } catch (error) {
       console.error('Failed to migrate to cloud:', error);
     }

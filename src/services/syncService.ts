@@ -213,7 +213,8 @@ export class SyncService {
         medical: MedicalExpense[],
         home: HomeExpense[],
         income: Income[],
-        savings: Savings[]
+        savings: Savings[],
+        cc_limits: CreditCardLimit[]
     ): Promise<void> {
         const familyId = this.getFamilyId();
         if (!familyId) throw new Error('No family ID set');
@@ -225,6 +226,7 @@ export class SyncService {
             home,
             income,
             savings,
+            cc_limits,
             last_updated: new Date().toISOString()
         }, { merge: true });
     }
