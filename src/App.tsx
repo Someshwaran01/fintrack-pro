@@ -309,6 +309,7 @@ const App: React.FC = () => {
         homeInitialized.current = true;
         incomeInitialized.current = true;
         ccLimitsInitialized.current = true;
+        cloudDataLoaded.current = true;
 
         setBills(localBills);
         setMedical(migratedMedical);
@@ -504,14 +505,14 @@ const App: React.FC = () => {
   const handleExport = () => {
     if (activeTab === 'bills') {
       StorageService.exportToCSV(bills, 'cc_bills');
-      StorageService.exportToJSON(bills, 'cc_bills');
     } else if (activeTab === 'expenses') {
-      StorageService.exportToCSV(medical, 'medical_expenses');
-      StorageService.exportToCSV(home, 'home_expenses');
-      StorageService.exportToJSON([...medical, ...home], 'all_expenses');
+      const combinedExpenses = [
+        ...medical.map(m => ({ type: 'Medical', ...m })),
+        ...home.map(h => ({ type: 'Home', ...h }))
+      ];
+      StorageService.exportToCSV(combinedExpenses, 'all_expenses');
     } else if (activeTab === 'income') {
       StorageService.exportToCSV(income, 'income');
-      StorageService.exportToJSON(income, 'income');
     } else {
       // dashboard or fallback
       const fullBackup = {

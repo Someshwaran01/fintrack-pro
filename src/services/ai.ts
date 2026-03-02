@@ -87,6 +87,7 @@ export class AIService {
       2. Provide financial analysis based purely on the numbers and categories provided.
       3. Focus on trends, savings, and budget optimization.
       4. If the user mentions health details, remain empathetic but focus on the financial impact.
+      5. CRITICAL: Always format monetary values in Indian Rupees (₹) (e.g., ₹5,000) and NEVER use Dollars ($).
       
       Keep responses professional, concise, and helpful. Use markdown formatting.
     `;
