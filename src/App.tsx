@@ -234,6 +234,8 @@ const App: React.FC = () => {
                 setIncome(newIncome);
               }
             },
+            // Empty placeholder for the 5th argument 'onSavingsChange'
+            () => { },
             (newCCLimits) => {
               const newHash = JSON.stringify(newCCLimits);
               const prevHash = JSON.stringify(ccLimits);
@@ -534,9 +536,9 @@ const App: React.FC = () => {
       ) : !onboardingComplete ? (
         <Onboarding onComplete={handleOnboardingComplete} />
       ) : (
-        <div className="max-w-md mx-auto min-h-screen relative flex flex-col">
+        <div className="max-w-md mx-auto min-h-screen relative flex flex-col pb-[env(safe-area-inset-bottom)]">
           {/* Optimized Mobile Header */}
-          <nav className="bg-white sticky top-0 z-[60] border-b border-gray-50 shadow-sm" style={{ paddingTop: 'max(env(safe-area-inset-top), 1.25rem)' }}>
+          <nav className="bg-white sticky top-0 z-[60] border-b border-gray-50 shadow-sm" style={{ paddingTop: 'max(env(safe-area-inset-top), 3rem)' }}>
             <div className="px-4 py-3 flex justify-between items-center">
               <div className="flex items-center space-x-3">
                 <div className="group relative">
