@@ -578,9 +578,9 @@ const App: React.FC = () => {
       ) : !onboardingComplete ? (
         <Onboarding onComplete={handleOnboardingComplete} />
       ) : (
-        <div className="max-w-md mx-auto min-h-screen relative flex flex-col pb-[env(safe-area-inset-bottom)]">
+        <div className="max-w-md mx-auto min-h-screen relative flex flex-col pb-safe">
           {/* Optimized Mobile Header */}
-          <nav className="bg-white sticky top-0 z-[60] border-b border-gray-50 shadow-sm" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+          <nav className="glass sticky top-0 z-[60] border-b border-gray-100 shadow-sm pt-safe">
             <div className="px-4 py-3 flex justify-between items-center">
               <div className="flex items-center space-x-3">
                 <div className="group relative">

@@ -60,7 +60,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
     };
 
     return (
-        <div className="fixed inset-0 bg-[#020617] flex items-center justify-center z-[100] p-6 overflow-y-auto">
+        <div className="fixed inset-0 bg-[#020617] flex items-center justify-center z-[100] p-6 overflow-y-auto pt-safe pb-safe">
             {/* Background elements to match FamilySetup */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute w-[500px] h-[500px] bg-indigo-600/20 rounded-full blur-[120px] -top-48 -left-48 animate-pulse"></div>
