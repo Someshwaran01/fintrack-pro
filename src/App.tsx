@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { AppTab, CreditCardBill, MedicalExpense, HomeExpense, SpenderName, Income, CreditCardLimit } from './types';
 import { StorageService } from './services/storage';
 import { SyncService } from './services/syncService';
-import { getCurrentMonth } from './utils/helpers';
+import { getCurrentMonth, getNextMonth } from './utils/helpers';
 import { logger } from './config/app.config';
 import Dashboard from './components/Dashboard';
 import CardTracker from './components/CardTracker';
@@ -18,11 +18,11 @@ const App: React.FC = () => {
   const [familyId, setFamilyId] = useState<string | null>(null);
   const [isLoadingSync, setIsLoadingSync] = useState(false);
   const [activeTab, setActiveTab] = useState<AppTab>('dashboard');
-  const [bills, setBills] = useState<CreditCardBill[]>([]);
-  const [medical, setMedical] = useState<MedicalExpense[]>([]);
-  const [home, setHome] = useState<HomeExpense[]>([]);
-  const [income, setIncome] = useState<Income[]>([]);
-  const [ccLimits, setCCLimits] = useState<CreditCardLimit[]>([]);
+  const [bills, setBills] = useState<CreditCardBill[]>(StorageService.getBills());
+  const [medical, setMedical] = useState<MedicalExpense[]>(StorageService.getMedical());
+  const [home, setHome] = useState<HomeExpense[]>(StorageService.getHome());
+  const [income, setIncome] = useState<Income[]>(StorageService.getIncome());
+  const [ccLimits, setCCLimits] = useState<CreditCardLimit[]>(StorageService.getCreditCardLimits());
   const [members, setMembers] = useState<string[]>(StorageService.getMembers());
   const [onboardingComplete, setOnboardingComplete] = useState<boolean>(StorageService.getOnboardingComplete());
   const [selectedMonth, setSelectedMonth] = useState<string>(getCurrentMonth());
@@ -65,6 +65,45 @@ const App: React.FC = () => {
   // CRITICAL: Global flag to prevent ANY saves until cloud data has been loaded at least once
   const cloudDataLoaded = useRef<boolean>(false);
   const isLoadingData = useRef<boolean>(false);
+  const initializedMonths = useRef<Set<string>>(new Set());
+
+  // Automatic bill initialization for configured credit cards
+  useEffect(() => {
+    if (!onboardingComplete || !cloudDataLoaded.current || ccLimits.length === 0) return;
+
+    // We don't use initializedMonths.current.has check here because ccLimits might change
+    // Instead we check if any card is missing for the current month
+    const nextMonth = getNextMonth(selectedMonth);
+    const existingCardNames = bills
+      .filter(b => b.month === selectedMonth || (b.dueDate && b.dueDate.includes(selectedMonth)))
+      .map(b => b.cardName.trim());
+
+    const cardsToAdd: CreditCardBill[] = [];
+
+    ccLimits.forEach(limit => {
+      const trimmedName = limit.cardName.trim();
+      if (!existingCardNames.includes(trimmedName)) {
+        cardsToAdd.push({
+          id: `${trimmedName}-${selectedMonth}-${Date.now()}`,
+          cardName: trimmedName,
+          category: 'Banking',
+          dueDate: `${limit.dueDate} ${nextMonth}`,
+          month: selectedMonth,
+          isEmi: false,
+          totalAmount: 0,
+          monthlyAmount: 0,
+          paidAmount: 0,
+          payments: [],
+          lastPaymentDate: ''
+        });
+      }
+    });
+
+    if (cardsToAdd.length > 0) {
+      logger.log('Auto-initializing', cardsToAdd.length, 'cards for', selectedMonth);
+      setBills(prev => [...prev, ...cardsToAdd]);
+    }
+  }, [selectedMonth, ccLimits, onboardingComplete, cloudDataLoaded.current]);
 
   // Initialize family sync
   useEffect(() => {
@@ -475,7 +514,10 @@ const App: React.FC = () => {
   const handleAddIncome = (inc: Income) => setIncome([...income, inc]);
   const handleDeleteIncome = (id: string) => setIncome(income.filter(i => i.id !== id));
 
-  const handleUpdateCCLimits = (limits: CreditCardLimit[]) => setCCLimits(limits);
+  const handleUpdateCCLimits = (limits: CreditCardLimit[]) => {
+    const trimmedLimits = limits.map(l => ({ ...l, cardName: l.cardName.trim() }));
+    setCCLimits(trimmedLimits);
+  };
 
   const handleFamilySetupComplete = (newFamilyId: string) => {
     setFamilyId(newFamilyId);
@@ -592,7 +634,7 @@ const App: React.FC = () => {
 
           {/* Main Content Area */}
           <main className="flex-grow">
-            {activeTab === 'dashboard' && <Dashboard bills={bills} medical={medical} home={home} income={income} members={members} selectedMonth={selectedMonth} onMonthChange={setSelectedMonth} onAddMember={handleAddMember} onRemoveMember={handleRemoveMember} newMemberName={newMemberName} onNewMemberNameChange={setNewMemberName} />}
+            {activeTab === 'dashboard' && <Dashboard bills={bills} ccLimits={ccLimits} medical={medical} home={home} income={income} members={members} selectedMonth={selectedMonth} onMonthChange={setSelectedMonth} onAddMember={handleAddMember} onRemoveMember={handleRemoveMember} newMemberName={newMemberName} onNewMemberNameChange={setNewMemberName} />}
             {activeTab === 'bills' && <CardTracker bills={bills} ccLimits={ccLimits} onboardingComplete={onboardingComplete} onAdd={handleAddBill} onAddMultiple={handleAddBills} onUpdate={handleUpdateBill} onDelete={handleDeleteBill} onUpdateCCLimits={handleUpdateCCLimits} selectedMonth={selectedMonth} onMonthChange={setSelectedMonth} />}
             {activeTab === 'expenses' && <ExpenseTracker medicalExpenses={medical} homeExpenses={home} members={members} onAddMedical={handleAddMedical} onDeleteMedical={handleDeleteMedical} onAddHome={handleAddHome} onDeleteHome={handleDeleteHome} />}
             {activeTab === 'income' && <IncomeTracker incomes={income} bills={bills} medical={medical} home={home} members={members} onAddIncome={handleAddIncome} onDeleteIncome={handleDeleteIncome} selectedMonth={selectedMonth} onMonthChange={setSelectedMonth} />}

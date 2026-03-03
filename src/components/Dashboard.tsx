@@ -6,6 +6,7 @@ import { generateMonthOptions } from '../constants';
 
 interface DashboardProps {
   bills: CreditCardBill[];
+  ccLimits: CreditCardLimit[];
   medical: MedicalExpense[];
   home: HomeExpense[];
   income: Income[];
@@ -20,6 +21,7 @@ interface DashboardProps {
 
 const Dashboard: React.FC<DashboardProps> = ({
   bills,
+  ccLimits,
   medical,
   home,
   income,
@@ -127,14 +129,23 @@ const Dashboard: React.FC<DashboardProps> = ({
     { name: 'Home', value: stats.totalHome },
   ];
 
-  // Card utilization data for pie chart
+  // Card utilization data for pie chart - Now includes ALL configured cards
   const cardUtilizationData = useMemo(() => {
     const cardTotals: Record<string, number> = {};
+
+    // Initialize with all known cards from portfolio
+    ccLimits.forEach(limit => {
+      cardTotals[limit.cardName] = 0;
+    });
+
     stats.monthBills.forEach(bill => {
       cardTotals[bill.cardName] = (cardTotals[bill.cardName] || 0) + bill.monthlyAmount;
     });
-    return (Object.entries(cardTotals) as [string, number][]).map(([name, value]) => ({ name, value }));
-  }, [stats.monthBills]);
+
+    return (Object.entries(cardTotals) as [string, number][])
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value); // Sort by highest spending
+  }, [stats.monthBills, ccLimits]);
 
   const COLORS = ['#ef4444', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6', '#ec4899', '#14b8a6'];
 

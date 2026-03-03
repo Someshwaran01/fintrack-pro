@@ -104,3 +104,25 @@ export const calculatePercentage = (value: number, total: number): number => {
     if (total === 0) return 0;
     return Math.round((value / total) * 100);
 };
+
+/**
+ * Get the next month string from a current month string (e.g., 'Feb-26' -> 'Mar-26')
+ */
+export const getNextMonth = (currentMonth: string): string => {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const parts = currentMonth.split('-');
+    if (parts.length !== 2) return currentMonth;
+
+    const month = parts[0];
+    const year = parts[1];
+    const monthIndex = months.indexOf(month);
+
+    if (monthIndex === 11) {
+        // December -> go to January of next year
+        const nextYear = (parseInt(year) + 1).toString().padStart(2, '0');
+        return `Jan-${nextYear}`;
+    } else {
+        // Go to next month in same year
+        return `${months[monthIndex + 1]}-${year}`;
+    }
+};

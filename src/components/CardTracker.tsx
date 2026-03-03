@@ -53,25 +53,6 @@ const CardTracker: React.FC<CardTrackerProps> = ({ bills, ccLimits: propsCCLimit
     setCCLimits(propsCCLimits);
   }, [propsCCLimits]);
 
-  // Use ref to track if default cards have been initialized for current month
-  const initializedMonths = useRef<Set<string>>(new Set());
-
-  // Helper function to get next month for bill due dates
-  const getNextMonth = (currentMonth: string): string => {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const [month, year] = currentMonth.split('-');
-    const monthIndex = months.indexOf(month);
-
-    if (monthIndex === 11) {
-      // December -> go to January of next year
-      const nextYear = (parseInt(year) + 1).toString().padStart(2, '0');
-      return `Jan-${nextYear}`;
-    } else {
-      // Go to next month in same year
-      return `${months[monthIndex + 1]}-${year}`;
-    }
-  };
-
   // Helper function to calculate total paid from payments array
   const calculateTotalPaid = (bill: CreditCardBill): number => {
     if (bill.payments && bill.payments.length > 0) {
@@ -80,65 +61,13 @@ const CardTracker: React.FC<CardTrackerProps> = ({ bills, ccLimits: propsCCLimit
     return bill.paidAmount || 0; // Fallback to old field for backward compatibility
   };
 
-  // Initialize cards for the selected month if they don't exist
-  useEffect(() => {
-    // Skip if onboarding is not complete or already initialized for this month
-    if (!onboardingComplete || initializedMonths.current.has(selectedMonth)) {
-      return;
-    }
-
-    const nextMonth = getNextMonth(selectedMonth);
-
-    // Check for bills with due dates in current month (created in previous month)
-    // or bills created in current month
-    const existingCards = bills.filter(b => {
-      // Check if bill's due date is in current month
-      if (b.dueDate && b.dueDate.includes(selectedMonth)) return true;
-      // Or if bill was created in current month
-      if (b.month === selectedMonth) return true;
-      return false;
-    });
-    const existingCardNames = existingCards.map(b => b.cardName);
-
-    // Only add cards that don't exist
-    const cardsToAdd: CreditCardBill[] = [];
-
-    if (onboardingComplete) {
-      // Use configured limits if onboarding is complete
-      ccLimits.forEach(limit => {
-        if (!existingCardNames.includes(limit.cardName)) {
-          cardsToAdd.push({
-            id: `${limit.cardName}-${selectedMonth}`,
-            cardName: limit.cardName,
-            category: 'Banking',
-            dueDate: `${limit.dueDate} ${nextMonth}`,
-            month: selectedMonth,
-            isEmi: false,
-            totalAmount: 0,
-            monthlyAmount: 0,
-            paidAmount: 0,
-            payments: [],
-            lastPaymentDate: ''
-          });
-        }
-      });
-    }
-
-    if (cardsToAdd.length > 0) {
-      console.log('Adding', cardsToAdd.length, 'cards for', selectedMonth);
-      onAddMultiple(cardsToAdd);
-      initializedMonths.current.add(selectedMonth);
-    } else {
-      initializedMonths.current.add(selectedMonth);
-    }
-  }, [selectedMonth, bills, onAddMultiple, onboardingComplete, ccLimits]); // Use full bills array, not just length
-
   // Filter bills by selected month
   const filteredBills = bills.filter(b => b.month === selectedMonth);
 
   const totalDue = filteredBills.reduce((acc, b) => acc + b.monthlyAmount, 0);
   const totalPaid = filteredBills.reduce((acc, b) => acc + calculateTotalPaid(b), 0);
-  const status = totalPaid >= totalDue ? 'Success' : 'Check Payment';
+  const status = totalPaid >= totalDue && totalDue > 0 ? 'Success' : 'Check Payment';
+
 
   const handleAddPayment = (billId: string) => {
     if (!newPayment.amount || newPayment.amount <= 0) return;

@@ -37,7 +37,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
         if (currentCC.cardName && currentCC.creditLimit) {
             const newCC: CreditCardLimit = {
                 id: generateId(),
-                cardName: currentCC.cardName,
+                cardName: currentCC.cardName.trim(),
                 creditLimit: currentCC.creditLimit,
                 billDate: currentCC.billDate || 1,
                 dueDate: currentCC.dueDate || 15,
