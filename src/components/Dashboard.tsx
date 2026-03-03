@@ -1,6 +1,6 @@
 ﻿
 import React, { useMemo, useState } from 'react';
-import { CreditCardBill, MedicalExpense, HomeExpense, CCUtilization, Income, PaymentMethod } from '../types';
+import { CreditCardBill, MedicalExpense, HomeExpense, CCUtilization, Income, PaymentMethod, CreditCardLimit } from '../types';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, Legend } from 'recharts';
 import { generateMonthOptions } from '../constants';
 
@@ -213,16 +213,20 @@ const Dashboard: React.FC<DashboardProps> = ({
   };
 
   return (
-    <div className="p-4 space-y-6 pb-24 bg-[#fcfdff]">
-      <header className="mb-4">
-        <div className="flex justify-between items-center">
+    <div className="p-4 space-y-7 pb-24 bg-[#fcfdff] min-h-screen">
+      <header className="mb-6 pt-2">
+        <div className="flex justify-between items-end">
           <div>
-            <h1 className="text-2xl font-serif font-black text-[#1a1c2e] tracking-tight">Executive Summary</h1>
-            <p className="text-gray-400 text-[9px] uppercase font-bold tracking-widest mt-1 opacity-80">{selectedMonth} Portfolio Status</p>
+            <span className="text-[10px] font-black text-indigo-500 uppercase tracking-[0.3em] mb-1.5 block">Strategic Intelligence</span>
+            <h1 className="text-3xl font-serif font-black text-[#0f172a] tracking-tight leading-tight">Executive Summary</h1>
+            <p className="text-slate-400 text-[10px] uppercase font-bold tracking-widest mt-1 opacity-70 flex items-center">
+              <i className="fa-solid fa-calendar-day mr-2 text-indigo-300"></i>
+              {selectedMonth} Portfolio Status
+            </p>
           </div>
-          <div className="relative">
+          <div className="relative group">
             <select
-              className="appearance-none bg-white border border-gray-100 rounded-xl px-5 py-2.5 pr-10 text-xs font-bold text-[#1a1c2e] outline-none shadow-sm hover:shadow-md transition-all cursor-pointer"
+              className="appearance-none bg-white/80 backdrop-blur-md border border-slate-100 rounded-2xl px-5 py-3 pr-11 text-[11px] font-black text-[#0f172a] outline-none shadow-sm hover:shadow-md transition-all cursor-pointer hover:border-indigo-200"
               value={selectedMonth}
               onChange={(e) => onMonthChange(e.target.value)}
             >
@@ -230,60 +234,96 @@ const Dashboard: React.FC<DashboardProps> = ({
                 <option key={month} value={month}>{month}</option>
               ))}
             </select>
-            <i className="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 pointer-events-none"></i>
+            <i className="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-[10px] text-indigo-400 pointer-events-none group-hover:translate-y-[-40%] transition-transform"></i>
           </div>
         </div>
       </header>
 
-      {/* Creative Portfolio Strategy Card */}
-      <div className="bg-gradient-to-tr from-[#0f172a] to-[#1e293b] p-6 rounded-[2rem] shadow-2xl relative overflow-hidden group border border-white/5">
-        <div className="absolute -right-10 -top-10 w-40 h-40 bg-orange-500/10 rounded-full blur-3xl group-hover:bg-orange-500/20 transition-all duration-700"></div>
+      {/* Hero Intelligence Card - Glassmorphism Evolution */}
+      <div className="bg-gradient-to-br from-[#0f172a] via-[#1e293b] to-[#0f172a] p-8 rounded-[2.5rem] shadow-[0_25px_60px_-15px_rgba(15,23,42,0.4)] relative overflow-hidden group border border-white/10">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-[100px] -mr-32 -mt-32 group-hover:bg-indigo-500/20 transition-all duration-1000"></div>
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-500/10 rounded-full blur-[100px] -ml-32 -mb-32 group-hover:bg-purple-500/20 transition-all duration-1000"></div>
+
         <div className="relative z-10">
-          <div className="flex items-center space-x-3 mb-4">
-            <div className="w-10 h-10 bg-orange-500/20 rounded-xl flex items-center justify-center border border-orange-500/30 shadow-[0_0_15px_rgba(249,115,22,0.2)]">
-              <i className="fa-solid fa-wand-magic-sparkles text-orange-400"></i>
+          <div className="flex items-center space-x-4 mb-6">
+            <div className="w-12 h-12 bg-white/5 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/10 shadow-2xl group-hover:scale-110 transition-transform">
+              <i className="fa-solid fa-wand-magic-sparkles text-indigo-300 text-xl animate-pulse"></i>
             </div>
-            <h2 className="text-white font-serif text-lg font-bold tracking-tight">Portfolio Intelligence</h2>
+            <div>
+              <h2 className="text-white font-serif text-xl font-bold tracking-tight">Portfolio Alpha</h2>
+              <div className="flex items-center space-x-2 mt-1">
+                <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full shadow-[0_0_8px_rgba(52,211,153,0.6)]"></span>
+                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">AI Insight Ready</span>
+              </div>
+            </div>
           </div>
-          <p className="text-slate-300 text-xs leading-relaxed mb-6 font-medium">
-            Your current utilization is <span className="text-orange-400 font-bold">{stats.totalIncome > 0 ? ((stats.upiSpending / stats.totalIncome) * 100).toFixed(1) : '0'}%</span> of total capital. I have analyzed <span className="text-white font-bold">{stats.monthBills.length} portfolios</span> for potential debt-to-income optimization.
-          </p>
+
+          <div className="space-y-4 mb-8">
+            <p className="text-slate-300 text-[14px] leading-relaxed font-medium">
+              Monthly utilization stands at <span className="text-white font-black px-2 py-0.5 bg-white/10 rounded-lg">{stats.totalIncome > 0 ? ((stats.upiSpending / stats.totalIncome) * 100).toFixed(1) : '0.0'}%</span>. Analyzing <span className="text-white font-black underline decoration-indigo-500/50 underline-offset-4">{stats.monthBills.length} credit asset portals</span> for efficiency.
+            </p>
+          </div>
+
           <button
             onClick={() => {
               const aiBtn = document.getElementById('global-ai-btn');
               if (aiBtn) aiBtn.click();
             }}
-            className="bg-white text-[#0f172a] font-black text-[10px] uppercase tracking-[0.2em] py-3.5 px-6 rounded-xl hover:bg-orange-400 hover:text-white transition-all shadow-xl active:scale-95 flex items-center"
+            className="group relative inline-flex items-center py-4 px-8 rounded-2xl overflow-hidden active:scale-95 transition-all shadow-2xl"
           >
-            Launch Advisor <i className="fa-solid fa-bolt-lightning ml-2 text-[10px]"></i>
+            <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-purple-600 group-hover:scale-110 transition-transform"></div>
+            <span className="relative text-white font-black text-[11px] uppercase tracking-[0.3em] flex items-center">
+              Launch Insight Advisor <i className="fa-solid fa-bolt-lightning ml-3 text-[10px] animate-pulse"></i>
+            </span>
           </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      {/* Executive Meta Data Grid */}
+      <div className="grid grid-cols-2 gap-4">
         <div
           onClick={() => setShowPendingBills(true)}
-          className="bg-white p-4 rounded-2xl shadow-sm border border-gray-50 cursor-pointer hover:shadow-xl hover:-translate-y-1 transition-all group"
+          className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-50 cursor-pointer hover:shadow-xl hover:-translate-y-1.5 transition-all group relative overflow-hidden"
         >
-          <div className="w-8 h-8 bg-red-50 rounded-lg flex items-center justify-center mb-3 group-hover:bg-red-500 transition-colors">
-            <i className="fa-solid fa-clock-rotate-left text-red-500 text-xs group-hover:text-white"></i>
+          <div className="absolute top-0 right-0 w-20 h-20 bg-red-500/5 rounded-full blur-2xl -mr-10 -mt-10"></div>
+          <div className="w-10 h-10 bg-red-50 rounded-2xl flex items-center justify-center mb-4 group-hover:bg-red-500 group-hover:shadow-[0_10px_20px_rgba(239,68,68,0.2)] transition-all">
+            <i className="fa-solid fa-hourglass-half text-red-500 text-sm group-hover:text-white transition-colors"></i>
           </div>
-          <p className="text-[10px] text-gray-400 uppercase font-black tracking-tighter">Outstanding</p>
-          <p className="text-sm font-bold text-[#1a1c2e] mt-0.5">₹{stats.totalDue.toLocaleString()}</p>
+          <h4 className="text-[10px] text-slate-400 uppercase font-black tracking-widest">Total Outstanding</h4>
+          <p className="text-2xl font-serif font-black text-[#0f172a] mt-1 tabular-nums">₹{stats.totalDue.toLocaleString()}</p>
+          <div className="mt-3 flex items-center text-[9px] font-bold text-red-400 uppercase tracking-tighter">
+            <span className="bg-red-50 px-2.5 py-1 rounded-full">{stats.pendingCount} Pending Portals</span>
+          </div>
         </div>
-        <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-50 hover:shadow-xl hover:-translate-y-1 transition-all group">
-          <div className="w-8 h-8 bg-indigo-50 rounded-lg flex items-center justify-center mb-3 group-hover:bg-indigo-500 transition-colors">
-            <i className="fa-solid fa-hospital-user text-indigo-500 text-xs group-hover:text-white"></i>
+
+        <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-50 hover:shadow-xl hover:-translate-y-1.5 transition-all group relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-20 h-20 bg-emerald-500/5 rounded-full blur-2xl -mr-10 -mt-10"></div>
+          <div className="w-10 h-10 bg-emerald-50 rounded-2xl flex items-center justify-center mb-4 group-hover:bg-emerald-500 group-hover:shadow-[0_10px_20px_rgba(16,185,129,0.2)] transition-all">
+            <i className="fa-solid fa-money-bill-trend-up text-emerald-500 text-sm group-hover:text-white transition-colors"></i>
           </div>
-          <p className="text-[10px] text-gray-400 uppercase font-black tracking-tighter">Medical</p>
-          <p className="text-sm font-bold text-[#1a1c2e] mt-0.5">₹{stats.totalMedical.toLocaleString()}</p>
+          <h4 className="text-[10px] text-slate-400 uppercase font-black tracking-widest">Income Deployed</h4>
+          <p className="text-2xl font-serif font-black text-[#0f172a] mt-1 tabular-nums">₹{stats.totalIncome.toLocaleString()}</p>
+          <div className="mt-3 flex items-center text-[9px] font-bold text-emerald-500 uppercase tracking-tighter">
+            <span className="bg-emerald-50 px-2.5 py-1 rounded-full">Liquid Strategy Active</span>
+          </div>
         </div>
-        <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-50 hover:shadow-xl hover:-translate-y-1 transition-all group">
-          <div className="w-8 h-8 bg-emerald-50 rounded-lg flex items-center justify-center mb-3 group-hover:bg-emerald-500 transition-colors">
-            <i className="fa-solid fa-house-chimney-window text-emerald-500 text-xs group-hover:text-white"></i>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-50 hover:shadow-xl hover:-translate-y-1 transition-all group relative overflow-hidden">
+          <div className="w-10 h-10 bg-blue-50 rounded-2xl flex items-center justify-center mb-4 group-hover:bg-blue-500 transition-all">
+            <i className="fa-solid fa-briefcase-medical text-blue-500 text-sm group-hover:text-white"></i>
           </div>
-          <p className="text-[10px] text-gray-400 uppercase font-black tracking-tighter">Household</p>
-          <p className="text-sm font-bold text-[#1a1c2e] mt-0.5">₹{stats.totalHome.toLocaleString()}</p>
+          <h4 className="text-[10px] text-slate-400 uppercase font-black tracking-widest">Medical Pool</h4>
+          <p className="text-xl font-serif font-black text-[#0f172a] mt-1 tabular-nums">₹{stats.totalMedical.toLocaleString()}</p>
+        </div>
+
+        <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-50 hover:shadow-xl hover:-translate-y-1 transition-all group relative overflow-hidden">
+          <div className="w-10 h-10 bg-orange-50 rounded-2xl flex items-center justify-center mb-4 group-hover:bg-orange-500 transition-all">
+            <i className="fa-solid fa-cubes text-orange-500 text-sm group-hover:text-white"></i>
+          </div>
+          <h4 className="text-[10px] text-slate-400 uppercase font-black tracking-widest">Household Pool</h4>
+          <p className="text-xl font-serif font-black text-[#0f172a] mt-1 tabular-nums">₹{stats.totalHome.toLocaleString()}</p>
         </div>
       </div>
 
@@ -348,37 +388,47 @@ const Dashboard: React.FC<DashboardProps> = ({
         )}
       </div>
 
-      {/* Income vs Spending Tracker */}
-      <div className="bg-gradient-to-br from-purple-50 to-indigo-50 p-4 rounded-2xl shadow-sm border border-purple-100">
-        <h3 className="text-sm font-semibold mb-3 text-purple-900 flex items-center">
-          <i className="fa-solid fa-wallet mr-2"></i>
-          Income vs UPI Spending
-        </h3>
-        <div className="grid grid-cols-3 gap-3">
-          <div className="bg-white p-2 rounded-xl">
-            <p className="text-[10px] text-gray-500 uppercase font-semibold">Total Income</p>
-            <p className="text-lg font-bold text-green-600 tabular-nums">₹{stats.totalIncome.toLocaleString()}</p>
-            <p className="text-[9px] text-gray-400 mt-1">This Month</p>
-          </div>
-          <div className="bg-white p-2 rounded-xl">
-            <p className="text-[10px] text-gray-500 uppercase font-semibold">UPI Spent</p>
-            <p className="text-lg font-bold text-orange-600 tabular-nums">₹{stats.upiSpending.toLocaleString()}</p>
-            <p className="text-[9px] text-gray-400 mt-1">Expenses</p>
-          </div>
-          <div className="bg-white p-2 rounded-xl">
-            <p className="text-[10px] text-gray-500 uppercase font-semibold">Remaining</p>
-            <p className={`text-lg font-bold tabular-nums ${stats.remainingBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              ₹{stats.remainingBalance.toLocaleString()}
-            </p>
-            <p className="text-[9px] text-gray-400 mt-1">{stats.remainingBalance >= 0 ? 'Available' : 'Overspent'}</p>
+      {/* Enhanced Spending Analytics Section */}
+      <div className="bg-white p-7 rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden relative">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 rounded-full blur-3xl -mr-16 -mt-16"></div>
+
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-sm font-black text-[#0f172a] uppercase tracking-widest flex items-center">
+            <i className="fa-solid fa-chart-line mr-3 text-indigo-500"></i>
+            Cash Utilization
+          </h3>
+          <div className="flex items-center bg-indigo-50 px-3 py-1.5 rounded-full">
+            <span className="text-[10px] font-black text-indigo-600 uppercase tracking-widest">
+              {stats.totalIncome > 0 ? ((stats.upiSpending / stats.totalIncome) * 100).toFixed(0) : '0'}% Deployed
+            </span>
           </div>
         </div>
-        <div className="mt-4 pt-4 border-t border-purple-200">
-          <div className="flex justify-between items-center">
-            <span className="text-sm text-gray-700 font-semibold">Spending Rate:</span>
-            <span className="text-xl font-black text-purple-700 tabular-nums">
-              {stats.totalIncome > 0 ? ((stats.upiSpending / stats.totalIncome) * 100).toFixed(1) : '0'}%
-            </span>
+
+        <div className="space-y-6">
+          <div className="grid grid-cols-2 gap-6">
+            <div className="relative">
+              <p className="text-[10px] text-slate-400 uppercase font-black tracking-widest mb-1.5">UPI Burn</p>
+              <p className="text-2xl font-serif font-black text-indigo-600 tabular-nums">₹{stats.upiSpending.toLocaleString()}</p>
+              <div className="w-full h-1.5 bg-indigo-50 rounded-full mt-3 overflow-hidden">
+                <div
+                  className="h-full bg-indigo-500 transition-all duration-1000"
+                  style={{ width: `${stats.totalIncome > 0 ? (stats.upiSpending / stats.totalIncome) * 100 : 0}%` }}
+                ></div>
+              </div>
+            </div>
+
+            <div className="relative">
+              <p className="text-[10px] text-slate-400 uppercase font-black tracking-widest mb-1.5">Remaining Alpha</p>
+              <p className={`text-2xl font-serif font-black tabular-nums ${stats.remainingBalance >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                ₹{Math.abs(stats.remainingBalance).toLocaleString()}
+              </p>
+              <div className="w-full h-1.5 bg-slate-100 rounded-full mt-3 overflow-hidden">
+                <div
+                  className={`h-full transition-all duration-1000 ${stats.remainingBalance >= 0 ? 'bg-emerald-500' : 'bg-red-500'}`}
+                  style={{ width: `${Math.min(100, stats.totalIncome > 0 ? (Math.abs(stats.remainingBalance) / stats.totalIncome) * 100 : 0)}%` }}
+                ></div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

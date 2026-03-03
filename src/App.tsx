@@ -579,43 +579,43 @@ const App: React.FC = () => {
         <Onboarding onComplete={handleOnboardingComplete} />
       ) : (
         <div className="max-w-md mx-auto min-h-screen relative flex flex-col pb-safe">
-          {/* Optimized Mobile Header */}
-          <nav className="glass sticky top-0 z-[60] border-b border-gray-100 shadow-sm pt-safe">
-            <div className="px-4 py-3 flex justify-between items-center">
-              <div className="flex items-center space-x-3">
+          {/* Optimized Executive Header */}
+          <nav className="glass sticky top-0 z-[60] border-b border-gray-100 shadow-[0_4px_30px_rgba(0,0,0,0.03)] pt-safe overflow-hidden">
+            <div className="px-5 py-4 flex justify-between items-center">
+              <div className="flex items-center space-x-4">
                 <div className="group relative">
-                  <div className="absolute -inset-0.5 bg-gradient-to-r from-[#111827] to-[#374151] rounded-xl blur opacity-15"></div>
-                  <div className="relative w-9 h-9 bg-gradient-to-br from-[#1a1c2e] to-[#2d3142] rounded-xl flex items-center justify-center shadow-md border border-white/10">
-                    <i className="fa-solid fa-shield-halved text-white text-base"></i>
+                  <div className="absolute -inset-1.5 bg-gradient-to-br from-indigo-500/30 to-purple-600/30 rounded-2xl blur opacity-0 group-hover:opacity-100 transition duration-700"></div>
+                  <div className="relative w-11 h-11 bg-gradient-to-br from-[#1a1c2e] to-[#2d3142] rounded-[1.1rem] flex items-center justify-center shadow-[0_8px_16px_-4px_rgba(0,0,0,0.3)] border border-white/10 active:scale-95 transition-all">
+                    <i className="fa-solid fa-shield-halved text-white text-lg"></i>
                   </div>
                 </div>
                 <div>
-                  <h1 className="font-serif font-black text-[#1a1c2e] text-lg tracking-tight leading-none mb-1">FinTrack</h1>
-                  <div className="flex items-center space-x-1">
-                    <span className="flex h-1 w-1">
-                      <span className="animate-ping absolute inline-flex h-1 w-1 rounded-full bg-emerald-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-1 w-1 bg-emerald-500"></span>
-                    </span>
-                    <span className="text-[7px] font-black text-gray-400 uppercase tracking-[0.1em] leading-none">Unified Portfolio Sync</span>
+                  <h1 className="font-serif font-black text-[#0f172a] text-xl tracking-tight leading-tight">FinTrack</h1>
+                  <div className="flex items-center mt-0.5 space-x-2">
+                    <div className="flex h-1.5 w-1.5 relative">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                    </div>
+                    <span className="text-[8px] font-black text-indigo-400 uppercase tracking-[0.2em] leading-none opacity-80">Security Active</span>
                   </div>
                 </div>
               </div>
 
-              <div className="flex items-center space-x-1.5">
+              <div className="flex items-center space-x-2.5">
                 <button
                   id="global-ai-btn"
                   onClick={() => setShowAIChat(true)}
-                  className="w-9 h-9 bg-gradient-to-tr from-[#FFF4E0] to-[#FFDBA4] text-[#E67E22] rounded-xl flex items-center justify-center shadow-sm border border-orange-100/30 transition-all active:scale-95"
-                  title="Advisor AI"
+                  className="w-10 h-10 bg-gradient-to-tr from-[#FFF7ED] to-[#FFEDD5] text-orange-600 rounded-xl flex items-center justify-center shadow-sm border border-orange-100/50 transition-all hover:scale-110 active:scale-90"
+                  title="Portfolio Advisor AI"
                 >
-                  <i className="fa-solid fa-wand-magic-sparkles text-base"></i>
+                  <i className="fa-solid fa-wand-magic-sparkles text-sm"></i>
                 </button>
                 <button
                   onClick={handleExport}
-                  className="w-9 h-9 bg-gradient-to-tr from-[#E0F7FF] to-[#A4EFFF] text-[#2980B9] rounded-xl flex items-center justify-center shadow-sm border border-blue-100/30 transition-all active:scale-95"
-                  title="Export Data"
+                  className="w-10 h-10 bg-gradient-to-tr from-[#F0F9FF] to-[#E0F2FE] text-blue-600 rounded-xl flex items-center justify-center shadow-sm border border-blue-100/50 transition-all hover:scale-110 active:scale-90"
+                  title="Export Intelligence"
                 >
-                  <i className="fa-solid fa-cloud-arrow-down text-base"></i>
+                  <i className="fa-solid fa-cloud-arrow-down text-sm"></i>
                 </button>
                 {familyId && (
                   <button
