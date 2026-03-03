@@ -134,22 +134,36 @@ export const StorageService = {
 
         const mergedOnboardingComplete = familyData.onboarding_complete || mergedMembers.length > 0 || localOnboarding;
 
-        localStorage.setItem(BILLS_KEY, JSON.stringify(familyData.bills || []));
-        localStorage.setItem(MEDICAL_KEY, JSON.stringify(familyData.medical || []));
-        localStorage.setItem(HOME_KEY, JSON.stringify(familyData.home || []));
-        localStorage.setItem(INCOME_KEY, JSON.stringify(familyData.income || []));
-        localStorage.setItem(SAVINGS_KEY, JSON.stringify(familyData.savings || []));
-        localStorage.setItem(CC_LIMITS_KEY, JSON.stringify(familyData.cc_limits || []));
+        const localBills = StorageService.getBills();
+        const localMedical = StorageService.getMedical();
+        const localHome = StorageService.getHome();
+        const localIncome = StorageService.getIncome();
+        const localSavings = StorageService.getSavings();
+        const localCCLimits = StorageService.getCreditCardLimits();
+
+        const mergedBills = familyData.bills && familyData.bills.length > 0 ? familyData.bills : localBills;
+        const mergedMedical = familyData.medical && familyData.medical.length > 0 ? familyData.medical : localMedical;
+        const mergedHome = familyData.home && familyData.home.length > 0 ? familyData.home : localHome;
+        const mergedIncome = familyData.income && familyData.income.length > 0 ? familyData.income : localIncome;
+        const mergedSavings = familyData.savings && familyData.savings.length > 0 ? familyData.savings : localSavings;
+        const mergedCCLimits = familyData.cc_limits && familyData.cc_limits.length > 0 ? familyData.cc_limits : localCCLimits;
+
+        localStorage.setItem(BILLS_KEY, JSON.stringify(mergedBills));
+        localStorage.setItem(MEDICAL_KEY, JSON.stringify(mergedMedical));
+        localStorage.setItem(HOME_KEY, JSON.stringify(mergedHome));
+        localStorage.setItem(INCOME_KEY, JSON.stringify(mergedIncome));
+        localStorage.setItem(SAVINGS_KEY, JSON.stringify(mergedSavings));
+        localStorage.setItem(CC_LIMITS_KEY, JSON.stringify(mergedCCLimits));
         localStorage.setItem(MEMBERS_KEY, JSON.stringify(mergedMembers));
         localStorage.setItem(ONBOARDING_KEY, mergedOnboardingComplete.toString());
 
         return {
-          bills: familyData.bills || [],
-          medical: familyData.medical || [],
-          home: familyData.home || [],
-          income: familyData.income || [],
-          savings: familyData.savings || [],
-          cc_limits: familyData.cc_limits || [],
+          bills: mergedBills,
+          medical: mergedMedical,
+          home: mergedHome,
+          income: mergedIncome,
+          savings: mergedSavings,
+          cc_limits: mergedCCLimits,
           members: mergedMembers,
           onboarding_complete: mergedOnboardingComplete
         };
