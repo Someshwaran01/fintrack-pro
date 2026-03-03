@@ -130,9 +130,9 @@ export const StorageService = {
 
         const mergedMembers = familyData.members && familyData.members.length > 0
           ? familyData.members
-          : localMembers;
+          : [];
 
-        const mergedOnboardingComplete = familyData.onboarding_complete || mergedMembers.length > 0 || localOnboarding;
+        const mergedOnboardingComplete = !!familyData.onboarding_complete || mergedMembers.length > 0;
 
         const localBills = StorageService.getBills();
         const localMedical = StorageService.getMedical();
