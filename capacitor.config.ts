@@ -13,6 +13,13 @@ const config: CapacitorConfig = {
             keystorePath: undefined,
             keystoreAlias: undefined
         }
+    },
+    plugins: {
+        StatusBar: {
+            overlaysWebView: false,
+            style: 'DARK',
+            backgroundColor: '#ffffff'
+        }
     }
 };
 
