@@ -487,133 +487,130 @@ const CardTracker: React.FC<CardTrackerProps> = ({ bills, ccLimits: propsCCLimit
         </div>
       )}
 
-      {/* CC Bills Toggle - Optimized */}
+      {/* CC Bills Toggle - Modernized */}
       <button
         onClick={() => setShowBills(!showBills)}
-        className="w-full bg-white py-3 px-4 rounded-xl flex items-center justify-between shadow-sm border border-gray-100 transition-all hover:shadow-md"
+        className="w-full bg-[#2a2d43] py-4 px-5 rounded-2xl flex items-center justify-between shadow-lg transition-all hover:scale-[1.01]"
       >
-        <div className="flex items-center space-x-2.5">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-[#6366f1] to-[#8b5cf6] flex items-center justify-center shadow-md">
-            <i className="fa-solid fa-file-invoice-dollar text-white text-xs"></i>
+        <div className="flex items-center space-x-3">
+          <div className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center backdrop-blur-sm border border-white/5">
+            <i className="fa-solid fa-file-invoice text-indigo-300 text-sm"></i>
           </div>
           <div className="text-left">
-            <span className="font-serif font-black text-[#1a1c2e] text-sm">Portfolio Dues ({filteredBills.length})</span>
+            <h3 className="font-serif font-black text-white text-base">Portfolio Dues</h3>
+            <p className="text-[10px] text-indigo-200 font-bold uppercase tracking-wider">{filteredBills.length} Active Records</p>
           </div>
         </div>
-        <div className={`w-7 h-7 rounded-full flex items-center justify-center transition-all ${showBills ? 'bg-[#1a1c2e] text-white rotate-180' : 'bg-gray-50 text-gray-400'}`}>
-          <i className="fa-solid fa-chevron-down text-[9px]"></i>
+        <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-transform duration-300 backdrop-blur-sm bg-white/10 border border-white/5 text-white ${showBills ? 'rotate-180' : ''}`}>
+          <i className="fa-solid fa-chevron-down text-xs"></i>
         </div>
       </button>
 
       {showBills && (
-        <div className="overflow-x-auto bg-white rounded-xl shadow-sm border border-gray-100 no-scrollbar">
-          <table className="w-full text-left text-sm whitespace-nowrap">
-            <thead className="bg-gray-50 text-gray-500 uppercase text-[10px]">
-              <tr>
-                <th className="px-4 py-3">Card Name</th>
-                <th className="px-4 py-3">Category</th>
-                <th className="px-4 py-3">Dates</th>
-                <th className="px-4 py-3">EMI Details</th>
-                <th className="px-4 py-3">Monthly Due</th>
-                <th className="px-4 py-3">Paid</th>
-                <th className="px-4 py-3">Balance</th>
-                <th className="px-4 py-3">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {filteredBills.map(bill => (
-                <tr key={bill.id}>
-                  <td className="px-4 py-4 font-medium">{bill.cardName}</td>
-                  <td className="px-4 py-4">
-                    <span className="px-2 py-1 bg-gray-100 rounded text-[10px] text-gray-600 font-semibold">{bill.category}</span>
-                  </td>
-                  <td className="px-4 py-4 text-gray-500">
-                    <div className="text-[10px]">
-                      <p><span className="font-bold">Due:</span> {bill.dueDate || 'N/A'}</p>
-                      <p><span className="font-bold">Paid:</span> {bill.lastPaymentDate || '-'}</p>
+        <div className="space-y-4 mt-2 animate-fadeIn">
+          {filteredBills.length === 0 && !isAdding ? (
+            <div className="bg-white p-10 text-center rounded-2xl border border-gray-100 shadow-sm text-gray-400">
+              <i className="fa-solid fa-file-invoice-dollar text-4xl mb-4 opacity-20 block text-indigo-500"></i>
+              <p className="font-bold text-gray-500 text-lg">No Due Records</p>
+              <p className="text-xs text-gray-400 mt-1">There are no bills found for this month.</p>
+            </div>
+          ) : (
+            filteredBills.map(bill => (
+              <div key={bill.id} className="bg-white rounded-3xl shadow-sm border border-gray-100 p-5 transition-all hover:shadow-md relative overflow-hidden group">
+                {/* Decorative Accent */}
+                <div className={`absolute top-0 left-0 w-1.5 h-full ${bill.monthlyAmount - calculateTotalPaid(bill) > 0 ? 'bg-red-400' : 'bg-green-400'}`}></div>
+
+                <div className="flex justify-between items-start mb-4 border-b border-gray-50 pb-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-gray-50 to-gray-100 flex items-center justify-center border border-gray-200/50">
+                      <i className="fa-brands fa-cc-visa text-indigo-600 text-xl"></i>
                     </div>
-                  </td>
-                  <td className="px-4 py-4">
-                    {bill.isEmi ? (
-                      <div className="text-[10px]">
-                        <p className="font-semibold">{bill.emiDetails}</p>
-                        <p className="text-gray-400">Tenure: {bill.tenure}</p>
-                      </div>
-                    ) : <span className="text-gray-300">-</span>}
-                  </td>
-                  <td className="px-4 py-4 space-y-1">
-                    <input
-                      type="number"
-                      id={`bill-amount-${bill.id}`}
-                      name={`bill-amount-${bill.id}`}
-                      placeholder="Enter amount"
-                      className={`w-24 border rounded p-2 text-center block text-sm font-bold ${bill.monthlyAmount === 0 ? 'bg-yellow-50 border-yellow-300 text-gray-400' : 'bg-gray-50 border-gray-300'
-                        }`}
-                      value={bill.monthlyAmount || ''}
-                      onChange={(e) => onUpdate(bill.id, { monthlyAmount: Number(e.target.value) })}
-                    />
-                    {bill.monthlyAmount === 0 && (
-                      <span className="text-[9px] text-yellow-600">⚠ Add amount</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-4">
-                    <div className="space-y-1">
-                      <div className="flex items-center space-x-1">
-                        <span className="text-xs font-bold text-green-600">₹{calculateTotalPaid(bill)}</span>
-                        <button
-                          onClick={() => setAddingPaymentFor(bill.id)}
-                          className="text-indigo-500 hover:text-indigo-700 text-xs"
-                          title="Add Payment"
-                        >
-                          <i className="fa-solid fa-plus-circle"></i>
+                    <div>
+                      <h4 className="font-bold text-[#1a1c2e] text-lg leading-tight">{bill.cardName}</h4>
+                      <span className="inline-block mt-1 px-2.5 py-0.5 bg-gray-100 rounded-md text-[9px] text-gray-600 font-bold uppercase tracking-wide">{bill.category}</span>
+                    </div>
+                  </div>
+                  <div className="text-right bg-gray-50 px-3 py-1.5 rounded-xl border border-gray-100">
+                    <p className="text-[9px] text-gray-400 font-black uppercase tracking-widest mb-0.5">Due Date</p>
+                    <p className="font-bold text-gray-800 text-sm whitespace-nowrap">{bill.dueDate || 'N/A'}</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div className="bg-white border text-center border-gray-100 rounded-2xl p-3 shadow-sm relative pt-6 mt-2">
+                    <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-white px-2 text-[9px] text-gray-400 font-bold uppercase tracking-widest">Monthly Due</span>
+                    <div className="relative flex items-center justify-center">
+                      <span className="text-gray-400 font-bold text-sm mr-1">₹</span>
+                      <input
+                        type="number"
+                        placeholder="0"
+                        className={`w-full bg-transparent text-center font-black text-xl outline-none ${bill.monthlyAmount === 0 ? 'text-yellow-500' : 'text-gray-800'}`}
+                        value={bill.monthlyAmount || ''}
+                        onChange={(e) => onUpdate(bill.id, { monthlyAmount: Number(e.target.value) })}
+                      />
+                    </div>
+                  </div>
+                  <div className="bg-white border text-center border-gray-100 rounded-2xl p-3 shadow-sm relative pt-6 mt-2">
+                    <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-white px-2 text-[9px] text-gray-400 font-bold uppercase tracking-widest">Balance</span>
+                    <p className={`font-black text-xl truncate ${bill.monthlyAmount - calculateTotalPaid(bill) > 0 ? 'text-red-500' : 'text-green-500'}`}>
+                      ₹{bill.monthlyAmount - calculateTotalPaid(bill)}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between bg-gradient-to-r from-gray-50 to-white border border-gray-100 rounded-2xl p-3 mb-4">
+                  <div>
+                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wide mb-0.5">Paid History</p>
+                    <p className="font-black text-green-600 text-lg">₹{calculateTotalPaid(bill)}</p>
+                    {bill.lastPaymentDate && <p className="text-[9px] text-gray-400 font-semibold mt-0.5">Last: {bill.lastPaymentDate}</p>}
+                  </div>
+                  <button
+                    onClick={() => setAddingPaymentFor(bill.id)}
+                    className="bg-indigo-600 text-white px-5 py-2.5 rounded-xl text-xs font-bold shadow-md hover:bg-indigo-700 hover:shadow-lg transition-all transform hover:-translate-y-0.5"
+                  >
+                    <i className="fa-solid fa-plus mr-1.5"></i> Add Payment
+                  </button>
+                </div>
+
+                {bill.isEmi && (
+                  <div className="flex items-center justify-between mb-4 text-xs bg-indigo-50/80 border border-indigo-100 text-indigo-700 rounded-xl py-2 px-4 shadow-sm">
+                    <span className="font-bold flex items-center"><i className="fa-solid fa-rotate mr-2 opacity-70"></i> {bill.emiDetails}</span>
+                    <span className="font-black bg-white px-2 py-0.5 rounded-md text-[10px]">{bill.tenure}</span>
+                  </div>
+                )}
+
+                {bill.payments && bill.payments.length > 0 && (
+                  <div className="space-y-1.5 mb-4 border-t border-gray-50 pt-3">
+                    <p className="text-[9px] text-gray-400 font-bold uppercase tracking-wider mb-2">Recent Payments</p>
+                    {bill.payments.slice(-3).map(payment => (
+                      <div key={payment.id} className="flex justify-between items-center text-xs px-3 py-2 bg-gray-50/50 rounded-xl border border-gray-100 hover:bg-gray-50 transition-colors">
+                        <span className="font-bold text-gray-700">₹{payment.amount} <span className="text-gray-400/80 ml-2 font-medium">{payment.date}</span></span>
+                        <button onClick={() => handleDeletePayment(bill.id, payment.id)} className="w-6 h-6 rounded-full bg-white border border-gray-200 text-red-500 flex items-center justify-center hover:bg-red-50 hover:border-red-100 hover:scale-110 transition-all shadow-sm">
+                          <i className="fa-solid fa-times text-[10px]"></i>
                         </button>
                       </div>
-                      {bill.payments && bill.payments.length > 0 && (
-                        <div className="text-[9px] text-gray-500 space-y-0.5">
-                          {bill.payments.slice(-2).map(payment => (
-                            <div key={payment.id} className="flex items-center justify-between bg-gray-50 px-1 py-0.5 rounded">
-                              <span>₹{payment.amount} • {payment.date}</span>
-                              <button
-                                onClick={() => handleDeletePayment(bill.id, payment.id)}
-                                className="text-red-400 hover:text-red-600 ml-1"
-                              >
-                                <i className="fa-solid fa-times"></i>
-                              </button>
-                            </div>
-                          ))}
-                          {bill.payments.length > 2 && (
-                            <span className="text-gray-400">+{bill.payments.length - 2} more</span>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </td>
-                  <td className={`px-4 py-4 font-bold ${bill.monthlyAmount - calculateTotalPaid(bill) > 0 ? 'text-red-500' : 'text-green-500'}`}>
-                    ₹{bill.monthlyAmount - calculateTotalPaid(bill)}
-                  </td>
-                  <td className="px-4 py-4">
-                    <button
-                      onClick={() => {
-                        if (window.confirm(`Delete ${bill.cardName} bill?`)) {
-                          onDelete(bill.id);
-                        }
-                      }}
-                      className="text-red-400 hover:text-red-600 p-2"
-                      title="Delete Bill"
-                    >
-                      <i className="fa-solid fa-trash"></i>
-                    </button>
-                  </td>
-                </tr>
-              ))}
-              {filteredBills.length === 0 && !isAdding && (
-                <tr>
-                  <td colSpan={8} className="px-4 py-10 text-center text-gray-400">No bills found for this month.</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>)}
+                    ))}
+                  </div>
+                )}
+
+                <div className="flex justify-end pt-1">
+                  <button
+                    onClick={() => {
+                      if (window.confirm(`Delete ${bill.cardName} bill?`)) {
+                        onDelete(bill.id);
+                      }
+                    }}
+                    className="text-gray-400 hover:text-red-600 flex items-center text-xs font-bold transition-colors px-2 py-1"
+                  >
+                    <i className="fa-solid fa-trash mr-1.5 opacity-50"></i> Remove Asset
+                  </button>
+                </div>
+
+              </div>
+            ))
+          )}
+        </div>
+      )}
       {/* Add Payment Modal */}
       {addingPaymentFor && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
