@@ -236,9 +236,12 @@ export class SyncService {
         const familyId = this.getFamilyId();
         if (!familyId) return;
 
+        const userName = members.length > 0 ? members[0] : "Admin";
+
         const familyRef = doc(db, 'family_data', familyId);
         await setDoc(familyRef, {
             members,
+            user_name: userName,
             onboarding_complete: onboardingComplete,
             last_updated: new Date().toISOString()
         }, { merge: true });
