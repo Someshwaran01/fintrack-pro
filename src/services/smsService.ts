@@ -21,9 +21,9 @@ export class SmsService {
     }
 
     try {
-      const { permissions } = await SMSInboxReader.requestPermissions();
-      // Usually resolves with an object of permissions
-      return permissions === 'granted' || permissions === 'true';
+      const { sms } = await SMSInboxReader.requestPermissions();
+      // Most Capacitor plugins return an object with a property named after the permission
+      return sms === 'granted';
     } catch (error) {
       console.error('Failed to request SMS permissions:', error);
       return false;

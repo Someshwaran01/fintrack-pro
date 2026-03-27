@@ -16,11 +16,17 @@ const FIREBASE_CONFIG = {
 
 // Check if actual config is provided instead of placeholders
 export const isFirebaseConfigured = () => {
-    return Boolean(
+    const isConfigured = Boolean(
         FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.apiKey !== "YOUR_API_KEY" &&
         FIREBASE_CONFIG.projectId && FIREBASE_CONFIG.projectId !== "YOUR_PROJECT_ID"
     );
+    if (!isConfigured) {
+        console.warn('Firebase is NOT fully configured. Placeholders are being used.');
+    }
+    return isConfigured;
 };
+
+console.log('Initializing Firebase with Auth Domain:', FIREBASE_CONFIG.authDomain);
 
 // Initialize Firebase
 const app = initializeApp(FIREBASE_CONFIG);
