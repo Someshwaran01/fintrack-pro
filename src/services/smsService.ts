@@ -21,22 +21,28 @@ export class SmsService {
     }
 
     try {
-      // 1. Check if permission is already granted
       const check = await SMSInboxReader.checkPermissions();
       console.log('Current SMS Permission Status:', check);
       
-      if (check.sms === 'granted' || (check as any).permissions === 'granted') {
-        return true;
-      }
+      // Use a helper to check for any truthy "granted" state in the response
+      const isGranted = (obj: any) => {
+        const str = JSON.stringify(obj || {}).toLowerCase();
+        return str.includes('"granted"') || str.includes(':true') || str.includes(':"true"');
+      };
 
-      // 2. If not granted, request it
+      if (isGranted(check)) return true;
+
       const request = await SMSInboxReader.requestPermissions();
       console.log('Requested SMS Permission Status:', request);
       
-      const status = request.sms || (request as any).permissions;
-      return status === 'granted';
-    } catch (error) {
+      if (isGranted(request)) return true;
+
+      // Final diagnostic alert for the user if it still fails
+      alert(`Debug: Permission is NOT granted.\nResponse: ${JSON.stringify(request)}`);
+      return false;
+    } catch (error: any) {
       console.error('Failed to handle SMS permissions:', error);
+      alert(`Debug Error: ${error.message}`);
       return false;
     }
   }
@@ -86,7 +92,10 @@ export class SmsService {
   private static isValidBankSender(senderId: string): boolean {
     if (!senderId) return false;
     const cleanId = senderId.toUpperCase();
-    return cleanId.endsWith('-S') || cleanId.endsWith('-T');
+    // Broadening the filter: most bank alerts in India start with alphabets like AD-, BX- etc.
+    // and often contain 'BK' (Bank), 'HDFC', 'ICICI', 'SBI', 'AXIS'
+    const bankKeywords = ['-S', '-T', 'BK', 'BANK', 'HDFC', 'ICICI', 'SBI', 'AXIS', 'SBI', 'PNB', 'BOB'];
+    return bankKeywords.some(keyword => cleanId.includes(keyword));
   }
 
   /**
