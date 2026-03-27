@@ -1,7 +1,8 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CreditCardBill, Payment, CreditCardLimit } from '../types';
 import { generateMonthOptions, BILL_CATEGORIES } from '../constants';
+import { getNextMonth } from '../utils/helpers';
 
 interface CardTrackerProps {
   bills: CreditCardBill[];
@@ -16,7 +17,7 @@ interface CardTrackerProps {
   onboardingComplete?: boolean;
 }
 
-const CardTracker: React.FC<CardTrackerProps> = ({ bills, ccLimits: propsCCLimits, onboardingComplete, onAdd, onAddMultiple, onUpdate, onDelete, onUpdateCCLimits, selectedMonth, onMonthChange }) => {
+const CardTracker: React.FC<CardTrackerProps> = ({ bills, ccLimits: propsCCLimits, onAdd, onUpdate, onDelete, onUpdateCCLimits, selectedMonth, onMonthChange }) => {
   const [isAdding, setIsAdding] = useState(false);
   const [addingPaymentFor, setAddingPaymentFor] = useState<string | null>(null);
   const [newPayment, setNewPayment] = useState({ amount: 0, date: new Date().toISOString().split('T')[0], note: '' });
@@ -244,7 +245,7 @@ const CardTracker: React.FC<CardTrackerProps> = ({ bills, ccLimits: propsCCLimit
       creditLimit: 0,
       notes: '',
       category: BILL_CATEGORIES[0],
-      dueDate: '',
+      formDueDate: '',
       monthlyAmount: 0
     });
   };
@@ -700,7 +701,7 @@ const CardTracker: React.FC<CardTrackerProps> = ({ bills, ccLimits: propsCCLimit
                     name="emi-details"
                     placeholder="e.g. iPhone"
                     className="w-full border p-3 rounded-xl outline-none"
-                    value={newBill.emiDetails}
+                    value={newBill.emiDetails || ''}
                     onChange={e => setNewBill({ ...newBill, emiDetails: e.target.value })}
                   />
                 </div>
@@ -711,7 +712,7 @@ const CardTracker: React.FC<CardTrackerProps> = ({ bills, ccLimits: propsCCLimit
                     name="emi-tenure"
                     placeholder="e.g. 1/12"
                     className="w-full border p-3 rounded-xl outline-none"
-                    value={newBill.tenure}
+                    value={newBill.tenure || ''}
                     onChange={e => setNewBill({ ...newBill, tenure: e.target.value })}
                   />
                 </div>
