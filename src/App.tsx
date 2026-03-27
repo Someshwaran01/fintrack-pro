@@ -15,7 +15,7 @@ import ChatBot from './components/ChatBot';
 
 // v1.1.0 - Multi-user Sync with Firebase
 const App: React.FC = () => {
-  const [familyId, setFamilyId] = useState<string | null>(null);
+  const [familyId, setFamilyId] = useState<string | null>(SyncService.getFamilyId());
   const [isLoadingSync, setIsLoadingSync] = useState(false);
   const [activeTab, setActiveTab] = useState<AppTab>('dashboard');
   const [bills, setBills] = useState<CreditCardBill[]>(StorageService.getBills());
@@ -105,13 +105,7 @@ const App: React.FC = () => {
     }
   }, [selectedMonth, ccLimits, onboardingComplete, cloudDataLoaded.current]);
 
-  // Initialize family sync
-  useEffect(() => {
-    const existingFamilyId = SyncService.getFamilyId();
-    if (existingFamilyId) {
-      setFamilyId(existingFamilyId);
-    }
-  }, []);
+
 
   const handleOnboardingComplete = async (newMembers: string[], newCCLimits: CreditCardLimit[]) => {
     setMembers(newMembers);
