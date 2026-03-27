@@ -1,6 +1,6 @@
 import { Capacitor } from '@capacitor/core';
 // Import the SMS reader once the user installs it
-import { SmsReader } from '@solimanware/capacitor-sms-reader';
+import { SMSInboxReader } from '@solimanware/capacitor-sms-reader';
 
 export interface ParsedTransaction {
   amount: number;
@@ -21,7 +21,7 @@ export class SmsService {
     }
 
     try {
-      const { permissions } = await SmsReader.requestPermissions();
+      const { permissions } = await SMSInboxReader.requestPermissions();
       // Usually resolves with an object of permissions
       return permissions === 'granted' || permissions === 'true';
     } catch (error) {
@@ -38,7 +38,7 @@ export class SmsService {
 
     try {
       // Basic fallback to fetch SMS
-      const { messages } = await SmsReader.getMessages({
+      const { messages } = await SMSInboxReader.getMessages({
         box: 'inbox',
         read: 1, // Only read messages or 0 for unread (varies by plugin version)
         count: 50 // Fetch last 50

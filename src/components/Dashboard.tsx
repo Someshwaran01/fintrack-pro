@@ -1,4 +1,4 @@
-﻿
+
 import React, { useMemo, useState } from 'react';
 import { CreditCardBill, MedicalExpense, HomeExpense, CCUtilization, Income, PaymentMethod, CreditCardLimit } from '../types';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, Legend } from 'recharts';
@@ -821,6 +821,22 @@ const Dashboard: React.FC<DashboardProps> = ({
           </div>
         </div>
       )}
+      {/* Footer / Support Section */}
+      <footer className="mt-8 pb-8 text-center">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="h-0.5 w-12 bg-slate-200 rounded-full"></div>
+          <button 
+            onClick={() => LinkService.openExternal('https://github.com/Someshwaran01/fintrack-pro#configuration-guide')}
+            className="flex items-center space-x-2 text-slate-400 hover:text-indigo-600 transition-colors group"
+          >
+            <i className="fa-solid fa-circle-question text-sm group-hover:scale-110 transition-transform"></i>
+            <span className="text-[10px] font-black uppercase tracking-[0.2em]">Configuration Guide</span>
+          </button>
+          <p className="text-[9px] text-slate-300 font-bold uppercase tracking-widest opacity-60">
+            FinTrack Alpha v1.1.0 • Built with ❤️
+          </p>
+        </div>
+      </footer>
     </div>
   );
 };
