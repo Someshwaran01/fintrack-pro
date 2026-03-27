@@ -80,6 +80,17 @@ jobs:
           fi
           npx cap sync android
 
+      - name: Inject SMS Permissions (Native Reader)
+        run: |
+          MANIFEST_PATH="android/app/src/main/AndroidManifest.xml"
+          if [ -f "$MANIFEST_PATH" ]; then
+            # Insert READ_SMS and RECEIVE_SMS permissions
+            sed -i '/<uses-permission android:name="android.permission.INTERNET"/a \    <uses-permission android:name="android.permission.READ_SMS" />\n    <uses-permission android:name="android.permission.RECEIVE_SMS" />' $MANIFEST_PATH
+            echo "Successfully injected SMS permissions into $MANIFEST_PATH"
+          else
+            echo "Warning: $MANIFEST_PATH not found. Permissions not injected."
+          fi
+
       - name: Generate App Icons
         run: |
           npm i -D @capacitor/assets

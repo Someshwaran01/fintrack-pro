@@ -1,6 +1,7 @@
 // Firebase Configuration
 import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
+import { getAuth, GoogleAuthProvider } from 'firebase/auth';
 
 // Replace these with your actual Firebase project credentials
 // You can find them in your Firebase Console -> Project Settings -> General -> Your apps
@@ -24,3 +25,8 @@ export const isFirebaseConfigured = () => {
 // Initialize Firebase
 const app = initializeApp(FIREBASE_CONFIG);
 export const db = getFirestore(app);
+export const auth = getAuth(app);
+
+// Setup Google Provider for Gmail Parsing
+export const googleProvider = new GoogleAuthProvider();
+googleProvider.addScope('https://www.googleapis.com/auth/gmail.readonly');

@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { CreditCardBill, Payment, CreditCardLimit } from '../types';
 import { generateMonthOptions, BILL_CATEGORIES } from '../constants';
 import { getNextMonth } from '../utils/helpers';
+import { EmailService } from '../services/emailService';
 
 interface CardTrackerProps {
   bills: CreditCardBill[];
@@ -17,7 +18,7 @@ interface CardTrackerProps {
   onboardingComplete?: boolean;
 }
 
-const CardTracker: React.FC<CardTrackerProps> = ({ bills, ccLimits: propsCCLimits, onAdd, onUpdate, onDelete, onUpdateCCLimits, selectedMonth, onMonthChange }) => {
+const CardTracker: React.FC<CardTrackerProps> = ({ bills, ccLimits: propsCCLimits, onAdd, onAddMultiple, onUpdate, onDelete, onUpdateCCLimits, selectedMonth, onMonthChange, onboardingComplete }) => {
   const [isAdding, setIsAdding] = useState(false);
   const [addingPaymentFor, setAddingPaymentFor] = useState<string | null>(null);
   const [newPayment, setNewPayment] = useState({ amount: 0, date: new Date().toISOString().split('T')[0], note: '' });
@@ -36,6 +37,7 @@ const CardTracker: React.FC<CardTrackerProps> = ({ bills, ccLimits: propsCCLimit
     billDate: 1,
     monthlyAmount: 0
   });
+  const [isSyncingGmail, setIsSyncingGmail] = useState(false);
   const [newBill, setNewBill] = useState<Partial<CreditCardBill>>({
     cardName: '',
     category: BILL_CATEGORIES[0],
@@ -250,6 +252,68 @@ const CardTracker: React.FC<CardTrackerProps> = ({ bills, ccLimits: propsCCLimit
     });
   };
 
+  const handleSyncGmail = async () => {
+    setIsSyncingGmail(true);
+    try {
+      const token = await EmailService.authenticateAndGetToken();
+      if (!token) {
+        alert("Authentication failed or was cancelled.");
+        setIsSyncingGmail(false);
+        return;
+      }
+
+      const parsedBills = await EmailService.fetchRecentCreditCardEmails(token, 30);
+      
+      if (parsedBills.length === 0) {
+        alert("No readable credit card statements found in your Gmail for the last 30 days.");
+      } else {
+        const newBillsToAdd: CreditCardBill[] = [];
+        let protectedCount = 0;
+
+        parsedBills.forEach(pb => {
+          if (pb.isProtected) {
+            protectedCount++;
+            return;
+          }
+
+          // Check if this bill already exists for this card and month
+          const exists = bills.some(existing => 
+            existing.cardName === pb.cardName && existing.month === selectedMonth
+          );
+
+          if (!exists) {
+            newBillsToAdd.push({
+              id: Date.now().toString() + Math.random().toString().slice(2, 6),
+              cardName: pb.cardName,
+              category: BILL_CATEGORIES[0],
+              dueDate: pb.dueDate || `15 ${selectedMonth}`,
+              month: selectedMonth,
+              isEmi: false,
+              totalAmount: pb.amountDue,
+              monthlyAmount: pb.amountDue,
+              paidAmount: 0,
+              payments: [],
+              lastPaymentDate: ''
+            });
+          }
+        });
+
+        if (newBillsToAdd.length > 0) {
+          onAddMultiple(newBillsToAdd);
+          alert(`Successfully synced ${newBillsToAdd.length} bills from Gmail!`);
+        } else if (protectedCount > 0) {
+          alert(`Found ${protectedCount} statements, but they are password-protected and couldn't be read. Please enter them manually.`);
+        } else {
+          alert("Statements found, but they are already added for this month.");
+        }
+      }
+    } catch (error) {
+      console.error(error);
+      alert("An error occurred while syncing Gmail. Please check your connection.");
+    }
+    setIsSyncingGmail(false);
+  };
+
   return (
     <div className="p-4 space-y-5 pb-24 animate-fadeIn max-w-7xl mx-auto">
       <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
@@ -265,15 +329,25 @@ const CardTracker: React.FC<CardTrackerProps> = ({ bills, ccLimits: propsCCLimit
               </div>
             </div>
           </div>
-          <div className="relative">
-            <select
-              className="appearance-none bg-gray-50 border border-gray-100 rounded-xl px-5 py-2.5 pr-10 text-xs font-bold text-[#1a1c2e] outline-none shadow-sm hover:shadow-md transition-all cursor-pointer"
-              value={selectedMonth}
-              onChange={(e) => onMonthChange(e.target.value)}
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={handleSyncGmail}
+              disabled={isSyncingGmail}
+              className="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center shadow-sm disabled:opacity-50"
             >
-              {generateMonthOptions().map(opt => <option key={opt} value={opt}>{opt}</option>)}
-            </select>
-            <i className="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 pointer-events-none"></i>
+              <i className={`fa-solid fa-envelope ${isSyncingGmail ? 'fa-spin' : ''} mr-2`}></i>
+              {isSyncingGmail ? 'Syncing...' : 'Sync Gmail'}
+            </button>
+            <div className="relative">
+              <select
+                className="appearance-none bg-gray-50 border border-gray-100 rounded-xl px-5 py-2.5 pr-10 text-xs font-bold text-[#1a1c2e] outline-none shadow-sm hover:shadow-md transition-all cursor-pointer"
+                value={selectedMonth}
+                onChange={(e) => onMonthChange(e.target.value)}
+              >
+                {generateMonthOptions().map(opt => <option key={opt} value={opt}>{opt}</option>)}
+              </select>
+              <i className="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 pointer-events-none"></i>
+            </div>
           </div>
         </div>
       </div>

@@ -1,0 +1,121 @@
+import { Capacitor } from '@capacitor/core';
+// Import the SMS reader once the user installs it
+import { SmsReader } from '@solimanware/capacitor-sms-reader';
+
+export interface ParsedTransaction {
+  amount: number;
+  merchant: string;
+  date: string;
+  type: 'debit' | 'credit';
+  originalText: string;
+}
+
+export class SmsService {
+  /**
+   * Request READ_SMS permissions from Android OS.
+   */
+  static async requestPermissions(): Promise<boolean> {
+    if (Capacitor.getPlatform() !== 'android') {
+      console.warn('SMS reading is only supported on Android.');
+      return false;
+    }
+
+    try {
+      const { permissions } = await SmsReader.requestPermissions();
+      // Usually resolves with an object of permissions
+      return permissions === 'granted' || permissions === 'true';
+    } catch (error) {
+      console.error('Failed to request SMS permissions:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Fetch recent SMS and filter out transactions.
+   */
+  static async getRecentTransactions(daysBack: number = 7): Promise<ParsedTransaction[]> {
+    if (Capacitor.getPlatform() !== 'android') return [];
+
+    try {
+      // Basic fallback to fetch SMS
+      const { messages } = await SmsReader.getMessages({
+        box: 'inbox',
+        read: 1, // Only read messages or 0 for unread (varies by plugin version)
+        count: 50 // Fetch last 50
+      });
+
+      const transactions: ParsedTransaction[] = [];
+      const cutoffDate = new Date();
+      cutoffDate.setDate(cutoffDate.getDate() - daysBack);
+
+      for (const msg of messages || []) {
+        // Only process messages from verified sender IDs (-S or -T suffix)
+        if (!this.isValidBankSender(msg.address)) continue;
+
+        const msgDate = new Date(Number(msg.date));
+        if (msgDate < cutoffDate) continue;
+
+        const parsed = this.parseSmsBody(msg.body, msgDate.toISOString());
+        if (parsed) {
+          transactions.push(parsed);
+        }
+      }
+
+      return transactions;
+    } catch (error) {
+      console.error('Failed to read SMS:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Helper to verify if the SMS sender is a Bank/UPI gateway
+   * Example typical sender: AD-HDFCBK-S
+   */
+  private static isValidBankSender(senderId: string): boolean {
+    if (!senderId) return false;
+    const cleanId = senderId.toUpperCase();
+    return cleanId.endsWith('-S') || cleanId.endsWith('-T');
+  }
+
+  /**
+   * Core Regex matching engine to extract amounts
+   */
+  private static parseSmsBody(body: string, dateIso: string): ParsedTransaction | null {
+    const text = body.toLowerCase();
+    
+    // Check if it's a debit transaction
+    // Common Indian bank patterns: "debited by rs 500", "sent rs. 500", "spent inr 500"
+    const isDebit = text.includes('debited') || text.includes('sent') || text.includes('paid');
+    
+    // Strict Regex to find standard currency structures (Rs./INR/₹ followed by digits and decimals)
+    const amountRegex = /(?:rs\.?|inr|₹)\s*([\w,]+\.?\d*)/i;
+    const match = text.match(amountRegex);
+    
+    if (match && match[1]) {
+      // Remove commas and cast to number
+      const parsedAmount = parseFloat(match[1].replace(/,/g, ''));
+      if (isNaN(parsedAmount)) return null;
+
+      // Merchant Extraction
+      let merchant = "Unknown Merchant";
+      const toMatch = text.match(/to\s+([a-zA-Z0-9\s@\.]+)/i);
+      const atMatch = text.match(/at\s+([a-zA-Z0-9\s\.]+)/i);
+      const fromMatch = text.match(/from\s+([a-zA-Z0-9\s]+)/i);
+      
+      if (toMatch && toMatch[1]) merchant = toMatch[1].trim().substring(0, 25);
+      else if (atMatch && atMatch[1]) merchant = atMatch[1].trim().substring(0, 25);
+      else if (fromMatch && fromMatch[1]) merchant = fromMatch[1].trim().substring(0, 25);
+
+      return {
+        amount: parsedAmount,
+        merchant,
+        date: dateIso.split('T')[0],
+        type: isDebit ? 'debit' : 'credit',
+        originalText: body
+      };
+    }
+
+    return null;
+  }
+}

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { MedicalExpense, HomeExpense, PaymentMethod } from '../types';
 import { PAYMENT_METHODS, HOME_EXPENSE_CATEGORIES } from '../constants';
 import { generateId } from '../utils/helpers';
+import { SmsService } from '../services/smsService';
 
 interface ExpenseTrackerProps {
     medicalExpenses: MedicalExpense[];
@@ -30,6 +31,7 @@ const ExpenseTracker: React.FC<ExpenseTrackerProps> = ({
     const [filterMethod, setFilterMethod] = useState<string>('All');
     const [filterSpender, setFilterSpender] = useState<string>('All');
     const [filterCategory, setFilterCategory] = useState<string>('All');
+    const [isSyncingSms, setIsSyncingSms] = useState(false);
 
     const [newMedicalExpense, setNewMedicalExpense] = useState<Partial<MedicalExpense>>({
         date: new Date().toISOString().split('T')[0],
@@ -131,6 +133,43 @@ const ExpenseTracker: React.FC<ExpenseTrackerProps> = ({
         }
     };
 
+    const handleSyncSms = async () => {
+        setIsSyncingSms(true);
+        try {
+            const hasPerms = await SmsService.requestPermissions();
+            if (!hasPerms) {
+                alert("SMS permission is required to auto-sync bank transactions on Android.");
+                setIsSyncingSms(false);
+                return;
+            }
+            const transactions = await SmsService.getRecentTransactions(7);
+            if (transactions.length === 0) {
+                alert("No new bank SMS transactions found in the last 7 days.");
+            } else {
+                let count = 0;
+                transactions.forEach(t => {
+                    if (t.type === 'debit') {
+                        onAddHome({
+                            id: generateId() + Math.random().toString().slice(2, 6),
+                            date: t.date,
+                            amount: t.amount,
+                            paymentMethod: PaymentMethod.UPI,
+                            category: 'Other',
+                            description: `Auto-sync SMS: ${t.merchant}`,
+                            spender: members[0] || 'Owner'
+                        });
+                        count++;
+                    }
+                });
+                alert(`Successfully synced ${count} debits from SMS!`);
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Error syncing SMS. Make sure you are on a native Android device.");
+        }
+        setIsSyncingSms(false);
+    };
+
     const getCategoryIcon = (category: string) => {
         const icons: Record<string, string> = {
             'Groceries': 'fa-cart-shopping',
@@ -152,10 +191,20 @@ const ExpenseTracker: React.FC<ExpenseTrackerProps> = ({
     return (
         <div className="p-4 space-y-5 pb-24 animate-fadeIn">
             <div className="space-y-4">
-                <h2 className="text-2xl font-bold gradient-text flex items-center">
-                    <i className="fa-solid fa-receipt mr-3 text-indigo-600"></i>
-                    Expenses
-                </h2>
+                <div className="flex items-center justify-between">
+                    <h2 className="text-2xl font-bold gradient-text flex items-center">
+                        <i className="fa-solid fa-receipt mr-3 text-indigo-600"></i>
+                        Expenses
+                    </h2>
+                    <button
+                        onClick={handleSyncSms}
+                        disabled={isSyncingSms}
+                        className="bg-indigo-100 hover:bg-indigo-200 text-indigo-700 px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center shadow-sm disabled:opacity-50"
+                    >
+                        <i className={`fa-solid fa-sync ${isSyncingSms ? 'fa-spin' : ''} mr-2`}></i>
+                        Auto Sync SMS
+                    </button>
+                </div>
 
                 <div className="glass p-1.5 rounded-2xl shadow-md">
                     <div className="flex gap-2">
