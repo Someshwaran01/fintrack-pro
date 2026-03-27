@@ -21,11 +21,22 @@ export class SmsService {
     }
 
     try {
-      const { sms } = await SMSInboxReader.requestPermissions();
-      // Most Capacitor plugins return an object with a property named after the permission
-      return sms === 'granted';
+      // 1. Check if permission is already granted
+      const check = await SMSInboxReader.checkPermissions();
+      console.log('Current SMS Permission Status:', check);
+      
+      if (check.sms === 'granted' || (check as any).permissions === 'granted') {
+        return true;
+      }
+
+      // 2. If not granted, request it
+      const request = await SMSInboxReader.requestPermissions();
+      console.log('Requested SMS Permission Status:', request);
+      
+      const status = request.sms || (request as any).permissions;
+      return status === 'granted';
     } catch (error) {
-      console.error('Failed to request SMS permissions:', error);
+      console.error('Failed to handle SMS permissions:', error);
       return false;
     }
   }
