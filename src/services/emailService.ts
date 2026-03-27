@@ -1,5 +1,6 @@
-import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import { signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider } from 'firebase/auth';
 import { auth, googleProvider } from '../config/firebase';
+import { Capacitor } from '@capacitor/core';
 
 export interface ParsedBill {
     cardName: string;
@@ -15,15 +16,31 @@ export class EmailService {
      * Authenticate with Google and get the Gmail API access token.
      */
     static async authenticateAndGetToken(): Promise<string | null> {
+        const isNative = Capacitor.isNativePlatform();
+        
         try {
+            if (isNative) {
+                // On Android, popups are often blocked or fail in WebViews. 
+                // We use redirect instead, or inform the user to check the guide.
+                console.log('Native platform detected, initiating Google Sign-In...');
+                await signInWithRedirect(auth, googleProvider);
+                // Note: getRedirectResult would normally be called on app reload
+                return null; 
+            }
+
             const result = await signInWithPopup(auth, googleProvider);
             const credential = GoogleAuthProvider.credentialFromResult(result);
             if (credential?.accessToken) {
                 return credential.accessToken;
             }
             return null;
-        } catch (error) {
+        } catch (error: any) {
             console.error('Google Sign-In Error:', error);
+            if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
+                alert("Authentication was cancelled. If you are on Android, please ensure you have followed the 'gmail_sync_setup_guide.md' and have a stable internet connection.");
+            } else {
+                alert(`Authentication failed: ${error.message}`);
+            }
             return null;
         }
     }
