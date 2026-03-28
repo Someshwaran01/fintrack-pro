@@ -27,9 +27,7 @@ const config: CapacitorConfig = {
         'email',
         'https://www.googleapis.com/auth/gmail.readonly'
       ],
-      // TODO: Replace with your Web Client ID from:
-      // Firebase Console -> Project Settings -> Web App -> OAuth 2.0 Client ID
-      serverClientId: 'YOUR_WEB_CLIENT_ID.apps.googleusercontent.com',
+      serverClientId: '109932659345-h5jjqj85o6a2jtflqheduld0lifa2ns8.apps.googleusercontent.com',
       forceCodeForRefreshToken: true
     }
   }
