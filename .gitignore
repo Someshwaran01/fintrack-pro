@@ -35,3 +35,8 @@ ios/
 *.jks
 key.properties
 
+
+# Firebase / Google Services - NEVER commit (use GitHub Secrets)
+google-services.json
+android/app/google-services.json
+GoogleService-Info.plist
