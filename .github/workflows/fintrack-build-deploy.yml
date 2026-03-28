@@ -145,8 +145,15 @@ jobs:
       # Get value by running: base64 -w 0 google-services.json
       - name: Inject google-services.json
         run: |
-          echo "${{ secrets.GOOGLE_SERVICES_JSON }}" | base64 --decode > android/app/google-services.json
-          echo "✅ google-services.json injected"
+          # Strip any accidental spaces/newlines and decode
+          echo "${{ secrets.GOOGLE_SERVICES_JSON }}" | tr -d '[:space:]' | base64 --decode > android/app/google-services.json
+          
+          # Basic validation to ensure it's not empty
+          if [ ! -s android/app/google-services.json ]; then
+            echo "❌ ERROR: Decoded google-services.json is empty. Check your Base64 secret!"
+            exit 1
+          fi
+          echo "✅ google-services.json injected successfully"
 
       # ── Fix SMS + Phone permissions in AndroidManifest ─────
       # Fixes: "Missing READ_PHONE_STATE permission" debug error
