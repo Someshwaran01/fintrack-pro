@@ -1,0 +1,299 @@
+name: FinTrack Pro — Build & Deploy
+
+# ─────────────────────────────────────────────────────────────
+#  TRIGGERS
+#  • push to Playstore  → Runs the Play Store release job
+#  • push to main/master → Runs the GitHub Pages deploy job
+#  • Manual dispatch    → Choose which job to run + version bump
+# ─────────────────────────────────────────────────────────────
+on:
+  push:
+    branches: [Playstore, main, master]
+  workflow_dispatch:
+    inputs:
+      job:
+        description: 'Which job to run?'
+        required: true
+        default: 'playstore'
+        type: choice
+        options:
+          - playstore
+          - pages
+          - both
+      version:
+        description: 'Version bump type (for Play Store build)'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+# ─────────────────────────────────────────────────────────────
+#  PERMISSIONS
+# ─────────────────────────────────────────────────────────────
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "fintrack-build-${{ github.ref }}"
+  cancel-in-progress: false
+
+# ─────────────────────────────────────────────────────────────
+#  SHARED ENV — all secrets used across both jobs
+# ─────────────────────────────────────────────────────────────
+env:
+  NODE_VERSION: "20"
+
+jobs:
+
+  # ═══════════════════════════════════════════════════════════
+  #  JOB 1 — PLAY STORE RELEASE (AAB)
+  #  Runs on: push to Playstore branch OR manual dispatch
+  # ═══════════════════════════════════════════════════════════
+  playstore_release:
+    name: "🤖 Play Store Release Build"
+    runs-on: ubuntu-latest
+
+    # Run if: push to Playstore branch, OR manual dispatch selecting playstore/both
+    if: |
+      github.ref == 'refs/heads/Playstore' ||
+      (github.event_name == 'workflow_dispatch' &&
+        (github.event.inputs.job == 'playstore' || github.event.inputs.job == 'both'))
+
+    steps:
+      # ── Checkout ───────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # ── Node.js ────────────────────────────────────────────
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+
+      # ── Java (required for Android build) ──────────────────
+      - name: Setup Java JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      # ── Android SDK ────────────────────────────────────────
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      # ── Version management ─────────────────────────────────
+      - name: Get current version
+        id: pkg_version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Bump version (manual dispatch only)
+        id: version_bump
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          npm version ${{ github.event.inputs.version }} --no-git-tag-version
+          NEW_VERSION=$(node -p "require('./package.json').version")
+          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Set release version
+        id: release_version
+        run: |
+          if [ "${{ steps.version_bump.outputs.version }}" != "" ]; then
+            echo "version=${{ steps.version_bump.outputs.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "version=${{ steps.pkg_version.outputs.version }}" >> $GITHUB_OUTPUT
+          fi
+
+      # ── Install dependencies ───────────────────────────────
+      - name: Install dependencies
+        run: npm install --legacy-peer-deps
+
+      # ── Build web assets ───────────────────────────────────
+      - name: Build web application
+        run: npm run build
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          VITE_GEMINI_API_KEY: ${{ secrets.VITE_GEMINI_API_KEY }}
+          VITE_GROQ_API_KEY: ${{ secrets.VITE_GROQ_API_KEY }}
+          VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
+          VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
+          VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
+          VITE_FIREBASE_STORAGE_BUCKET: ${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}
+          VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
+          VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
+
+      # ── Capacitor Android setup ────────────────────────────
+      - name: Initialize & sync Capacitor Android
+        run: |
+          if [ ! -d "android" ]; then
+            npx cap add android
+          fi
+          npx cap sync android
+
+      # ── Inject google-services.json from GitHub Secret ─────
+      # Add GOOGLE_SERVICES_JSON secret at:
+      # https://github.com/Someshwaran01/fintrack-pro/settings/secrets/actions
+      # Get value by running: base64 -w 0 google-services.json
+      - name: Inject google-services.json
+        run: |
+          echo "${{ secrets.GOOGLE_SERVICES_JSON }}" | base64 --decode > android/app/google-services.json
+          echo "✅ google-services.json injected"
+
+      # ── Fix SMS + Phone permissions in AndroidManifest ─────
+      # Fixes: "Missing READ_PHONE_STATE permission" debug error
+      - name: Inject SMS & Phone permissions into AndroidManifest
+        run: |
+          MANIFEST="android/app/src/main/AndroidManifest.xml"
+          if [ -f "$MANIFEST" ]; then
+            # Add READ_PHONE_STATE if missing (fixes SMS sync debug error)
+            if ! grep -q "READ_PHONE_STATE" "$MANIFEST"; then
+              sed -i '/<uses-permission android:name="android.permission.INTERNET"/a \    <uses-permission android:name="android.permission.READ_SMS" \/>\n    <uses-permission android:name="android.permission.RECEIVE_SMS" \/>\n    <uses-permission android:name="android.permission.READ_PHONE_STATE" \/>' "$MANIFEST"
+              echo "✅ SMS + READ_PHONE_STATE permissions injected"
+            else
+              echo "✅ Permissions already present"
+            fi
+          else
+            echo "Warning: AndroidManifest.xml not found"
+          fi
+
+      # ── App Icons ──────────────────────────────────────────
+      - name: Generate App Icons
+        run: |
+          npm i -D @capacitor/assets
+          mkdir -p assets
+          cp playstore_assets/fintrack_app_icon_fixed.png assets/icon.png
+          cp playstore_assets/fintrack_app_icon_fixed.png assets/splash.png
+          npx @capacitor/assets generate --android
+
+      # ── SDK version ────────────────────────────────────────
+      - name: Update Target SDK to 35
+        run: |
+          if [ -f "android/variables.gradle" ]; then
+            sed -i 's/targetSdkVersion = 34/targetSdkVersion = 35/g' android/variables.gradle
+            sed -i 's/compileSdkVersion = 34/compileSdkVersion = 35/g' android/variables.gradle
+            echo "✅ SDK updated to 35"
+          fi
+
+      # ── Version code & name ────────────────────────────────
+      - name: Update version code & name in build.gradle
+        run: |
+          if [ -f "android/app/build.gradle" ]; then
+            sed -i "s/versionCode 1/versionCode ${{ github.run_number }}/g" android/app/build.gradle
+            sed -i "s/versionName \"1.0\"/versionName \"${{ steps.release_version.outputs.version }}\"/g" android/app/build.gradle
+            echo "✅ Version updated to ${{ steps.release_version.outputs.version }} (build ${{ github.run_number }})"
+          fi
+
+      # ── Build AAB ──────────────────────────────────────────
+      - name: Build Android Bundle (AAB)
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew bundleRelease --no-daemon
+
+      # ── Sign AAB ───────────────────────────────────────────
+      - name: Sign AAB
+        id: sign_app
+        uses: r0adkll/sign-android-release@v1
+        with:
+          releaseDirectory: android/app/build/outputs/bundle/release
+          signingKeyBase64: ${{ secrets.ANDROID_SIGNING_KEY }}
+          alias: ${{ secrets.ANDROID_ALIAS }}
+          keyStorePassword: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          keyPassword: ${{ secrets.ANDROID_KEY_PASSWORD }}
+
+      # ── Upload AAB artifact ────────────────────────────────
+      - name: Upload AAB artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-aab-v${{ steps.release_version.outputs.version }}-build${{ github.run_number }}
+          path: ${{ steps.sign_app.outputs.signedReleaseFile }}
+          retention-days: 30
+
+      # ── GitHub Release ─────────────────────────────────────
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ steps.sign_app.outputs.signedReleaseFile }}
+          tag_name: v${{ steps.release_version.outputs.version }}-build-${{ github.run_number }}
+          name: Release v${{ steps.release_version.outputs.version }} (Build ${{ github.run_number }})
+          generate_release_notes: true
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+
+  # ═══════════════════════════════════════════════════════════
+  #  JOB 2 — GITHUB PAGES DEPLOY (Web PWA)
+  #  Runs on: push to main/master OR manual dispatch
+  # ═══════════════════════════════════════════════════════════
+  pages_build:
+    name: "🌐 Build for GitHub Pages"
+    runs-on: ubuntu-latest
+
+    # Run if: push to main/master, OR manual dispatch selecting pages/both
+    if: |
+      github.ref == 'refs/heads/main' ||
+      github.ref == 'refs/heads/master' ||
+      (github.event_name == 'workflow_dispatch' &&
+        (github.event.inputs.job == 'pages' || github.event.inputs.job == 'both'))
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Build for GitHub Pages
+        run: npm run build
+        env:
+          GITHUB_PAGES: "true"
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          VITE_GEMINI_API_KEY: ${{ secrets.VITE_GEMINI_API_KEY }}
+          VITE_GROQ_API_KEY: ${{ secrets.VITE_GROQ_API_KEY }}
+          VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
+          VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
+          VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
+          VITE_FIREBASE_STORAGE_BUCKET: ${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}
+          VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
+          VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: "./dist"
+
+  pages_deploy:
+    name: "🚀 Deploy to GitHub Pages"
+    runs-on: ubuntu-latest
+    needs: pages_build
+    # Only run if pages_build actually ran
+    if: |
+      always() &&
+      needs.pages_build.result == 'success'
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
