@@ -21,6 +21,10 @@ export async function signInWithGoogle(): Promise<User | null> {
     const googleUser = await GoogleAuth.signIn();
     const idToken = googleUser.authentication.idToken;
     if (!idToken) throw new Error('No ID token received from Google');
+    
+    // Log the current origin to help debug "unauthorized-domain" error
+    console.log('Current application origin (for Firebase Auth):', window.location.origin);
+    
     const credential = GoogleAuthProvider.credential(idToken);
     const result = await signInWithCredential(auth, credential);
     console.log('Gmail Auth success (native):', result.user.email);

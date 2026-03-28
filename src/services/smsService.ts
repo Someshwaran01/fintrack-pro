@@ -54,30 +54,37 @@ export class SmsService {
     if (Capacitor.getPlatform() !== 'android') return [];
 
     try {
-      // Basic fallback to fetch SMS
+      console.log('Fetching SMS messages for the last', daysBack, 'days...');
+      // Fetch both read (1) and unread (0) messages by omitting or extending count
       const { messages } = await SMSInboxReader.getMessages({
         box: 'inbox',
-        read: 1, // Only read messages or 0 for unread (varies by plugin version)
-        count: 50 // Fetch last 50
+        count: 100 // Increased count to ensure we don't skip recent messages
       });
 
+      console.log(`Found ${messages?.length || 0} total messages in inbox.`);
       const transactions: ParsedTransaction[] = [];
       const cutoffDate = new Date();
       cutoffDate.setDate(cutoffDate.getDate() - daysBack);
 
       for (const msg of messages || []) {
         // Only process messages from verified sender IDs (-S or -T suffix)
-        if (!this.isValidBankSender(msg.address)) continue;
+        if (!this.isValidBankSender(msg.address)) {
+           // console.log('Skipping message from non-bank sender:', msg.address);
+           continue;
+        }
 
         const msgDate = new Date(Number(msg.date));
         if (msgDate < cutoffDate) continue;
 
+        console.log('Processing bank SMS from:', msg.address, 'Body:', msg.body);
         const parsed = this.parseSmsBody(msg.body, msgDate.toISOString());
         if (parsed) {
+          console.log('Successfully parsed transaction:', parsed.amount, parsed.merchant);
           transactions.push(parsed);
         }
       }
 
+      console.log(`Final transaction count: ${transactions.length}`);
       return transactions;
     } catch (error) {
       console.error('Failed to read SMS:', error);
@@ -87,14 +94,16 @@ export class SmsService {
 
   /**
    * Helper to verify if the SMS sender is a Bank/UPI gateway
-   * Example typical sender: AD-HDFCBK-S
+   * Example typical sender: AD-HDFCBK-S or JM-ICICIT-S
    */
   private static isValidBankSender(senderId: string): boolean {
     if (!senderId) return false;
     const cleanId = senderId.toUpperCase();
-    // Broadening the filter: most bank alerts in India start with alphabets like AD-, BX- etc.
-    // and often contain 'BK' (Bank), 'HDFC', 'ICICI', 'SBI', 'AXIS'
-    const bankKeywords = ['-S', '-T', 'BK', 'BANK', 'HDFC', 'ICICI', 'SBI', 'AXIS', 'SBI', 'PNB', 'BOB'];
+    // Broadening the filter to include more Indian bank patterns and specific sender JM-ICICIT-S
+    const bankKeywords = [
+      '-S', '-T', '-B', 'BK', 'BNK', 'BANK', 'HDFC', 'ICICI', 'SBI', 'AXIS', 'SBI', 'PNB', 'BOB', 
+      'RBL', 'CANARA', 'UNIONB', 'INDUS', 'KOTAK', 'FSSPAY', 'PAYTM', 'GIPSHP', 'VPA'
+    ];
     return bankKeywords.some(keyword => cleanId.includes(keyword));
   }
 
@@ -104,32 +113,34 @@ export class SmsService {
   private static parseSmsBody(body: string, dateIso: string): ParsedTransaction | null {
     const text = body.toLowerCase();
     
-    // Check if it's a debit transaction
-    // Common Indian bank patterns: "debited by rs 500", "sent rs. 500", "spent inr 500"
-    const isDebit = text.includes('debited') || text.includes('sent') || text.includes('paid');
+    // Improved debit check: Include 'charged', 'purchased', 'spent'
+    const isDebit = text.includes('debited') || text.includes('sent') || text.includes('paid') || 
+                    text.includes('charged') || text.includes('spent') || text.includes('purchased');
     
-    // Strict Regex to find standard currency structures (Rs./INR/₹ followed by digits and decimals)
-    const amountRegex = /(?:rs\.?|inr|₹)\s*([\w,]+\.?\d*)/i;
+    // Enhanced Regex to find standard currency structures
+    // Specifically handles "INR 30.00" or "Rs. 30.00" with varied spacing
+    const amountRegex = /(?:rs\.?|inr|₹|inr\.)\s*([\w,]+\.?\d*)/i;
     const match = text.match(amountRegex);
     
     if (match && match[1]) {
       // Remove commas and cast to number
-      const parsedAmount = parseFloat(match[1].replace(/,/g, ''));
-      if (isNaN(parsedAmount)) return null;
+      const cleanedAmount = match[1].replace(/,/g, '');
+      const parsedAmount = parseFloat(cleanedAmount);
+      if (isNaN(parsedAmount) || parsedAmount <= 0) return null;
 
       // Merchant Extraction
-      let merchant = "Unknown Merchant";
-      const toMatch = text.match(/to\s+([a-zA-Z0-9\s@\.]+)/i);
-      const atMatch = text.match(/at\s+([a-zA-Z0-9\s\.]+)/i);
-      const fromMatch = text.match(/from\s+([a-zA-Z0-9\s]+)/i);
+      let merchant = "Bank Transaction";
+      const toMatch = text.match(/to\s+([a-zA-Z0-9\s@\.\-_]+)/i);
+      const atMatch = text.match(/(?:at|for)\s+([a-zA-Z0-9\s\.\-_]+)/i);
+      const fromMatch = text.match(/from\s+([a-zA-Z0-9\s\.\-_]+)/i);
       
-      if (toMatch && toMatch[1]) merchant = toMatch[1].trim().substring(0, 25);
-      else if (atMatch && atMatch[1]) merchant = atMatch[1].trim().substring(0, 25);
-      else if (fromMatch && fromMatch[1]) merchant = fromMatch[1].trim().substring(0, 25);
+      if (toMatch && toMatch[1]) merchant = toMatch[1].trim().split('\n')[0].substring(0, 25);
+      else if (atMatch && atMatch[1]) merchant = atMatch[1].trim().split('\n')[0].substring(0, 25);
+      else if (fromMatch && fromMatch[1]) merchant = fromMatch[1].trim().split('\n')[0].substring(0, 25);
 
       return {
         amount: parsedAmount,
-        merchant,
+        merchant: merchant.trim() || "Bank Transaction",
         date: dateIso.split('T')[0],
         type: isDebit ? 'debit' : 'credit',
         originalText: body
