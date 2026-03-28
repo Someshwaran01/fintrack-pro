@@ -55,11 +55,15 @@ export class SmsService {
 
     try {
       console.log('Fetching SMS messages for the last', daysBack, 'days...');
-      // Fetch both read (1) and unread (0) messages by omitting or extending count
-      const { messages } = await SMSInboxReader.getMessages({
-        box: 'inbox',
-        count: 100 // Increased count to ensure we don't skip recent messages
+      // Use getSMSList as per plugin version 2.x API
+      const result = await SMSInboxReader.getSMSList({
+        filter: {
+          maxCount: 100, // Fetch last 100
+          indexFrom: 0
+        }
       });
+
+      const messages = result.smsList || [];
 
       console.log(`Found ${messages?.length || 0} total messages in inbox.`);
       const transactions: ParsedTransaction[] = [];
