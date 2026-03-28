@@ -63,28 +63,45 @@ export class SmsService {
         }
       });
 
-      const messages = result.smsList || [];
+      // CRITICAL: Defensive checks to prevent native-to-JS bridge crashes
+      if (!result) {
+        console.warn('SMSInboxReader returned null/undefined result');
+        return [];
+      }
 
+      const messages = result.smsList || [];
       console.log(`Found ${messages?.length || 0} total messages in inbox.`);
+      
       const transactions: ParsedTransaction[] = [];
       const cutoffDate = new Date();
       cutoffDate.setDate(cutoffDate.getDate() - daysBack);
+      const cutoffTime = cutoffDate.getTime();
 
-      for (const msg of messages || []) {
-        // Only process messages from verified sender IDs (-S or -T suffix)
-        if (!this.isValidBankSender(msg.address)) {
-           // console.log('Skipping message from non-bank sender:', msg.address);
-           continue;
-        }
+      // Ensure messages is an array before looping
+      if (!Array.isArray(messages)) {
+        console.error('messages is not an array:', messages);
+        return [];
+      }
 
-        const msgDate = new Date(Number(msg.date));
-        if (msgDate < cutoffDate) continue;
+      for (const msg of messages) {
+        try {
+          // Skip messages without essential data
+          if (!msg || !msg.date || !msg.body || !msg.address) continue;
+          
+          if (Number(msg.date) < cutoffTime) continue;
 
-        console.log('Processing bank SMS from:', msg.address, 'Body:', msg.body);
-        const parsed = this.parseSmsBody(msg.body, msgDate.toISOString());
-        if (parsed) {
-          console.log('Successfully parsed transaction:', parsed.amount, parsed.merchant);
-          transactions.push(parsed);
+          if (this.isValidBankSender(msg.address)) {
+            console.log('Processing bank SMS from:', msg.address);
+            const parsed = this.parseSmsBody(msg.body, new Date(Number(msg.date)).toISOString());
+            if (parsed) {
+              transactions.push(parsed);
+              console.log('Successfully parsed transaction:', parsed.merchant, parsed.amount);
+            }
+          }
+        } catch (msgError) {
+          // Prevent a single bad message from crashing the whole sync
+          console.error('Error processing single SMS message:', msgError);
+          continue;
         }
       }
 

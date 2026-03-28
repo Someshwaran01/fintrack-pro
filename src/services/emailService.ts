@@ -1,6 +1,6 @@
-import { signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider } from 'firebase/auth';
-import { auth, googleProvider } from '../config/firebase';
+import { auth } from '../config/firebase';
 import { Capacitor } from '@capacitor/core';
+import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 
 export interface ParsedBill {
     cardName: string;
@@ -20,15 +20,27 @@ export class EmailService {
         
         try {
             if (isNative) {
-                // On Android, popups are often blocked or fail in WebViews. 
-                // We use redirect instead, or inform the user to check the guide.
-                console.log('Native platform detected, initiating Google Sign-In...');
-                await signInWithRedirect(auth, googleProvider);
-                // Note: getRedirectResult would normally be called on app reload
-                return null; 
+                // NATIVE ANDROID PATH - No redirect to localhost
+                console.log('Initiating Native Google Sign-In...');
+                await GoogleAuth.initialize();
+                const googleUser = await GoogleAuth.signIn();
+                
+                // For Gmail API, we need the ACCESS TOKEN, not the ID token.
+                // The native plugin provides this in authentication.accessToken
+                if (googleUser && googleUser.authentication.accessToken) {
+                    console.log('Native Token received successfully.');
+                    return googleUser.authentication.accessToken;
+                }
+                
+                throw new Error('Access token not found in native Google response');
             }
 
-            const result = await signInWithPopup(auth, googleProvider);
+            // WEB FALLBACK
+            const { signInWithPopup, GoogleAuthProvider } = await import('firebase/auth');
+            const provider = new GoogleAuthProvider();
+            provider.addScope('https://www.googleapis.com/auth/gmail.readonly');
+            
+            const result = await signInWithPopup(auth, provider);
             const credential = GoogleAuthProvider.credentialFromResult(result);
             if (credential?.accessToken) {
                 return credential.accessToken;
@@ -36,11 +48,7 @@ export class EmailService {
             return null;
         } catch (error: any) {
             console.error('Google Sign-In Error:', error);
-            if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
-                alert("Authentication was cancelled. If you are on Android, please ensure you have followed the 'gmail_sync_setup_guide.md' and have a stable internet connection.");
-            } else {
-                alert(`Authentication failed: ${error.message}`);
-            }
+            alert(`Authentication failed: ${error.message}`);
             return null;
         }
     }
