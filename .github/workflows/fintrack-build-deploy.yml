@@ -209,7 +209,7 @@ jobs:
       # ── Sign AAB ───────────────────────────────────────────
       - name: Sign AAB
         id: sign_app
-        uses: r0adkll/sign-android-release@v1
+        uses: ilharp/sign-android-release@v1
         with:
           releaseDirectory: android/app/build/outputs/bundle/release
           signingKeyBase64: ${{ secrets.ANDROID_SIGNING_KEY }}
