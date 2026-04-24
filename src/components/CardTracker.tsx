@@ -263,7 +263,7 @@ const CardTracker: React.FC<CardTrackerProps> = ({ bills, ccLimits: propsCCLimit
       }
 
       const parsedBills = await EmailService.fetchRecentCreditCardEmails(token, 30);
-      
+
       if (parsedBills.length === 0) {
         alert("No readable credit card statements found in your Gmail for the last 30 days.");
       } else {
@@ -277,7 +277,7 @@ const CardTracker: React.FC<CardTrackerProps> = ({ bills, ccLimits: propsCCLimit
           }
 
           // Check if this bill already exists for this card and month
-          const exists = bills.some(existing => 
+          const exists = bills.some(existing =>
             existing.cardName === pb.cardName && existing.month === selectedMonth
           );
 
@@ -516,7 +516,13 @@ const CardTracker: React.FC<CardTrackerProps> = ({ bills, ccLimits: propsCCLimit
             <div className="bg-white p-10 text-center rounded-2xl border border-gray-100 shadow-sm text-gray-400">
               <i className="fa-solid fa-file-invoice-dollar text-4xl mb-4 opacity-20 block text-indigo-500"></i>
               <p className="font-bold text-gray-500 text-lg">No Due Records</p>
-              <p className="text-xs text-gray-400 mt-1">There are no bills found for this month.</p>
+              <p className="text-xs text-gray-400 mt-1 mb-4">There are no bills found for this month.</p>
+              <button
+                onClick={() => setIsAdding(true)}
+                className="bg-indigo-50 text-indigo-600 px-5 py-2.5 rounded-xl text-xs font-bold hover:bg-indigo-100 transition-colors"
+              >
+                <i className="fa-solid fa-plus mr-1.5"></i> Add Custom Bill
+              </button>
             </div>
           ) : (
             filteredBills.map(bill => (
@@ -612,6 +618,14 @@ const CardTracker: React.FC<CardTrackerProps> = ({ bills, ccLimits: propsCCLimit
 
               </div>
             ))
+          )}
+          {filteredBills.length > 0 && !isAdding && (
+            <button
+              onClick={() => setIsAdding(true)}
+              className="w-full bg-indigo-50 text-indigo-600 px-5 py-3 rounded-2xl text-sm font-bold border border-indigo-100 hover:bg-indigo-100 transition-colors flex items-center justify-center shadow-sm mt-4"
+            >
+              <i className="fa-solid fa-plus mr-2"></i> Add Additional Bill
+            </button>
           )}
         </div>
       )}
