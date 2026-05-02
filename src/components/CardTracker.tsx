@@ -67,6 +67,46 @@ const CardTracker: React.FC<CardTrackerProps> = ({ bills, ccLimits: propsCCLimit
   // Filter bills by selected month
   const filteredBills = bills.filter(b => b.month === selectedMonth);
 
+  // Helper to dynamically calculate display due date
+  const getDisplayDueDate = (bill: CreditCardBill) => {
+    if (!bill.dueDate) return 'N/A';
+    
+    // Check if fully paid
+    const totalPaid = calculateTotalPaid(bill);
+    const isFullyPaid = totalPaid >= bill.monthlyAmount && bill.monthlyAmount > 0;
+    
+    if (!isFullyPaid) return bill.dueDate;
+
+    // Parse "16 May-26"
+    const parts = bill.dueDate.split(' ');
+    if (parts.length === 2) {
+      const day = parseInt(parts[0]);
+      const monthYear = parts[1]; // "May-26"
+      
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const myParts = monthYear.split('-');
+      if (myParts.length === 2) {
+        const mIndex = monthNames.indexOf(myParts[0]);
+        const year = 2000 + parseInt(myParts[1]);
+        
+        // Create Date object for due date
+        const dueDateObj = new Date(year, mIndex, day);
+        const now = new Date();
+        
+        // Set time to end of day to ensure we only rollover AFTER the date has crossed
+        dueDateObj.setHours(23, 59, 59, 999);
+        
+        if (now > dueDateObj) {
+            // It has crossed AND is fully paid! Rollover to next month!
+            const nextMonthStr = getNextMonth(monthYear);
+            return `${day} ${nextMonthStr}`;
+        }
+      }
+    }
+    
+    return bill.dueDate;
+  };
+
   const totalDue = filteredBills.reduce((acc, b) => acc + b.monthlyAmount, 0);
   const totalPaid = filteredBills.reduce((acc, b) => acc + calculateTotalPaid(b), 0);
   const status = totalPaid >= totalDue && totalDue > 0 ? 'Success' : 'Check Payment';
@@ -193,12 +233,11 @@ const CardTracker: React.FC<CardTrackerProps> = ({ bills, ccLimits: propsCCLimit
       onUpdateCCLimits(updatedLimits);
 
       // Create Bill for current month
-      const nextMonth = getNextMonth(selectedMonth);
       const bill: CreditCardBill = {
         id: (Date.now() + 1).toString(),
         cardName: newCCLimit.cardName || '',
         category: newCCLimit.category || BILL_CATEGORIES[0],
-        dueDate: `${newCCLimit.formDueDate} ${nextMonth}`,
+        dueDate: `${newCCLimit.formDueDate} ${selectedMonth}`,
         month: selectedMonth,
         isEmi: false,
         totalAmount: Number(newCCLimit.monthlyAmount) || 0,
@@ -542,7 +581,7 @@ const CardTracker: React.FC<CardTrackerProps> = ({ bills, ccLimits: propsCCLimit
                   </div>
                   <div className="text-right bg-gray-50 px-3 py-1.5 rounded-xl border border-gray-100">
                     <p className="text-[9px] text-gray-400 font-black uppercase tracking-widest mb-0.5">Due Date</p>
-                    <p className="font-bold text-gray-800 text-sm whitespace-nowrap">{bill.dueDate || 'N/A'}</p>
+                    <p className="font-bold text-gray-800 text-sm whitespace-nowrap">{getDisplayDueDate(bill)}</p>
                   </div>
                 </div>
 

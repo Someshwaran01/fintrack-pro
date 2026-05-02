@@ -73,9 +73,8 @@ const App: React.FC = () => {
 
     // We don't use initializedMonths.current.has check here because ccLimits might change
     // Instead we check if any card is missing for the current month
-    const nextMonth = getNextMonth(selectedMonth);
     const existingCardNames = bills
-      .filter(b => b.month === selectedMonth || (b.dueDate && b.dueDate.includes(selectedMonth)))
+      .filter(b => b.month === selectedMonth)
       .map(b => b.cardName.trim());
 
     const cardsToAdd: CreditCardBill[] = [];
@@ -87,7 +86,7 @@ const App: React.FC = () => {
           id: `${trimmedName}-${selectedMonth}-${Date.now()}`,
           cardName: trimmedName,
           category: 'Banking',
-          dueDate: `${limit.dueDate} ${nextMonth}`,
+          dueDate: `${limit.dueDate} ${selectedMonth}`,
           month: selectedMonth,
           isEmi: false,
           totalAmount: 0,
