@@ -223,14 +223,14 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: release-aab-v${{ steps.release_version.outputs.version }}-build${{ github.run_number }}
-          path: ${{ steps.sign_app.outputs.signedReleaseFile }}
+          path: ${{ env.ANDROID_SIGNED_FILE }}
           retention-days: 30
 
       # ── GitHub Release ─────────────────────────────────────
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: ${{ steps.sign_app.outputs.signedReleaseFile }}
+          files: ${{ env.ANDROID_SIGNED_FILE }}
           tag_name: v${{ steps.release_version.outputs.version }}-build-${{ github.run_number }}
           name: Release v${{ steps.release_version.outputs.version }} (Build ${{ github.run_number }})
           generate_release_notes: true
