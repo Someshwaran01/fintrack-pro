@@ -216,6 +216,7 @@ jobs:
           keyAlias: ${{ secrets.ANDROID_ALIAS }}
           keyStorePassword: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           keyPassword: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          buildToolsVersion: 34.0.0
 
       # ── Upload AAB artifact ────────────────────────────────
       - name: Upload AAB artifact
